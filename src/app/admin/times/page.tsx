@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users, Upload } from "lucide-react";
 import { HudCard } from "@/components/hud-card";
 import { useEffect, useState } from "react";
 import { Team, createTeam, updateTeam, deleteTeam } from "@/lib/api";
@@ -22,6 +22,41 @@ export default function AdminTimes() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const teamsToImport = Array.isArray(data) ? data : [data];
+      let imported = 0;
+      for (const t of teamsToImport) {
+        const auth_name: Record<string, string> = {};
+        if (t.auth_name) {
+          Object.entries(t.auth_name).forEach(([k, v]) => { auth_name[k] = typeof v === "string" ? v : (v as { name: string }).name; });
+        } else if (t.players) {
+          Object.entries(t.players).forEach(([k, v]) => { auth_name[k] = typeof v === "string" ? v : (v as { name: string }).name; });
+        }
+        await createTeam({
+          name: t.name || t.team_name || "Imported Team",
+          tag: t.tag || t.name?.substring(0, 4) || "IMP",
+          flag: t.flag || "BR",
+          public_team: t.public_team ?? true,
+          auth_name,
+        });
+        imported++;
+      }
+      setFeedback({ type: "success", msg: `${imported} time(s) importado(s)!` });
+      await fetchTeams();
+    } catch (err) {
+      setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao importar" });
+    }
+    setImporting(false);
+    e.target.value = "";
+  };
 
   const fetchTeams = async () => {
     try {
@@ -123,13 +158,22 @@ export default function AdminTimes() {
           TIMES ({teams.length})
         </h2>
         {!showForm && (
-          <button
-            onClick={() => { resetForm(); setShowForm(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple"
-          >
-            <Plus size={14} />
-            NOVO TIME
-          </button>
+          <div className="flex items-center gap-2">
+            <label className={`flex items-center gap-2 px-4 py-2 border transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider cursor-pointer ${
+              importing ? "bg-orbital-purple/5 border-orbital-border text-orbital-text-dim" : "bg-orbital-card border-orbital-border hover:border-orbital-purple/40 text-orbital-text-dim hover:text-orbital-purple"
+            }`}>
+              <Upload size={14} />
+              {importing ? "IMPORTANDO..." : "IMPORTAR"}
+              <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={importing} />
+            </label>
+            <button
+              onClick={() => { resetForm(); setShowForm(true); }}
+              className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple"
+            >
+              <Plus size={14} />
+              NOVO TIME
+            </button>
+          </div>
         )}
       </div>
 

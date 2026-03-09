@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, Loader2, Check, AlertCircle, Calendar } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Check, AlertCircle, Calendar, Upload } from "lucide-react";
 import { HudCard } from "@/components/hud-card";
 import { useEffect, useState } from "react";
 import { Season, createSeason, updateSeason, deleteSeason } from "@/lib/api";
@@ -19,6 +19,33 @@ export default function AdminSeasons() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const items = Array.isArray(data) ? data : [data];
+      let imported = 0;
+      for (const s of items) {
+        await createSeason({
+          name: s.name || "Imported Season",
+          start_date: s.start_date || new Date().toISOString().split("T")[0],
+          end_date: s.end_date || undefined,
+        });
+        imported++;
+      }
+      setFeedback({ type: "success", msg: `${imported} season(s) importada(s)!` });
+      await fetchSeasons();
+    } catch (err) {
+      setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao importar" });
+    }
+    setImporting(false);
+    e.target.value = "";
+  };
 
   const fetchSeasons = async () => {
     try {
@@ -123,10 +150,19 @@ export default function AdminSeasons() {
           SEASONS ({seasons.length})
         </h2>
         {!showForm && (
-          <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple">
-            <Plus size={14} />
-            NOVA SEASON
-          </button>
+          <div className="flex items-center gap-2">
+            <label className={`flex items-center gap-2 px-4 py-2 border transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider cursor-pointer ${
+              importing ? "bg-orbital-purple/5 border-orbital-border text-orbital-text-dim" : "bg-orbital-card border-orbital-border hover:border-orbital-purple/40 text-orbital-text-dim hover:text-orbital-purple"
+            }`}>
+              <Upload size={14} />
+              {importing ? "IMPORTANDO..." : "IMPORTAR"}
+              <input type="file" accept=".json" onChange={handleImport} className="hidden" disabled={importing} />
+            </label>
+            <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple">
+              <Plus size={14} />
+              NOVA SEASON
+            </button>
+          </div>
         )}
       </div>
 
