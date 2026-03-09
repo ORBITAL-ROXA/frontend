@@ -502,7 +502,7 @@ export async function sendMatchRcon(matchId: number, command: string): Promise<{
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ command }),
+    body: JSON.stringify([{ rcon_command: command }]),
   });
   if (!res.ok) throw new Error(`Erro ao enviar RCON: ${res.status}`);
   return res.json();
