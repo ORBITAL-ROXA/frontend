@@ -484,7 +484,11 @@ export async function getMatchBackups(matchId: number): Promise<string[]> {
   });
   if (!res.ok) return [];
   const data = await res.json();
-  return data.backups || data || [];
+  // G5API retorna { message: "...", response: "backup1.cfg\nbackup2.cfg\n..." }
+  if (typeof data.response === "string") {
+    return data.response.split("\n").map((s: string) => s.trim()).filter(Boolean);
+  }
+  return data.backups || [];
 }
 
 export async function restoreMatchBackup(matchId: number, backupFile: string): Promise<void> {
@@ -492,7 +496,7 @@ export async function restoreMatchBackup(matchId: number, backupFile: string): P
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ backup_file: backupFile }),
+    body: JSON.stringify([{ backup_name: backupFile }]),
   });
   if (!res.ok) throw new Error(`Erro ao restaurar backup: ${res.status}`);
 }
