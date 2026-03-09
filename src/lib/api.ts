@@ -409,12 +409,11 @@ export async function createMatch(match: {
 }
 
 export async function updateMatch(match: { match_id: number; [key: string]: unknown }): Promise<void> {
-  const { match_id, ...rest } = match;
   const res = await fetch(`${API_WRITE_PROXY}/matches`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify([{ id: match_id, ...rest }]),
+    body: JSON.stringify([match]),
   });
   if (!res.ok) throw new Error(`Erro ao atualizar partida: ${res.status}`);
 }
