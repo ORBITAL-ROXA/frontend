@@ -24,6 +24,11 @@ export default function AdminCampeonatos() {
   const [wizardStep, setWizardStep] = useState(0);
   const [name, setName] = useState("");
   const [seasonId, setSeasonId] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [prizePool, setPrizePool] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
   const [mapPool, setMapPool] = useState<string[]>(getDefaultMapPool());
   const [submitting, setSubmitting] = useState(false);
@@ -90,6 +95,11 @@ export default function AdminCampeonatos() {
         created_at: new Date().toISOString(),
         status: "pending",
         current_match_id: null,
+        start_date: startDate || null,
+        end_date: endDate || null,
+        location: location || null,
+        prize_pool: prizePool || null,
+        description: description || null,
       };
 
       await fetch("/api/tournaments", {
@@ -103,6 +113,11 @@ export default function AdminCampeonatos() {
       setSelectedTeams([]);
       setMapPool(getDefaultMapPool());
       setSeasonId("");
+      setStartDate("");
+      setEndDate("");
+      setLocation("");
+      setPrizePool("");
+      setDescription("");
       await fetchData();
       setTimeout(() => { setShowCreate(false); setWizardStep(0); }, 1500);
     } catch (err) {
@@ -216,6 +231,30 @@ export default function AdminCampeonatos() {
                         <option value="">Nenhuma</option>
                         {seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelClass}>DATA INÍCIO</label>
+                        <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>DATA FIM</label>
+                        <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={inputClass} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelClass}>LOCALIZAÇÃO (opcional)</label>
+                        <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Ex: São Paulo, BR" className={`${inputClass} placeholder:text-orbital-text-dim/30`} />
+                      </div>
+                      <div>
+                        <label className={labelClass}>PREMIAÇÃO (opcional)</label>
+                        <input type="text" value={prizePool} onChange={e => setPrizePool(e.target.value)} placeholder="Ex: R$ 5.000" className={`${inputClass} placeholder:text-orbital-text-dim/30`} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelClass}>DESCRIÇÃO (opcional)</label>
+                      <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição breve do campeonato..." rows={2} className={`${inputClass} placeholder:text-orbital-text-dim/30 resize-none`} />
                     </div>
                     <div className="bg-[#0A0A0A] border border-orbital-border p-4">
                       <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple mb-2">FORMATO</div>
@@ -335,6 +374,9 @@ export default function AdminCampeonatos() {
                         <p><span className="text-orbital-text">Formato:</span> Eliminação Dupla — 8 times</p>
                         <p><span className="text-orbital-text">Partidas:</span> 12x BO1 + 1x BO3 (Grand Final)</p>
                         <p><span className="text-orbital-text">Map Pool:</span> {mapPool.map(m => m.replace("de_", "")).join(", ")}</p>
+                        {startDate && <p><span className="text-orbital-text">Período:</span> {startDate}{endDate ? ` — ${endDate}` : ""}</p>}
+                        {location && <p><span className="text-orbital-text">Local:</span> {location}</p>}
+                        {prizePool && <p><span className="text-orbital-text">Premiação:</span> {prizePool}</p>}
                       </div>
 
                       <div className="border-t border-orbital-border pt-3">

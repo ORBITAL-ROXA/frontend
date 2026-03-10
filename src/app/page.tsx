@@ -1,21 +1,34 @@
 import { getMatches, getTeams, Match, Team, getStatusType } from "@/lib/api";
+import { Tournament } from "@/lib/tournament";
 import { HomeContent } from "./home-content";
 
 export const revalidate = 30;
+
+async function getTournaments(): Promise<Tournament[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3001";
+    const res = await fetch(`${baseUrl}/api/tournaments`, { next: { revalidate: 30 } });
+    const data = await res.json();
+    return data.tournaments || [];
+  } catch {
+    return [];
+  }
+}
 
 export default async function HomePage() {
   let matches: Match[] = [];
   let teams: Team[] = [];
 
-  try {
-    const [matchesRes, teamsRes] = await Promise.all([
-      getMatches(),
-      getTeams(),
-    ]);
-    matches = matchesRes.matches || [];
-    teams = teamsRes.teams || [];
-  } catch {
-    // API pode estar offline
+  const [tournamentsData, apiData] = await Promise.all([
+    getTournaments(),
+    Promise.all([getMatches(), getTeams()]).catch(() => [{ matches: [] }, { teams: [] }]),
+  ]);
+
+  if (Array.isArray(apiData)) {
+    matches = (apiData[0] as { matches: Match[] }).matches || [];
+    teams = (apiData[1] as { teams: Team[] }).teams || [];
   }
 
   const teamsMap: Record<number, { name: string; logo: string | null }> = {};
@@ -29,8 +42,15 @@ export default async function HomePage() {
     .filter((m) => getStatusType(m) === "upcoming")
     .slice(0, 3);
 
+  // Find active tournament (priority: active > pending > finished)
+  const activeTournament = tournamentsData.find(t => t.status === "active")
+    || tournamentsData.find(t => t.status === "pending")
+    || tournamentsData[0]
+    || null;
+
   return (
     <HomeContent
+      tournament={activeTournament}
       liveMatches={liveMatches}
       recentMatches={recentMatches}
       upcomingMatches={upcomingMatches}

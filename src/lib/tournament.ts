@@ -46,6 +46,12 @@ export interface Tournament {
   created_at: string;
   status: "pending" | "active" | "finished";
   current_match_id: string | null;
+  // Event details (optional, for homepage display)
+  start_date?: string | null;
+  end_date?: string | null;
+  location?: string | null;
+  prize_pool?: string | null;
+  description?: string | null;
 }
 
 const CS2_MAPS = [
