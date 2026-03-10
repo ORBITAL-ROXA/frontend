@@ -1,4 +1,4 @@
-import { getMatches, getTeams, Match, Team, getStatusType } from "@/lib/api";
+import { getMatches, getTeams, getMapStats, Match, Team, MapStats, getStatusType } from "@/lib/api";
 import { Tournament } from "@/lib/tournament";
 import { getTournamentsFromDB } from "@/lib/tournaments-db";
 import { HomeContent } from "./home-content";
@@ -33,6 +33,24 @@ export default async function HomePage() {
     .filter((m) => getStatusType(m) === "upcoming")
     .slice(0, 3);
 
+  // Fetch map stats for finished + live matches (to show round scores)
+  const displayedMatches = [...liveMatches, ...recentMatches];
+  const mapScoresMap: Record<number, { team1_score: number; team2_score: number; map_name: string }[]> = {};
+  await Promise.all(
+    displayedMatches.map(async (m) => {
+      try {
+        const { mapStats } = await getMapStats(m.id);
+        if (mapStats?.length > 0) {
+          mapScoresMap[m.id] = mapStats.map(ms => ({
+            team1_score: ms.team1_score,
+            team2_score: ms.team2_score,
+            map_name: ms.map_name,
+          }));
+        }
+      } catch { /* ignore */ }
+    })
+  );
+
   // Find active tournament (priority: active > pending > finished)
   const activeTournament = tournaments.find(t => t.status === "active")
     || tournaments.find(t => t.status === "pending")
@@ -48,6 +66,7 @@ export default async function HomePage() {
       totalMatches={matches.length}
       teamCount={teams.length}
       teamsMap={teamsMap}
+      mapScoresMap={mapScoresMap}
     />
   );
 }

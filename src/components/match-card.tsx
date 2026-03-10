@@ -9,9 +9,10 @@ interface MatchCardProps {
   match: Match;
   delay?: number;
   teamsMap?: Record<number, { name: string; logo: string | null }>;
+  mapScores?: { team1_score: number; team2_score: number; map_name: string }[];
 }
 
-export function MatchCard({ match, delay = 0, teamsMap }: MatchCardProps) {
+export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardProps) {
   const team1Logo = teamsMap?.[match.team1_id]?.logo || null;
   const team2Logo = teamsMap?.[match.team2_id]?.logo || null;
   const statusType = getStatusType(match);
@@ -101,6 +102,26 @@ export function MatchCard({ match, delay = 0, teamsMap }: MatchCardProps) {
                 )}
               </div>
             </div>
+
+            {/* Map Scores */}
+            {mapScores && mapScores.length > 0 && (
+              <div className="mt-2 flex items-center justify-center gap-3">
+                {mapScores.map((ms, i) => (
+                  <div key={i} className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.02] border border-orbital-border/30">
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+                      {ms.map_name.replace("de_", "").toUpperCase()}
+                    </span>
+                    <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold ${
+                      ms.team1_score > ms.team2_score ? "text-orbital-success" : "text-orbital-text-dim"
+                    }`}>{ms.team1_score}</span>
+                    <span className="text-orbital-text-dim text-[0.45rem]">:</span>
+                    <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold ${
+                      ms.team2_score > ms.team1_score ? "text-orbital-success" : "text-orbital-text-dim"
+                    }`}>{ms.team2_score}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Footer */}
             <div className="mt-3 flex items-center justify-between">

@@ -26,6 +26,8 @@ function TeamLogo({ logo, size = 32, className = "" }: { logo: string | null | u
   return <img src={logo} alt="" width={size} height={size} className={`object-contain ${className}`} />;
 }
 
+export type MapScoresMap = Record<number, { team1_score: number; team2_score: number; map_name: string }[]>;
+
 interface HomeContentProps {
   tournament: Tournament | null;
   liveMatches: Match[];
@@ -34,22 +36,24 @@ interface HomeContentProps {
   totalMatches: number;
   teamCount: number;
   teamsMap?: Record<number, { name: string; logo: string | null }>;
+  mapScoresMap?: MapScoresMap;
 }
 
-export function HomeContent({ tournament, liveMatches, recentMatches, upcomingMatches, totalMatches, teamCount, teamsMap }: HomeContentProps) {
+export function HomeContent({ tournament, liveMatches, recentMatches, upcomingMatches, totalMatches, teamCount, teamsMap, mapScoresMap }: HomeContentProps) {
   if (tournament) {
-    return <TournamentHome tournament={tournament} liveMatches={liveMatches} recentMatches={recentMatches} teamsMap={teamsMap} />;
+    return <TournamentHome tournament={tournament} liveMatches={liveMatches} recentMatches={recentMatches} teamsMap={teamsMap} mapScoresMap={mapScoresMap} />;
   }
 
-  return <DefaultHome liveMatches={liveMatches} recentMatches={recentMatches} upcomingMatches={upcomingMatches} totalMatches={totalMatches} teamCount={teamCount} teamsMap={teamsMap} />;
+  return <DefaultHome liveMatches={liveMatches} recentMatches={recentMatches} upcomingMatches={upcomingMatches} totalMatches={totalMatches} teamCount={teamCount} teamsMap={teamsMap} mapScoresMap={mapScoresMap} />;
 }
 
 // ── Tournament-focused homepage ──
-function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap }: {
+function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, mapScoresMap }: {
   tournament: Tournament;
   liveMatches: Match[];
   recentMatches: Match[];
   teamsMap?: Record<number, { name: string; logo: string | null }>;
+  mapScoresMap?: MapScoresMap;
 }) {
   const finished = t.matches.filter(m => m.status === "finished").length;
   const total = t.matches.length;
@@ -326,7 +330,7 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap }:
         {tournamentRecentMatches.length > 0 ? (
           <div className="grid gap-3">
             {tournamentRecentMatches.slice(0, 5).map((match, i) => (
-              <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.08} />
+              <MatchCard key={match.id} match={match} teamsMap={teamsMap} mapScores={mapScoresMap?.[match.id]} delay={i * 0.08} />
             ))}
           </div>
         ) : (
@@ -346,7 +350,7 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap }:
             <SectionHeader icon={Activity} title="AO VIVO" accent="live" />
             <div className="grid gap-3">
               {tournamentLiveMatches.map((match, i) => (
-                <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.1} />
+                <MatchCard key={match.id} match={match} teamsMap={teamsMap} mapScores={mapScoresMap?.[match.id]} delay={i * 0.1} />
               ))}
             </div>
           </section>
@@ -476,7 +480,7 @@ function BracketPreview({ tournament: t }: { tournament: Tournament }) {
 }
 
 // ── Default homepage (no tournament) ──
-function DefaultHome({ liveMatches, recentMatches, upcomingMatches, totalMatches, teamCount, teamsMap }: Omit<HomeContentProps, "tournament">) {
+function DefaultHome({ liveMatches, recentMatches, upcomingMatches, totalMatches, teamCount, teamsMap, mapScoresMap }: Omit<HomeContentProps, "tournament">) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
       <section className="py-16 sm:py-24 text-center relative">
@@ -511,14 +515,14 @@ function DefaultHome({ liveMatches, recentMatches, upcomingMatches, totalMatches
       {liveMatches.length > 0 && (
         <section className="mb-12">
           <SectionHeader icon={Activity} title="AO VIVO" accent="live" />
-          <div className="grid gap-4">{liveMatches.map((match, i) => <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.1} />)}</div>
+          <div className="grid gap-4">{liveMatches.map((match, i) => <MatchCard key={match.id} match={match} teamsMap={teamsMap} mapScores={mapScoresMap?.[match.id]} delay={i * 0.1} />)}</div>
         </section>
       )}
 
       <section className="mb-12">
         <SectionHeader icon={Swords} title="PARTIDAS RECENTES" href="/partidas" />
         {recentMatches.length > 0 ? (
-          <div className="grid gap-3">{recentMatches.map((match, i) => <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.08} />)}</div>
+          <div className="grid gap-3">{recentMatches.map((match, i) => <MatchCard key={match.id} match={match} teamsMap={teamsMap} mapScores={mapScoresMap?.[match.id]} delay={i * 0.08} />)}</div>
         ) : (
           <HudCard><p className="text-center text-orbital-text-dim font-[family-name:var(--font-jetbrains)] text-sm">Nenhuma partida finalizada ainda</p></HudCard>
         )}
@@ -527,7 +531,7 @@ function DefaultHome({ liveMatches, recentMatches, upcomingMatches, totalMatches
       {upcomingMatches.length > 0 && (
         <section className="mb-12">
           <SectionHeader icon={Crosshair} title="PRÓXIMAS PARTIDAS" />
-          <div className="grid gap-3">{upcomingMatches.map((match, i) => <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.08} />)}</div>
+          <div className="grid gap-3">{upcomingMatches.map((match, i) => <MatchCard key={match.id} match={match} teamsMap={teamsMap} mapScores={mapScoresMap?.[match.id]} delay={i * 0.08} />)}</div>
         </section>
       )}
 
