@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users, Upload, ImagePlus } from "lucide-react";
 import { HudCard } from "@/components/hud-card";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Team, createTeam, updateTeam, deleteTeam } from "@/lib/api";
 
 export default function AdminTimes() {
@@ -18,7 +18,7 @@ export default function AdminTimes() {
   const [flag, setFlag] = useState("BR");
   const [logo, setLogo] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const logoInputRef = useRef<HTMLInputElement>(null);
+
   const [isPublic, setIsPublic] = useState(true);
   const [players, setPlayers] = useState<{ steamId: string; name: string }[]>([{ steamId: "", name: "" }]);
 
@@ -183,34 +183,6 @@ export default function AdminTimes() {
         )}
       </div>
 
-      {/* File input - using id + label[htmlFor] for guaranteed native dialog */}
-      <input
-        id="logo-upload-input"
-        ref={logoInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-        className="sr-only"
-        disabled={uploadingLogo}
-        onChange={async (e) => {
-          console.log("[LOGO DEBUG] onChange fired!", e.target.files);
-          const file = e.target.files?.[0];
-          if (!file) return;
-          setUploadingLogo(true);
-          try {
-            const formData = new FormData();
-            formData.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: formData });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro no upload");
-            setLogo(data.url);
-          } catch (err) {
-            setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao enviar logo" });
-          }
-          setUploadingLogo(false);
-          e.target.value = "";
-        }}
-      />
-
       {/* Form */}
       <AnimatePresence>
         {showForm && (
@@ -254,6 +226,31 @@ export default function AdminTimes() {
                         </button>
                       </div>
                     ) : (
+                      <>
+                      <input
+                        id="logo-upload-input"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                        style={{ position: "absolute", width: 0, height: 0, opacity: 0, overflow: "hidden", pointerEvents: "none" }}
+                        disabled={uploadingLogo}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingLogo(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            const res = await fetch("/api/upload", { method: "POST", body: formData });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || "Erro no upload");
+                            setLogo(data.url);
+                          } catch (err) {
+                            setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao enviar logo" });
+                          }
+                          setUploadingLogo(false);
+                          e.target.value = "";
+                        }}
+                      />
                       <label
                         htmlFor="logo-upload-input"
                         className={`flex items-center gap-2 px-4 py-3 border border-dashed transition-all w-full justify-center ${
@@ -269,6 +266,7 @@ export default function AdminTimes() {
                           {uploadingLogo ? "Enviando..." : "Clique para enviar logo"}
                         </span>
                       </label>
+                      </>
                     )}
                   </div>
                 </div>
