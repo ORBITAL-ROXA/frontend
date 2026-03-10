@@ -6,13 +6,14 @@ export const revalidate = 30;
 
 async function getTournaments(): Promise<Tournament[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3001";
-    const res = await fetch(`${baseUrl}/api/tournaments`, { next: { revalidate: 30 } });
+    // In Vercel, use VERCEL_URL; locally, use localhost
+    const host = process.env.VERCEL_URL || "localhost:3001";
+    const protocol = process.env.VERCEL_URL ? "https" : "http";
+    const res = await fetch(`${protocol}://${host}/api/tournaments`, { next: { revalidate: 30 } });
     const data = await res.json();
     return data.tournaments || [];
-  } catch {
+  } catch (e) {
+    console.error("[HOME] Failed to fetch tournaments:", e);
     return [];
   }
 }
