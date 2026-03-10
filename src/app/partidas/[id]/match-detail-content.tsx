@@ -302,6 +302,56 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         />
       )}
 
+      {/* ═══ MATCH INFO (shown when no stats yet — pending/upcoming) ═══ */}
+      {mapStats.length === 0 && playerStats.length === 0 && (
+        <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Crosshair size={14} className="text-orbital-purple" />
+            <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">INFORMAÇÕES</h3>
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
+          </div>
+          <div className="bg-orbital-card border border-orbital-border p-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <InfoItem label="FORMATO" value={`BO${match.max_maps || match.num_maps || 1}`} />
+              <InfoItem label="JOGADORES" value={`${match.players_per_team || 5}v${match.players_per_team || 5}`} />
+              <InfoItem label="PARTIDA" value={`#${match.id}`} />
+              {server && <InfoItem label="SERVIDOR" value={server.display_name || `${server.ip_string}:${server.port}`} />}
+              {match.season_id && <InfoItem label="SEASON" value={`#${match.season_id}`} />}
+              {match.veto_first && <InfoItem label="VETO FIRST" value={match.veto_first === "team1" ? (match.team1_string || team1?.name || "Time 1") : (match.team2_string || team2?.name || "Time 2")} />}
+              {match.skip_veto && <InfoItem label="VETO" value="Desativado" />}
+              {match.side_type && <InfoItem label="SIDES" value={match.side_type === "standard" ? "Padrão" : match.side_type === "always_knife" ? "Knife" : match.side_type} />}
+            </div>
+
+            {/* Status message */}
+            <div className="mt-5 pt-4 border-t border-orbital-border/30 text-center">
+              <div className="flex items-center justify-center gap-2">
+                {isActive && !isLive && (
+                  <>
+                    <Clock size={14} className="text-orbital-warning" />
+                    <span className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-warning">
+                      Aguardando início da partida
+                    </span>
+                  </>
+                )}
+                {isLive && (
+                  <>
+                    <Radio size={14} className="text-orbital-live animate-pulse-live" />
+                    <span className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-live">
+                      Partida em andamento — aguardando dados
+                    </span>
+                  </>
+                )}
+                {match.cancelled && (
+                  <span className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-danger">
+                    Partida cancelada
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
       {/* ═══ MAPS SECTION (HLTV-style with images) ═══ */}
       {mapStats.length > 0 && (
         <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
@@ -486,14 +536,25 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
             )}
           </div>
         </motion.section>
-      ) : (
+      ) : mapStats.length > 0 ? (
+        /* Has maps but no player stats yet */
         <HudCard className="text-center py-8">
           <Users size={24} className="text-orbital-border mx-auto mb-3" />
           <p className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text-dim">
-            {isLive ? "Aguardando dados dos jogadores..." : "Sem estatísticas disponíveis"}
+            {isLive ? "Aguardando dados dos jogadores..." : "Sem estatísticas de jogadores"}
           </p>
         </HudCard>
-      )}
+      ) : null}
+    </div>
+  );
+}
+
+// ── Info Item ──
+function InfoItem({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.2em] text-orbital-text-dim mb-1">{label}</div>
+      <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text">{value}</div>
     </div>
   );
 }
