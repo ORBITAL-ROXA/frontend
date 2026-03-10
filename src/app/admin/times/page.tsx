@@ -121,13 +121,22 @@ export default function AdminTimes() {
 
     setSubmitting(true);
     try {
+      let teamId: number;
       if (editing) {
-        await updateTeam({ team_id: editing.id, name, tag, flag, logo: logo || undefined, public_team: isPublic, auth_name });
+        await updateTeam({ team_id: editing.id, name, tag, flag, public_team: isPublic, auth_name });
+        teamId = editing.id;
         setFeedback({ type: "success", msg: `Time "${name}" atualizado!` });
       } else {
-        await createTeam({ name, tag, flag, logo: logo || undefined, public_team: isPublic, auth_name });
+        const result = await createTeam({ name, tag, flag, public_team: isPublic, auth_name });
+        teamId = (result as unknown as { id: number }).id;
         setFeedback({ type: "success", msg: `Time "${name}" criado!` });
       }
+      // Save logo URL directly in DB (G5API doesn't support URL logos)
+      await fetch("/api/team-logo", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamId, logoUrl: logo || null }),
+      });
       await fetchTeams();
       setTimeout(resetForm, 1500);
     } catch (err) {
