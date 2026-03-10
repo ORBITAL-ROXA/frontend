@@ -226,37 +226,34 @@ export default function AdminTimes() {
                         </button>
                       </div>
                     ) : (
-                      <>
-                      <input
-                        id="logo-upload-input"
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-                        style={{ position: "absolute", width: 0, height: 0, opacity: 0, overflow: "hidden", pointerEvents: "none" }}
-                        disabled={uploadingLogo}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingLogo(true);
-                          try {
-                            const formData = new FormData();
-                            formData.append("file", file);
-                            const res = await fetch("/api/upload", { method: "POST", body: formData });
-                            const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || "Erro no upload");
-                            setLogo(data.url);
-                          } catch (err) {
-                            setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao enviar logo" });
-                          }
-                          setUploadingLogo(false);
-                          e.target.value = "";
-                        }}
-                      />
                       <label
-                        htmlFor="logo-upload-input"
                         className={`flex items-center gap-2 px-4 py-3 border border-dashed transition-all w-full justify-center ${
                           uploadingLogo ? "border-orbital-purple/50 bg-orbital-purple/5 pointer-events-none" : "border-orbital-border hover:border-orbital-purple/40 hover:bg-orbital-purple/5 cursor-pointer"
                         }`}
                       >
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                          className="hidden"
+                          disabled={uploadingLogo}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setUploadingLogo(true);
+                            try {
+                              const formData = new FormData();
+                              formData.append("file", file);
+                              const res = await fetch("/api/upload", { method: "POST", body: formData });
+                              const data = await res.json();
+                              if (!res.ok) throw new Error(data.error || "Erro no upload");
+                              setLogo(data.url);
+                            } catch (err) {
+                              setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao enviar logo" });
+                            }
+                            setUploadingLogo(false);
+                            e.target.value = "";
+                          }}
+                        />
                         {uploadingLogo ? (
                           <Loader2 size={16} className="text-orbital-purple animate-spin" />
                         ) : (
@@ -266,7 +263,6 @@ export default function AdminTimes() {
                           {uploadingLogo ? "Enviando..." : "Clique para enviar logo"}
                         </span>
                       </label>
-                      </>
                     )}
                   </div>
                 </div>
