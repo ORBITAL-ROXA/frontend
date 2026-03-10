@@ -365,14 +365,25 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap }:
   );
 }
 
-// ── Bracket Preview (simplified visual) ──
+// ── Bracket Preview (with connectors) ──
 function BracketPreview({ tournament: t }: { tournament: Tournament }) {
   const winnerQFs = t.matches.filter(m => m.bracket === "winner" && m.round === 1);
   const winnerSFs = t.matches.filter(m => m.bracket === "winner" && m.round === 2);
   const wf = t.matches.find(m => m.id === "WF");
   const gf = t.matches.find(m => m.id === "GF");
 
-  const MatchSlot = ({ match }: { match: typeof t.matches[0] | undefined }) => {
+  const TeamRow = ({ name, isWinner, isLive }: { name: string; isWinner: boolean; isLive?: boolean }) => (
+    <div className={`flex items-center justify-between px-2.5 py-1 ${isWinner ? "bg-orbital-purple/10" : ""}`}>
+      <span className={`truncate text-[0.6rem] font-[family-name:var(--font-jetbrains)] ${
+        isWinner ? "text-orbital-purple font-bold" : "text-orbital-text-dim"
+      }`}>
+        {name}
+      </span>
+      {isLive && <span className="flex items-center gap-1 text-orbital-live text-[0.45rem] font-[family-name:var(--font-orbitron)]"><span className="status-dot status-live" /> LIVE</span>}
+    </div>
+  );
+
+  const MatchSlot = ({ match, isGrandFinal }: { match: typeof t.matches[0] | undefined; isGrandFinal?: boolean }) => {
     if (!match) return null;
     const team1 = getTeamName(t, match.team1_id);
     const team2 = getTeamName(t, match.team2_id);
@@ -380,57 +391,83 @@ function BracketPreview({ tournament: t }: { tournament: Tournament }) {
     const isDone = match.status === "finished";
 
     return (
-      <div className={`border px-2.5 py-1.5 text-[0.6rem] font-[family-name:var(--font-jetbrains)] space-y-0.5 ${
+      <div className={`border overflow-hidden ${
+        isGrandFinal ? "border-2 " : ""
+      }${
         isLive ? "border-orbital-live/40 bg-orbital-live/5" :
-        isDone ? "border-orbital-success/20 bg-orbital-success/5" :
-        "border-orbital-border bg-[#0A0A0A]"
+        isDone ? "border-orbital-success/20 bg-[#0A0A0A]" :
+        isGrandFinal ? "border-orbital-purple/40 bg-orbital-purple/5" :
+        "border-orbital-border/60 bg-[#0A0A0A]"
       }`}>
-        <div className={`flex items-center justify-between ${isDone && match.winner_id === match.team1_id ? "text-orbital-text font-bold" : "text-orbital-text-dim"}`}>
-          <span className="truncate max-w-[80px]">{team1}</span>
-          {isLive && <span className="text-orbital-live text-[0.45rem]">LIVE</span>}
-        </div>
-        <div className={`flex items-center justify-between ${isDone && match.winner_id === match.team2_id ? "text-orbital-text font-bold" : "text-orbital-text-dim"}`}>
-          <span className="truncate max-w-[80px]">{team2}</span>
-        </div>
+        {isGrandFinal && (
+          <div className="bg-orbital-purple/15 px-2.5 py-0.5 text-center border-b border-orbital-purple/20">
+            <span className="font-[family-name:var(--font-orbitron)] text-[0.4rem] tracking-[0.2em] text-orbital-purple">GRAND FINAL</span>
+          </div>
+        )}
+        <TeamRow name={team1} isWinner={isDone && match.winner_id === match.team1_id} isLive={isLive} />
+        <div className="h-px bg-orbital-border/30" />
+        <TeamRow name={team2} isWinner={isDone && match.winner_id === match.team2_id} />
       </div>
     );
   };
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[600px]">
-        <div className="grid grid-cols-4 gap-4 mb-3">
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim text-center">QUARTAS</div>
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim text-center">SEMIFINAL</div>
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim text-center">FINAL</div>
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple text-center">GRAND FINAL</div>
+      <div className="min-w-[700px]">
+        {/* Round labels */}
+        <div className="grid grid-cols-[1fr_24px_1fr_24px_1fr_24px_1fr] items-center mb-3">
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.2em] text-orbital-text-dim text-center">QUARTAS</div>
+          <div />
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.2em] text-orbital-text-dim text-center">SEMIFINAL</div>
+          <div />
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.2em] text-orbital-text-dim text-center">FINAL</div>
+          <div />
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.2em] text-orbital-purple text-center">GRAND FINAL</div>
         </div>
-        <div className="grid grid-cols-4 gap-4 items-center">
-          <div className="space-y-2">
+
+        {/* Bracket grid with connectors */}
+        <div className="grid grid-cols-[1fr_24px_1fr_24px_1fr_24px_1fr] items-center">
+          {/* QFs */}
+          <div className="space-y-3">
             {winnerQFs.map(m => <MatchSlot key={m.id} match={m} />)}
           </div>
-          <div className="space-y-6">
+
+          {/* QF → SF connectors */}
+          <div className="flex flex-col justify-around h-full">
+            {[0, 1].map(i => (
+              <svg key={i} width="24" height="48" viewBox="0 0 24 48" className="text-orbital-purple/25">
+                <path d="M0,12 L12,12 L12,24 L24,24 M0,36 L12,36 L12,24" fill="none" stroke="currentColor" strokeWidth="1" />
+              </svg>
+            ))}
+          </div>
+
+          {/* SFs */}
+          <div className="space-y-8 flex flex-col justify-center">
             {winnerSFs.map(m => <MatchSlot key={m.id} match={m} />)}
           </div>
-          <div className="flex items-center justify-center">
-            <MatchSlot match={wf} />
+
+          {/* SF → Final connector */}
+          <div className="flex items-center justify-center h-full">
+            <svg width="24" height="80" viewBox="0 0 24 80" className="text-orbital-purple/25">
+              <path d="M0,20 L12,20 L12,40 L24,40 M0,60 L12,60 L12,40" fill="none" stroke="currentColor" strokeWidth="1" />
+            </svg>
           </div>
+
+          {/* Final */}
           <div className="flex items-center justify-center">
-            <div className={`border-2 px-3 py-2 ${gf?.status === "live" ? "border-orbital-live/50 bg-orbital-live/5" : gf?.status === "finished" ? "border-orbital-success/30 bg-orbital-success/5" : "border-orbital-purple/30 bg-orbital-purple/5"}`}>
-              {gf ? (
-                <div className="text-[0.6rem] font-[family-name:var(--font-jetbrains)] space-y-0.5">
-                  <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-purple mb-1 text-center">GRAND FINAL</div>
-                  <div className={`${gf.status === "finished" && gf.winner_id === gf.team1_id ? "text-orbital-text font-bold" : "text-orbital-text-dim"}`}>
-                    {getTeamName(t, gf.team1_id)}
-                  </div>
-                  <div className={`${gf.status === "finished" && gf.winner_id === gf.team2_id ? "text-orbital-text font-bold" : "text-orbital-text-dim"}`}>
-                    {getTeamName(t, gf.team2_id)}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-orbital-text-dim text-[0.6rem]">TBD</div>
-              )}
-            </div>
+            <div className="w-full"><MatchSlot match={wf} /></div>
+          </div>
+
+          {/* Final → GF connector */}
+          <div className="flex items-center justify-center">
+            <svg width="24" height="4" viewBox="0 0 24 4" className="text-orbital-purple/25">
+              <line x1="0" y1="2" x2="24" y2="2" stroke="currentColor" strokeWidth="1" />
+            </svg>
+          </div>
+
+          {/* Grand Final */}
+          <div className="flex items-center justify-center">
+            <div className="w-full"><MatchSlot match={gf} isGrandFinal /></div>
           </div>
         </div>
       </div>
