@@ -191,6 +191,7 @@ export default function AdminTimes() {
         className="sr-only"
         disabled={uploadingLogo}
         onChange={async (e) => {
+          console.log("[LOGO DEBUG] onChange fired!", e.target.files);
           const file = e.target.files?.[0];
           if (!file) return;
           setUploadingLogo(true);
@@ -254,7 +255,18 @@ export default function AdminTimes() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => logoInputRef.current?.click()}
+                        onClick={() => {
+                          console.log("[LOGO DEBUG] Button clicked");
+                          console.log("[LOGO DEBUG] logoInputRef.current:", logoInputRef.current);
+                          console.log("[LOGO DEBUG] uploadingLogo:", uploadingLogo);
+                          if (logoInputRef.current) {
+                            console.log("[LOGO DEBUG] Calling .click() on input");
+                            logoInputRef.current.click();
+                            console.log("[LOGO DEBUG] .click() called");
+                          } else {
+                            console.log("[LOGO DEBUG] ERROR: ref is null!");
+                          }
+                        }}
                         disabled={uploadingLogo}
                         className={`flex items-center gap-2 px-4 py-3 border border-dashed transition-all w-full justify-center ${
                           uploadingLogo ? "border-orbital-purple/50 bg-orbital-purple/5" : "border-orbital-border hover:border-orbital-purple/40 hover:bg-orbital-purple/5 cursor-pointer"
