@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,20 +21,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Arquivo muito grande. Máximo 2MB." }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Generate unique filename
     const ext = file.name.split(".").pop() || "png";
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const filename = `logos/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(path.join(uploadDir, filename), buffer);
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: file.type,
+    });
 
-    const url = `/uploads/${filename}`;
-
-    return NextResponse.json({ url });
+    return NextResponse.json({ url: blob.url });
   } catch {
     return NextResponse.json({ error: "Erro ao fazer upload" }, { status: 500 });
   }
