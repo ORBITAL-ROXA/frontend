@@ -97,7 +97,11 @@ function TeamCard({ team, delay }: { team: Team; delay: number }) {
           {/* Team header */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-orbital-border chamfered flex items-center justify-center">
-              <Shield size={18} className="text-orbital-purple" />
+              {team.logo ? (
+                <img src={team.logo} alt={team.name} className="w-7 h-7 object-contain" />
+              ) : (
+                <Shield size={18} className="text-orbital-purple" />
+              )}
             </div>
             <div>
               <h3 className="font-[family-name:var(--font-orbitron)] text-sm font-bold tracking-wider text-orbital-text group-hover:text-orbital-purple transition-colors">
