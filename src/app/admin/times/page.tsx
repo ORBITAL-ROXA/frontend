@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users, Upload, ImagePlus } from "lucide-react";
 import { HudCard } from "@/components/hud-card";
 import { useEffect, useState } from "react";
 import { Team, createTeam, updateTeam, deleteTeam } from "@/lib/api";
@@ -17,6 +17,7 @@ export default function AdminTimes() {
   const [tag, setTag] = useState("");
   const [flag, setFlag] = useState("BR");
   const [logo, setLogo] = useState("");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
   const [players, setPlayers] = useState<{ steamId: string; name: string }[]>([{ steamId: "", name: "" }]);
 
@@ -208,13 +209,57 @@ export default function AdminTimes() {
                 </div>
 
                 <div>
-                  <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">LOGO (URL)</label>
+                  <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">LOGO</label>
                   <div className="flex items-center gap-3">
-                    <input type="url" value={logo} onChange={e => setLogo(e.target.value)} placeholder="https://exemplo.com/logo.png" className="flex-1 bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/30" />
-                    {logo && (
-                      <div className="w-10 h-10 bg-[#0A0A0A] border border-orbital-border flex items-center justify-center shrink-0">
-                        <img src={logo} alt="Preview" className="w-8 h-8 object-contain" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    {logo ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 bg-[#0A0A0A] border border-orbital-border flex items-center justify-center shrink-0">
+                          <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setLogo("")}
+                          className="flex items-center gap-1.5 px-3 py-1.5 border border-orbital-danger/30 text-orbital-danger hover:bg-orbital-danger/10 transition-all font-[family-name:var(--font-jetbrains)] text-[0.6rem]"
+                        >
+                          <Trash2 size={12} /> Remover
+                        </button>
                       </div>
+                    ) : (
+                      <label className={`flex items-center gap-2 px-4 py-3 border border-dashed cursor-pointer transition-all w-full justify-center ${
+                        uploadingLogo ? "border-orbital-purple/50 bg-orbital-purple/5" : "border-orbital-border hover:border-orbital-purple/40 hover:bg-orbital-purple/5"
+                      }`}>
+                        {uploadingLogo ? (
+                          <Loader2 size={16} className="text-orbital-purple animate-spin" />
+                        ) : (
+                          <ImagePlus size={16} className="text-orbital-text-dim" />
+                        )}
+                        <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">
+                          {uploadingLogo ? "Enviando..." : "Clique para enviar logo"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                          className="hidden"
+                          disabled={uploadingLogo}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setUploadingLogo(true);
+                            try {
+                              const formData = new FormData();
+                              formData.append("file", file);
+                              const res = await fetch("/api/upload", { method: "POST", body: formData });
+                              const data = await res.json();
+                              if (!res.ok) throw new Error(data.error || "Erro no upload");
+                              setLogo(data.url);
+                            } catch (err) {
+                              setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao enviar logo" });
+                            }
+                            setUploadingLogo(false);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
                     )}
                   </div>
                 </div>

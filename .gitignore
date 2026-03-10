@@ -39,6 +39,9 @@ yarn-error.log*
 # tournament data (runtime)
 /data
 
+# uploaded logos
+/public/uploads
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
