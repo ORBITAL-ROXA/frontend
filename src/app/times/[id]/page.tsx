@@ -1,4 +1,4 @@
-import { getTeam, getMatches, Team, Match } from "@/lib/api";
+import { getTeam, getMatches, getPlayerStats, getMapStats, Team, Match, PlayerStats, MapStats } from "@/lib/api";
 import { TeamDetailContent } from "./team-detail-content";
 
 export const revalidate = 30;
@@ -14,13 +14,60 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
     ]);
 
     const team = teamRes.team;
-    // Filter matches involving this team
-    const teamMatches = (matchesRes.matches || [])
-      .filter((m: Match) => m.team1_id === teamId || m.team2_id === teamId)
-      .sort((a: Match, b: Match) => b.id - a.id)
-      .slice(0, 20);
+    const allMatches = matchesRes.matches || [];
 
-    return <TeamDetailContent team={team} matches={teamMatches} />;
+    // Filter matches involving this team
+    const teamMatches = allMatches
+      .filter((m: Match) => m.team1_id === teamId || m.team2_id === teamId)
+      .sort((a: Match, b: Match) => b.id - a.id);
+
+    // Fetch player stats and map stats for all finished team matches (limit to recent 50)
+    const finishedMatches = teamMatches.filter(m => m.end_time && !m.cancelled).slice(0, 50);
+
+    const [allPlayerStats, allMapStats] = await Promise.all([
+      Promise.all(
+        finishedMatches.map(m =>
+          getPlayerStats(m.id)
+            .then(r => {
+              const raw = r as Record<string, unknown>;
+              const stats = Array.isArray(r) ? r : (raw.playerstats || raw.playerStats || []);
+              return Array.isArray(stats) ? stats as PlayerStats[] : [];
+            })
+            .catch(() => [] as PlayerStats[])
+        )
+      ),
+      Promise.all(
+        finishedMatches.map(m =>
+          getMapStats(m.id)
+            .then(r => {
+              const raw = r as Record<string, unknown>;
+              const stats = Array.isArray(r) ? r : (raw.mapstats || raw.mapStats || []);
+              return Array.isArray(stats) ? stats as MapStats[] : [];
+            })
+            .catch(() => [] as MapStats[])
+        )
+      ),
+    ]);
+
+    const playerStats = allPlayerStats.flat();
+    const mapStats = allMapStats.flat();
+
+    // Get all teams for name resolution
+    const teamsMap: Record<number, string> = {};
+    allMatches.forEach((m: Match) => {
+      if (m.team1_string) teamsMap[m.team1_id] = m.team1_string;
+      if (m.team2_string) teamsMap[m.team2_id] = m.team2_string;
+    });
+
+    return (
+      <TeamDetailContent
+        team={team}
+        matches={teamMatches}
+        playerStats={playerStats}
+        mapStats={mapStats}
+        teamsMap={teamsMap}
+      />
+    );
   } catch {
     return (
       <div className="max-w-5xl mx-auto px-4 py-20 text-center">
