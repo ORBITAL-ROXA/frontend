@@ -33,6 +33,19 @@ interface ProfileStats {
   firstdeath_ct: number;
 }
 
+// Rating formula matching G5API Utils.getRating
+function calcRating(kills: number, roundsplayed: number, deaths: number, k1: number, k2: number, k3: number, k4: number, k5: number): number {
+  if (roundsplayed === 0) return 0;
+  const AverageKPR = 0.679;
+  const AverageSPR = 0.317;
+  const AverageRMK = 1.277;
+  const KillRating = kills / roundsplayed / AverageKPR;
+  const SurvivalRating = (roundsplayed - deaths) / roundsplayed / AverageSPR;
+  const killcount = k1 + 4 * k2 + 9 * k3 + 16 * k4 + 25 * k5;
+  const RoundsWithMultipleKillsRating = killcount / roundsplayed / AverageRMK;
+  return +((KillRating + 0.7 * SurvivalRating + RoundsWithMultipleKillsRating) / 2.7).toFixed(2);
+}
+
 export function ProfileContent({ steamId }: { steamId: string }) {
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [recentMatches, setRecentMatches] = useState<Match[]>([]);
@@ -83,7 +96,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           firstdeath_ct: 0,
         };
 
-        let totalRating = 0;
+        let totalK1 = 0, totalK2 = 0, totalK3 = 0, totalK4 = 0, totalK5 = 0;
         for (const m of matches) {
           aggregated.kills += (m.kills as number) || 0;
           aggregated.deaths += (m.deaths as number) || 0;
@@ -99,10 +112,14 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           aggregated.firstdeath_t += (m.firstdeath_t as number) || 0;
           aggregated.firstdeath_ct += (m.firstdeath_ct as number) || 0;
           aggregated.kast += (m.kast as number) || 0;
-          totalRating += (m.average_rating as number) || (m.rating as number) || 0;
+          totalK1 += (m.k1 as number) || 0;
+          totalK2 += (m.k2 as number) || 0;
+          totalK3 += (m.k3 as number) || 0;
+          totalK4 += (m.k4 as number) || 0;
+          totalK5 += (m.k5 as number) || 0;
         }
 
-        aggregated.average_rating = matches.length > 0 ? totalRating / matches.length : 0;
+        aggregated.average_rating = calcRating(aggregated.kills, aggregated.total_rounds, aggregated.deaths, totalK1, totalK2, totalK3, totalK4, totalK5);
         aggregated.kdr = aggregated.deaths > 0 ? aggregated.kills / aggregated.deaths : aggregated.kills;
         aggregated.hsp = aggregated.kills > 0 ? (aggregated.headshot_kills / aggregated.kills) * 100 : 0;
         aggregated.kast = matches.length > 0 ? aggregated.kast / matches.length : 0;
@@ -112,54 +129,52 @@ export function ProfileContent({ steamId }: { steamId: string }) {
         setError(true);
       }
 
-      // Buscar partidas recentes e map stats
+      // Buscar map performance usando os match_ids das playerstats
       try {
-        const matchRes = await fetch(`/api/matches`);
-        if (matchRes.ok) {
-          const matchData = await matchRes.json();
-          const allMatches: Match[] = matchData.matches || [];
-          // Filtrar partidas deste jogador (precisa verificar player stats)
-          // Por ora, buscar mapstats do jogador para saber quais mapas jogou
-          const playerMatches = allMatches
-            .filter((m: Match) => m.team1_string?.includes(steamId) || m.team2_string?.includes(steamId))
-            .sort((a: Match, b: Match) => b.id - a.id)
-            .slice(0, 10);
+        const psRes = await fetch(`/api/playerstats/${steamId}`);
+        if (psRes.ok) {
+          const psData = await psRes.json();
+          const rawPS = psData.playerstats || psData.playerStats || psData;
+          const psArr: { match_id: number; map_id: number; team_id: number; kills: number; deaths: number; roundsplayed: number; k1: number; k2: number; k3: number; k4: number; k5: number }[] = Array.isArray(rawPS) ? rawPS : [];
+          const matchIds = [...new Set(psArr.map(s => s.match_id))];
 
-          // Buscar map stats para contar mapas jogados e performance por mapa
           const mapCount: Record<string, number> = {};
           const mapPerf: Record<string, { wins: number; total: number; totalRating: number; kills: number; deaths: number }> = {};
 
-          for (const m of playerMatches.slice(0, 20)) {
-            try {
-              const [msRes, psRes] = await Promise.all([
-                fetch(`/api/mapstats/${m.id}`).then(r => r.ok ? r.json() : null),
-                fetch(`/api/playerstats/match/${m.id}`).then(r => r.ok ? r.json() : null),
-              ]);
-              const maps = msRes?.mapstats || msRes?.mapStats || [];
-              const pStats = psRes?.playerstats || psRes?.playerStats || [];
-              const playerEntries = pStats.filter((p: { steam_id: string }) => p.steam_id === steamId);
+          // Fetch mapstats for each match in parallel
+          const mapStatsResults = await Promise.all(
+            matchIds.map(async (mid) => {
+              try {
+                const r = await fetch(`/api/mapstats/${mid}`);
+                if (!r.ok) return [];
+                const d = await r.json();
+                return (d.mapstats || d.mapStats || []).map((ms: Record<string, unknown>) => ({ ...ms, _matchId: mid }));
+              } catch { return []; }
+            })
+          );
 
-              for (const ms of maps) {
-                if (!ms.map_name) continue;
-                mapCount[ms.map_name] = (mapCount[ms.map_name] || 0) + 1;
+          for (const mapStatsList of mapStatsResults) {
+            for (const ms of mapStatsList) {
+              if (!ms.map_name) continue;
+              mapCount[ms.map_name] = (mapCount[ms.map_name] || 0) + 1;
 
-                if (!mapPerf[ms.map_name]) {
-                  mapPerf[ms.map_name] = { wins: 0, total: 0, totalRating: 0, kills: 0, deaths: 0 };
-                }
-                mapPerf[ms.map_name].total++;
-
-                // Check if player's team won this map
-                const playerEntry = playerEntries.find((p: { map_id: number }) => p.map_id === ms.id);
-                if (playerEntry) {
-                  if (ms.winner === playerEntry.team_id) {
-                    mapPerf[ms.map_name].wins++;
-                  }
-                  mapPerf[ms.map_name].totalRating += playerEntry.rating || playerEntry.average_rating || 0;
-                  mapPerf[ms.map_name].kills += playerEntry.kills || 0;
-                  mapPerf[ms.map_name].deaths += playerEntry.deaths || 0;
-                }
+              if (!mapPerf[ms.map_name]) {
+                mapPerf[ms.map_name] = { wins: 0, total: 0, totalRating: 0, kills: 0, deaths: 0 };
               }
-            } catch { /* skip */ }
+              mapPerf[ms.map_name].total++;
+
+              // Find the player's stats entry for this map
+              const playerEntry = psArr.find(p => p.match_id === ms._matchId && p.map_id === ms.id);
+              if (playerEntry) {
+                if (ms.winner === playerEntry.team_id) {
+                  mapPerf[ms.map_name].wins++;
+                }
+                const pRating = calcRating(playerEntry.kills || 0, playerEntry.roundsplayed || 0, playerEntry.deaths || 0, playerEntry.k1 || 0, playerEntry.k2 || 0, playerEntry.k3 || 0, playerEntry.k4 || 0, playerEntry.k5 || 0);
+                mapPerf[ms.map_name].totalRating += pRating;
+                mapPerf[ms.map_name].kills += playerEntry.kills || 0;
+                mapPerf[ms.map_name].deaths += playerEntry.deaths || 0;
+              }
+            }
           }
 
           setMapCounts(
@@ -394,7 +409,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
             <StatRow icon={<Crosshair size={14} className="text-orbital-purple" />} label="HS%" value={`${hsp}%`} />
             <StatRow icon={<Target size={14} className="text-orbital-success" />} label="ADR" value={adr.toString()} />
             <StatRow icon={<Zap size={14} className="text-orbital-warning" />} label="Flash Assists" value={stats.flash_assists?.toString() || "0"} />
-            <StatRow icon={<Award size={14} className="text-orbital-purple" />} label="KAST" value={stats.kast ? `${(stats.kast * 100).toFixed(1)}%` : "N/A"} />
+            <StatRow icon={<Award size={14} className="text-orbital-purple" />} label="KAST" value={stats.kast ? `${stats.kast.toFixed(1)}%` : "N/A"} />
             <StatRow icon={<TrendingUp size={14} className="text-orbital-success" />} label="Rating" value={avgRating.toFixed(2)} highlight={ratingColor} />
           </div>
         </HudCard>
