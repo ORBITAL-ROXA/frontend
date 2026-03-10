@@ -1,31 +1,21 @@
 import { getMatches, getTeams, Match, Team, getStatusType } from "@/lib/api";
 import { Tournament } from "@/lib/tournament";
+import { getTournamentsFromDB } from "@/lib/tournaments-db";
 import { HomeContent } from "./home-content";
 
 export const revalidate = 30;
 
-async function getTournaments(): Promise<Tournament[]> {
-  try {
-    // In Vercel, use VERCEL_URL; locally, use localhost
-    const host = process.env.VERCEL_URL || "localhost:3001";
-    const protocol = process.env.VERCEL_URL ? "https" : "http";
-    const res = await fetch(`${protocol}://${host}/api/tournaments`, { next: { revalidate: 30 } });
-    const data = await res.json();
-    return data.tournaments || [];
-  } catch (e) {
-    console.error("[HOME] Failed to fetch tournaments:", e);
-    return [];
-  }
-}
-
 export default async function HomePage() {
   let matches: Match[] = [];
   let teams: Team[] = [];
+  let tournaments: Tournament[] = [];
 
   const [tournamentsData, apiData] = await Promise.all([
-    getTournaments(),
+    getTournamentsFromDB(),
     Promise.all([getMatches(), getTeams()]).catch(() => [{ matches: [] }, { teams: [] }]),
   ]);
+
+  tournaments = tournamentsData;
 
   if (Array.isArray(apiData)) {
     matches = (apiData[0] as { matches: Match[] }).matches || [];
@@ -44,9 +34,9 @@ export default async function HomePage() {
     .slice(0, 3);
 
   // Find active tournament (priority: active > pending > finished)
-  const activeTournament = tournamentsData.find(t => t.status === "active")
-    || tournamentsData.find(t => t.status === "pending")
-    || tournamentsData[0]
+  const activeTournament = tournaments.find(t => t.status === "active")
+    || tournaments.find(t => t.status === "pending")
+    || tournaments[0]
     || null;
 
   return (
