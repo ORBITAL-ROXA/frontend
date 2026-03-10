@@ -30,6 +30,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
   const [selectedServer, setSelectedServer] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [matchError, setMatchError] = useState<string | null>(null);
+  const [vetoFirstTeam, setVetoFirstTeam] = useState<"team1" | "team2" | null>(null);
 
   const fetchTournament = useCallback(async () => {
     try {
@@ -105,13 +106,14 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
 
   const openVeto = (match: BracketMatch) => {
     setVetoMatch({ ...match, veto_actions: [] });
+    setVetoFirstTeam(null); // Force team selection before veto starts
   };
 
   const handleVetoBan = async (map: string) => {
     if (!vetoMatch || !tournament) return;
 
     const sequence = getVetoSequence(vetoMatch.num_maps);
-    const teamOrder = getVetoTeamOrder(vetoMatch.num_maps, true);
+    const teamOrder = getVetoTeamOrder(vetoMatch.num_maps, vetoFirstTeam === "team1");
     const stepIndex = vetoMatch.veto_actions.length;
 
     if (stepIndex >= sequence.length) return;
@@ -376,6 +378,8 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
             onResetVeto={handleResetVeto}
             actionLoading={actionLoading}
             matchError={matchError}
+            vetoFirstTeam={vetoFirstTeam}
+            onSelectVetoFirst={setVetoFirstTeam}
           />
         )}
       </AnimatePresence>
@@ -574,6 +578,8 @@ function VetoModal({
   onResetVeto,
   actionLoading,
   matchError,
+  vetoFirstTeam,
+  onSelectVetoFirst,
 }: {
   match: BracketMatch;
   tournament: Tournament;
@@ -586,9 +592,11 @@ function VetoModal({
   onResetVeto: () => void;
   actionLoading: boolean;
   matchError: string | null;
+  vetoFirstTeam: "team1" | "team2" | null;
+  onSelectVetoFirst: (team: "team1" | "team2") => void;
 }) {
   const sequence = getVetoSequence(match.num_maps);
-  const teamOrder = getVetoTeamOrder(match.num_maps, true);
+  const teamOrder = getVetoTeamOrder(match.num_maps, vetoFirstTeam === "team1");
   const currentStep = match.veto_actions.length;
   const isComplete = match.status === "ready";
 
@@ -629,8 +637,37 @@ function VetoModal({
         </div>
 
         <div className="p-4 space-y-4">
+          {/* Team Selection - Who vetoes first */}
+          {!vetoFirstTeam && (
+            <div className="space-y-3">
+              <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple text-center">
+                QUEM COMEÇA O VETO?
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => onSelectVetoFirst("team1")}
+                  className="p-4 border border-orbital-border hover:border-orbital-purple/50 hover:bg-orbital-purple/10 transition-all group"
+                >
+                  <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text group-hover:text-orbital-purple transition-colors">
+                    {getTeamName(tournament, match.team1_id)}
+                  </div>
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-1">TIME 1</div>
+                </button>
+                <button
+                  onClick={() => onSelectVetoFirst("team2")}
+                  className="p-4 border border-orbital-border hover:border-orbital-purple/50 hover:bg-orbital-purple/10 transition-all group"
+                >
+                  <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text group-hover:text-orbital-purple transition-colors">
+                    {getTeamName(tournament, match.team2_id)}
+                  </div>
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-1">TIME 2</div>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Veto History */}
-          {match.veto_actions.length > 0 && (
+          {vetoFirstTeam && match.veto_actions.length > 0 && (
             <div className="space-y-1">
               {match.veto_actions.map((action, i) => (
                 <div key={i} className={`flex items-center gap-2 px-3 py-2 border ${
@@ -655,7 +692,7 @@ function VetoModal({
           )}
 
           {/* Current Action */}
-          {!isComplete && currentAction && (
+          {vetoFirstTeam && !isComplete && currentAction && (
             <div className="border border-orbital-purple/30 p-4">
               <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple mb-1">
                 {currentAction === "ban" ? "BANIR MAPA" : "ESCOLHER MAPA"}
