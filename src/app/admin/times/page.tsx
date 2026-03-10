@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users, Upload, ImagePlus } from "lucide-react";
 import { HudCard } from "@/components/hud-card";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Team, createTeam, updateTeam, deleteTeam } from "@/lib/api";
 
 export default function AdminTimes() {
@@ -18,6 +18,7 @@ export default function AdminTimes() {
   const [flag, setFlag] = useState("BR");
   const [logo, setLogo] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [isPublic, setIsPublic] = useState(true);
   const [players, setPlayers] = useState<{ steamId: string; name: string }[]>([{ steamId: "", name: "" }]);
 
@@ -225,18 +226,9 @@ export default function AdminTimes() {
                         </button>
                       </div>
                     ) : (
-                      <label className={`flex items-center gap-2 px-4 py-3 border border-dashed cursor-pointer transition-all w-full justify-center ${
-                        uploadingLogo ? "border-orbital-purple/50 bg-orbital-purple/5" : "border-orbital-border hover:border-orbital-purple/40 hover:bg-orbital-purple/5"
-                      }`}>
-                        {uploadingLogo ? (
-                          <Loader2 size={16} className="text-orbital-purple animate-spin" />
-                        ) : (
-                          <ImagePlus size={16} className="text-orbital-text-dim" />
-                        )}
-                        <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">
-                          {uploadingLogo ? "Enviando..." : "Clique para enviar logo"}
-                        </span>
+                      <>
                         <input
+                          ref={logoInputRef}
                           type="file"
                           accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
                           className="hidden"
@@ -259,7 +251,24 @@ export default function AdminTimes() {
                             e.target.value = "";
                           }}
                         />
-                      </label>
+                        <button
+                          type="button"
+                          onClick={() => logoInputRef.current?.click()}
+                          disabled={uploadingLogo}
+                          className={`flex items-center gap-2 px-4 py-3 border border-dashed transition-all w-full justify-center ${
+                            uploadingLogo ? "border-orbital-purple/50 bg-orbital-purple/5" : "border-orbital-border hover:border-orbital-purple/40 hover:bg-orbital-purple/5 cursor-pointer"
+                          }`}
+                        >
+                          {uploadingLogo ? (
+                            <Loader2 size={16} className="text-orbital-purple animate-spin" />
+                          ) : (
+                            <ImagePlus size={16} className="text-orbital-text-dim" />
+                          )}
+                          <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">
+                            {uploadingLogo ? "Enviando..." : "Clique para enviar logo"}
+                          </span>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
