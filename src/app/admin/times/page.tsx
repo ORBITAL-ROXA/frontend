@@ -120,30 +120,23 @@ export default function AdminTimes() {
     });
 
     setSubmitting(true);
-    console.log("[SUBMIT] 1. Iniciando submit, logo state:", logo);
     try {
       let teamId: number;
       if (editing) {
-        console.log("[SUBMIT] 2. Editando time ID:", editing.id);
         await updateTeam({ team_id: editing.id, name, tag, flag, public_team: isPublic, auth_name });
         teamId = editing.id;
         setFeedback({ type: "success", msg: `Time "${name}" atualizado!` });
       } else {
-        console.log("[SUBMIT] 2. Criando novo time");
         const result = await createTeam({ name, tag, flag, public_team: isPublic, auth_name });
-        console.log("[SUBMIT] 3. createTeam result:", JSON.stringify(result));
         teamId = (result as unknown as { id: number }).id;
         setFeedback({ type: "success", msg: `Time "${name}" criado!` });
       }
-      console.log("[SUBMIT] 4. Salvando logo no DB, teamId:", teamId, "logoUrl:", logo || null);
       // Save logo URL directly in DB (G5API doesn't support URL logos)
-      const logoRes = await fetch("/api/team-logo", {
+      await fetch("/api/team-logo", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamId, logoUrl: logo || null }),
       });
-      const logoData = await logoRes.json();
-      console.log("[SUBMIT] 5. team-logo response:", logoRes.status, JSON.stringify(logoData));
       await fetchTeams();
       setTimeout(resetForm, 1500);
     } catch (err) {
@@ -246,28 +239,22 @@ export default function AdminTimes() {
                         role="button"
                         tabIndex={0}
                         onClick={() => {
-                          console.log("[UPLOAD] 1. Botão clicado, uploadingLogo:", uploadingLogo);
                           if (uploadingLogo) return;
                           const input = document.createElement("input");
                           input.type = "file";
                           input.accept = "image/png,image/jpeg,image/webp,image/gif,image/svg+xml";
                           input.onchange = async () => {
                             const file = input.files?.[0];
-                            console.log("[UPLOAD] 2. Arquivo selecionado:", file?.name, file?.type, file?.size);
                             if (!file) return;
                             setUploadingLogo(true);
                             try {
                               const formData = new FormData();
                               formData.append("file", file);
-                              console.log("[UPLOAD] 3. Enviando para /api/upload...");
                               const res = await fetch("/api/upload", { method: "POST", body: formData });
                               const data = await res.json();
-                              console.log("[UPLOAD] 4. Resposta:", res.status, JSON.stringify(data));
                               if (!res.ok) throw new Error(data.error || "Erro no upload");
-                              console.log("[UPLOAD] 5. setLogo com URL:", data.url);
                               setLogo(data.url);
                             } catch (err) {
-                              console.error("[UPLOAD] ERRO:", err);
                               setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao enviar logo" });
                             }
                             setUploadingLogo(false);

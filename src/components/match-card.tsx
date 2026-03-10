@@ -2,14 +2,18 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { Shield } from "lucide-react";
 import { Match, getStatusText, getStatusType } from "@/lib/api";
 
 interface MatchCardProps {
   match: Match;
   delay?: number;
+  teamsMap?: Record<number, { name: string; logo: string | null }>;
 }
 
-export function MatchCard({ match, delay = 0 }: MatchCardProps) {
+export function MatchCard({ match, delay = 0, teamsMap }: MatchCardProps) {
+  const team1Logo = teamsMap?.[match.team1_id]?.logo || null;
+  const team2Logo = teamsMap?.[match.team2_id]?.logo || null;
   const statusType = getStatusType(match);
   const statusText = getStatusText(match);
 
@@ -55,7 +59,12 @@ export function MatchCard({ match, delay = 0 }: MatchCardProps) {
             {/* Scoreboard */}
             <div className="flex items-center justify-between">
               {/* Team 1 */}
-              <div className="flex-1 text-left">
+              <div className="flex-1 flex items-center gap-2">
+                {team1Logo ? (
+                  <img src={team1Logo} alt="" className="w-6 h-6 object-contain shrink-0" />
+                ) : (
+                  <Shield size={14} className="text-orbital-purple shrink-0" />
+                )}
                 <span className={`font-[family-name:var(--font-orbitron)] text-sm font-semibold tracking-wide ${
                   match.winner === match.team1_id ? "text-orbital-success" : "text-orbital-text"
                 }`}>
@@ -79,12 +88,17 @@ export function MatchCard({ match, delay = 0 }: MatchCardProps) {
               </div>
 
               {/* Team 2 */}
-              <div className="flex-1 text-right">
+              <div className="flex-1 flex items-center gap-2 justify-end">
                 <span className={`font-[family-name:var(--font-orbitron)] text-sm font-semibold tracking-wide ${
                   match.winner === match.team2_id ? "text-orbital-success" : "text-orbital-text"
                 }`}>
                   {match.team2_string || `Time ${match.team2_id}`}
                 </span>
+                {team2Logo ? (
+                  <img src={team2Logo} alt="" className="w-6 h-6 object-contain shrink-0" />
+                ) : (
+                  <Shield size={14} className="text-orbital-purple shrink-0" />
+                )}
               </div>
             </div>
 

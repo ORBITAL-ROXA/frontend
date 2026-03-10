@@ -13,9 +13,10 @@ interface HomeContentProps {
   upcomingMatches: Match[];
   totalMatches: number;
   teamCount: number;
+  teamsMap?: Record<number, { name: string; logo: string | null }>;
 }
 
-export function HomeContent({ liveMatches, recentMatches, upcomingMatches, totalMatches, teamCount }: HomeContentProps) {
+export function HomeContent({ liveMatches, recentMatches, upcomingMatches, totalMatches, teamCount, teamsMap }: HomeContentProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
       {/* Hero Section */}
@@ -78,7 +79,7 @@ export function HomeContent({ liveMatches, recentMatches, upcomingMatches, total
           <SectionHeader icon={Activity} title="AO VIVO" accent="live" />
           <div className="grid gap-4">
             {liveMatches.map((match, i) => (
-              <MatchCard key={match.id} match={match} delay={i * 0.1} />
+              <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.1} />
             ))}
           </div>
         </section>
@@ -90,7 +91,7 @@ export function HomeContent({ liveMatches, recentMatches, upcomingMatches, total
         {recentMatches.length > 0 ? (
           <div className="grid gap-3">
             {recentMatches.map((match, i) => (
-              <MatchCard key={match.id} match={match} delay={i * 0.08} />
+              <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.08} />
             ))}
           </div>
         ) : (
@@ -108,7 +109,7 @@ export function HomeContent({ liveMatches, recentMatches, upcomingMatches, total
           <SectionHeader icon={Crosshair} title="PRÓXIMAS PARTIDAS" />
           <div className="grid gap-3">
             {upcomingMatches.map((match, i) => (
-              <MatchCard key={match.id} match={match} delay={i * 0.08} />
+              <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.08} />
             ))}
           </div>
         </section>

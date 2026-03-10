@@ -278,6 +278,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
           {team1Stats.length > 0 && (
             <PlayerStatsTable
               teamName={match.team1_string || team1?.name || "Time 1"}
+              teamLogo={team1?.logo || null}
               stats={team1Stats}
               isWinner={match.winner === match.team1_id}
               delay={0.2}
@@ -286,6 +287,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
           {team2Stats.length > 0 && (
             <PlayerStatsTable
               teamName={match.team2_string || team2?.name || "Time 2"}
+              teamLogo={team2?.logo || null}
               stats={team2Stats}
               isWinner={match.winner === match.team2_id}
               delay={0.3}
@@ -306,8 +308,9 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
   );
 }
 
-function PlayerStatsTable({ teamName, stats, isWinner, delay }: {
+function PlayerStatsTable({ teamName, teamLogo, stats, isWinner, delay }: {
   teamName: string;
+  teamLogo: string | null;
   stats: PlayerStats[];
   isWinner: boolean;
   delay: number;
@@ -325,7 +328,11 @@ function PlayerStatsTable({ teamName, stats, isWinner, delay }: {
         <div className={`px-4 py-3 border-b border-orbital-border flex items-center gap-3 ${
           isWinner ? "border-l-2 border-l-orbital-success" : ""
         }`}>
-          <Users size={14} className="text-orbital-purple" />
+          {teamLogo ? (
+            <img src={teamLogo} alt={teamName} className="w-5 h-5 object-contain" />
+          ) : (
+            <Users size={14} className="text-orbital-purple" />
+          )}
           <span className={`font-[family-name:var(--font-orbitron)] text-xs tracking-wider ${
             isWinner ? "text-orbital-success" : "text-orbital-text"
           }`}>

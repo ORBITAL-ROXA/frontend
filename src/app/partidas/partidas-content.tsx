@@ -17,7 +17,7 @@ const filters: { value: FilterType; label: string }[] = [
   { value: "mine", label: "MINHAS" },
 ];
 
-export function PartidasContent({ matches }: { matches: Match[] }) {
+export function PartidasContent({ matches, teamsMap }: { matches: Match[]; teamsMap?: Record<number, { name: string; logo: string | null }> }) {
   const [filter, setFilter] = useState<FilterType>("all");
   const { user } = useAuth();
 
@@ -76,7 +76,7 @@ export function PartidasContent({ matches }: { matches: Match[] }) {
       {filtered.length > 0 ? (
         <div className="grid gap-3">
           {filtered.map((match, i) => (
-            <MatchCard key={match.id} match={match} delay={i * 0.05} />
+            <MatchCard key={match.id} match={match} teamsMap={teamsMap} delay={i * 0.05} />
           ))}
         </div>
       ) : (

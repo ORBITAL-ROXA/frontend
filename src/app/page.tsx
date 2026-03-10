@@ -1,11 +1,11 @@
-import { getMatches, getTeams, Match, getStatusType } from "@/lib/api";
+import { getMatches, getTeams, Match, Team, getStatusType } from "@/lib/api";
 import { HomeContent } from "./home-content";
 
 export const revalidate = 30;
 
 export default async function HomePage() {
   let matches: Match[] = [];
-  let teamCount = 0;
+  let teams: Team[] = [];
 
   try {
     const [matchesRes, teamsRes] = await Promise.all([
@@ -13,10 +13,13 @@ export default async function HomePage() {
       getTeams(),
     ]);
     matches = matchesRes.matches || [];
-    teamCount = teamsRes.teams?.length || 0;
+    teams = teamsRes.teams || [];
   } catch {
     // API pode estar offline
   }
+
+  const teamsMap: Record<number, { name: string; logo: string | null }> = {};
+  teams.forEach((t) => { teamsMap[t.id] = { name: t.name, logo: t.logo }; });
 
   const liveMatches = matches.filter((m) => getStatusType(m) === "live");
   const recentMatches = matches
@@ -32,7 +35,8 @@ export default async function HomePage() {
       recentMatches={recentMatches}
       upcomingMatches={upcomingMatches}
       totalMatches={matches.length}
-      teamCount={teamCount}
+      teamCount={teams.length}
+      teamsMap={teamsMap}
     />
   );
 }
