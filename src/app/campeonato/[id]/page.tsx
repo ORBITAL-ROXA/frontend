@@ -182,6 +182,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
         season_id: tournament.season_id || undefined,
         title: `${tournament.name} — ${vetoMatch.label}`,
         maplist,
+        veto_mappool: maplist.join(" "),
       });
 
       const updatedMatch = { ...vetoMatch, match_id: result.match.id, status: "live" as const };

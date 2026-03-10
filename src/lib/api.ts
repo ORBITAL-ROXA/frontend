@@ -413,6 +413,7 @@ export async function createMatch(match: {
   title?: string;
   is_pug?: boolean;
   maplist?: string[];
+  veto_mappool?: string;
 }): Promise<{ match: { id: number } }> {
   const res = await fetch(`${API_WRITE_PROXY}/matches`, {
     method: "POST",
