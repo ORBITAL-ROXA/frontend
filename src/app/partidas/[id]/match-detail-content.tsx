@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HudCard } from "@/components/hud-card";
 import { Match, PlayerStats, MapStats, Team, Server, VetoEntry, getStatusText, getStatusType, updateMatch, deleteMatch, pauseMatch, unpauseMatch, restartMatch, addPlayerToMatch, getMatchBackups, restoreMatchBackup, sendMatchRcon } from "@/lib/api";
+import { BracketMatch } from "@/lib/tournament";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState, useCallback } from "react";
 
@@ -34,9 +35,11 @@ interface Props {
   team1: Team | null;
   team2: Team | null;
   server: Server | null;
+  bracketMatch?: BracketMatch | null;
+  tournamentName?: string | null;
 }
 
-export function MatchDetailContent({ match: initialMatch, playerStats: initialStats, mapStats: initialMapStats, team1, team2, server }: Props) {
+export function MatchDetailContent({ match: initialMatch, playerStats: initialStats, mapStats: initialMapStats, team1, team2, server, bracketMatch, tournamentName }: Props) {
   const [match, setMatch] = useState(initialMatch);
   const [playerStats, setPlayerStats] = useState(initialStats || []);
   const [mapStats, setMapStats] = useState(initialMapStats || []);
@@ -163,6 +166,15 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
           }`} />
 
           <div className="relative py-8 px-6">
+            {/* Tournament + bracket label */}
+            {(tournamentName || bracketMatch?.label) && (
+              <div className="text-center mb-3">
+                <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-purple/80">
+                  {tournamentName}{bracketMatch?.label ? ` — ${bracketMatch.label}` : ""}
+                </span>
+              </div>
+            )}
+
             {/* Status + Date row */}
             <div className="flex items-center justify-center gap-4 mb-6">
               {matchDate && (
@@ -446,36 +458,86 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         </motion.section>
       )}
 
-      {/* ═══ VETO HISTORY ═══ */}
-      {vetoes.length > 0 && (
-        <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">
+      {/* ═══ SELECTED MAP (from tournament bracket, when no mapStats yet) ═══ */}
+      {mapStats.length === 0 && bracketMatch?.map && (
+        <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
           <div className="flex items-center gap-3 mb-3">
-            <Ban size={14} className="text-orbital-purple" />
-            <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">VETO</h3>
+            <Map size={14} className="text-orbital-purple" />
+            <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">MAPA</h3>
             <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
           </div>
-          <div className="bg-orbital-card border border-orbital-border p-4">
-            <div className="space-y-1.5">
-              {vetoes.map((v, i) => (
-                <div key={v.id || i} className="flex items-center gap-3 py-1.5">
-                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim w-4 text-right">{i + 1}.</span>
-                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text min-w-[80px]">{v.team_name}</span>
-                  <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 border ${
-                    v.pick_or_ban === "ban"
-                      ? "text-orbital-danger bg-orbital-danger/5 border-orbital-danger/20"
-                      : "text-orbital-success bg-orbital-success/5 border-orbital-success/20"
-                  }`}>
-                    {v.pick_or_ban === "ban" ? "REMOVEU" : "ESCOLHEU"}
-                  </span>
-                  <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text font-bold">
-                    {v.map.replace("de_", "").toUpperCase()}
-                  </span>
-                </div>
-              ))}
+          <div className="relative bg-orbital-card border border-orbital-border overflow-hidden">
+            {MAP_IMAGES[bracketMatch.map] && (
+              <div className="relative h-32 sm:h-40 overflow-hidden">
+                <img src={MAP_IMAGES[bracketMatch.map]} alt={bracketMatch.map} className="w-full h-full object-cover opacity-50" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-orbital-card" />
+              </div>
+            )}
+            <div className="p-4 text-center">
+              <span className="font-[family-name:var(--font-orbitron)] text-lg tracking-wider text-orbital-text">
+                {bracketMatch.map.replace("de_", "").toUpperCase()}
+              </span>
+              <div className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim mt-1">
+                Mapa selecionado via veto
+              </div>
             </div>
           </div>
         </motion.section>
       )}
+
+      {/* ═══ VETO HISTORY ═══ */}
+      {(() => {
+        // Use G5API vetoes first, fallback to bracket match veto_actions
+        const vetoList = vetoes.length > 0
+          ? vetoes.map(v => ({ team_name: v.team_name, action: v.pick_or_ban as "ban" | "pick", map: v.map, id: v.id }))
+          : (bracketMatch?.veto_actions || []).map((v, i) => ({ team_name: v.team_name, action: v.action, map: v.map, id: i }));
+
+        // For BO1 with 6 bans, the 7th map is left over — add it
+        const leftoverMap = bracketMatch?.map && vetoList.length > 0 && !vetoList.some(v => v.action === "pick")
+          ? bracketMatch.map
+          : null;
+
+        if (vetoList.length === 0) return null;
+
+        return (
+          <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">
+            <div className="flex items-center gap-3 mb-3">
+              <Ban size={14} className="text-orbital-purple" />
+              <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">VETO</h3>
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
+            </div>
+            <div className="bg-orbital-card border border-orbital-border p-4">
+              <div className="space-y-1.5">
+                {vetoList.map((v, i) => (
+                  <div key={v.id} className="flex items-center gap-3 py-1.5">
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim w-4 text-right">{i + 1}.</span>
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text min-w-[80px]">{v.team_name}</span>
+                    <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 border ${
+                      v.action === "ban"
+                        ? "text-orbital-danger bg-orbital-danger/5 border-orbital-danger/20"
+                        : "text-orbital-success bg-orbital-success/5 border-orbital-success/20"
+                    }`}>
+                      {v.action === "ban" ? "REMOVEU" : "ESCOLHEU"}
+                    </span>
+                    <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text font-bold">
+                      {v.map.replace("de_", "").toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+                {leftoverMap && (
+                  <div className="flex items-center gap-3 py-1.5">
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim w-4 text-right">{vetoList.length + 1}.</span>
+                    <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple font-bold">
+                      {leftoverMap.replace("de_", "").toUpperCase()}
+                    </span>
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">restou</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.section>
+        );
+      })()}
 
       {/* ═══ PLAYER STATS (HLTV-style with tabs) ═══ */}
       {(team1Stats.length > 0 || team2Stats.length > 0) ? (

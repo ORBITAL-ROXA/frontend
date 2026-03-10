@@ -1,4 +1,6 @@
 import { getMatch, getPlayerStats, getMapStats, getTeam, getServer } from "@/lib/api";
+import { getTournamentsFromDB } from "@/lib/tournaments-db";
+import { BracketMatch } from "@/lib/tournament";
 import { MatchDetailContent } from "./match-detail-content";
 
 export const revalidate = 5;
@@ -8,10 +10,11 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const matchId = parseInt(id);
 
   try {
-    const [matchRes, statsRes, mapStatsRes] = await Promise.all([
+    const [matchRes, statsRes, mapStatsRes, tournaments] = await Promise.all([
       getMatch(matchId),
       getPlayerStats(matchId).catch(() => ({ playerStats: [] })),
       getMapStats(matchId).catch(() => ({ mapStats: [] })),
+      getTournamentsFromDB().catch(() => []),
     ]);
 
     const match = matchRes.match;
@@ -31,6 +34,18 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     const mapStatsRaw = Array.isArray(mapStatsRes) ? mapStatsRes : (rawMap.mapstats || rawMap.mapStats || []);
     const mapStatsArr = Array.isArray(mapStatsRaw) ? mapStatsRaw : [];
 
+    // Find bracket match from tournament (for veto history + map info)
+    let bracketMatch: BracketMatch | null = null;
+    let tournamentName: string | null = null;
+    for (const t of tournaments) {
+      const bm = t.matches.find(m => m.match_id === matchId);
+      if (bm) {
+        bracketMatch = bm;
+        tournamentName = t.name;
+        break;
+      }
+    }
+
     return (
       <MatchDetailContent
         match={match}
@@ -39,6 +54,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         team1={team1Res?.team || null}
         team2={team2Res?.team || null}
         server={serverRes?.server || null}
+        bracketMatch={bracketMatch}
+        tournamentName={tournamentName}
       />
     );
   } catch {
