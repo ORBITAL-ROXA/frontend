@@ -717,7 +717,6 @@ function PlayerStatsTable({ teamName, teamLogo, stats, isWinner, delay }: {
                   <span className="sm:hidden">±</span>
                 </th>
                 <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">ADR</th>
-                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider hidden sm:table-cell">KAST</th>
                 <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">
                   <Crosshair size={10} className="inline" /> HS%
                 </th>
@@ -729,7 +728,6 @@ function PlayerStatsTable({ teamName, teamLogo, stats, isWinner, delay }: {
                 const hsp = player.kills > 0 ? Math.round((player.headshot_kills / player.kills) * 100) : 0;
                 const adr = player.roundsplayed > 0 ? Math.round(player.damage / player.roundsplayed) : 0;
                 const diff = player.kills - player.deaths;
-                const kast = player.kast || 0;
                 const rating = calcRating(player);
 
                 return (
@@ -756,9 +754,6 @@ function PlayerStatsTable({ teamName, teamLogo, stats, isWinner, delay }: {
                     </td>
                     <td className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.7rem] text-orbital-text">
                       {adr}
-                    </td>
-                    <td className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.7rem] text-orbital-text hidden sm:table-cell">
-                      {kast > 0 ? `${kast}%` : "-"}
                     </td>
                     <td className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.7rem] text-orbital-text">
                       {hsp}%
