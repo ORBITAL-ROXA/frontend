@@ -256,54 +256,62 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
             const eliminated = losses >= 2;
             const isChampion = champion?.id === team.id;
 
+            const borderClass = isChampion ? "border-orbital-success/40" : eliminated ? "border-orbital-border" : "border-orbital-border";
+
             return (
               <motion.div
                 key={team.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + i * 0.05 }}
-                className={`relative bg-orbital-card border p-4 text-center transition-all group ${
-                  isChampion ? "border-orbital-success/40 bg-orbital-success/5" :
-                  eliminated ? "border-orbital-border opacity-50" :
-                  "border-orbital-border hover:border-orbital-purple/30"
-                }`}
+                className={`group [perspective:600px] ${eliminated ? "opacity-50" : ""}`}
               >
-                <div className="w-12 h-12 mx-auto mb-2 border border-orbital-border flex items-center justify-center bg-[#0A0A0A]">
-                  <TeamLogo logo={logo} size={32} className="w-8 h-8" />
-                </div>
-                <div className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text truncate">
-                  {team.name}
-                </div>
-                <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-0.5">
-                  [{team.tag}]
-                </div>
-                {isChampion && (
-                  <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-success mt-1">CAMPEÃO</div>
-                )}
-                {eliminated && !isChampion && (
-                  <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-danger mt-1">ELIMINADO</div>
-                )}
-
-                {/* Players tooltip on hover */}
-                {players.length > 0 && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-50 w-44 bg-[#0D0D0D] border border-orbital-purple/30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
-                    <div className="px-3 py-1.5 border-b border-orbital-border/30 bg-orbital-purple/10">
-                      <span className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-purple">LINEUP</span>
+                <div className="relative w-full h-[140px] transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+                  {/* Front */}
+                  <div className={`absolute inset-0 [backface-visibility:hidden] bg-orbital-card border ${borderClass} ${isChampion ? "bg-orbital-success/5" : ""} p-4 flex flex-col items-center justify-center`}>
+                    <div className="w-12 h-12 mb-2 border border-orbital-border flex items-center justify-center bg-[#0A0A0A]">
+                      <TeamLogo logo={logo} size={32} className="w-8 h-8" />
                     </div>
-                    <div className="py-1">
+                    <div className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text truncate max-w-full">
+                      {team.name}
+                    </div>
+                    <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-0.5">
+                      [{team.tag}]
+                    </div>
+                    {isChampion && (
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-success mt-1">CAMPEÃO</div>
+                    )}
+                    {eliminated && !isChampion && (
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-danger mt-1">ELIMINADO</div>
+                    )}
+                  </div>
+
+                  {/* Back */}
+                  <div className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-[#0D0D0D] border border-orbital-purple/30 flex flex-col`}>
+                    <div className="px-3 py-1.5 border-b border-orbital-purple/20 bg-orbital-purple/10 flex items-center justify-between">
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-purple">LINEUP</span>
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] text-orbital-text-dim">{team.tag}</span>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center py-1">
                       {players.map((p) => (
-                        <div key={p.steamId} className="flex items-center gap-2 px-3 py-1">
-                          <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] ${p.captain ? "text-orbital-purple" : "text-orbital-text"}`}>
+                        <div key={p.steamId} className="flex items-center gap-2 px-3 py-0.5">
+                          <span className="text-[0.5rem] text-orbital-text-dim">—</span>
+                          <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] ${p.captain ? "text-orbital-purple font-bold" : "text-orbital-text"}`}>
                             {p.name}
                           </span>
                           {p.captain === 1 && (
-                            <span className="text-[0.4rem] text-orbital-purple font-[family-name:var(--font-orbitron)]">C</span>
+                            <span className="text-[0.4rem] text-orbital-purple font-[family-name:var(--font-orbitron)] ml-auto">CAP</span>
                           )}
                         </div>
                       ))}
+                      {players.length === 0 && (
+                        <div className="text-center text-orbital-text-dim font-[family-name:var(--font-jetbrains)] text-[0.55rem]">
+                          Sem jogadores
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
+                </div>
               </motion.div>
             );
           })}
