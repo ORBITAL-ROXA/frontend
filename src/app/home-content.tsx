@@ -432,7 +432,7 @@ function BracketPreview({ tournament: t, mapScoresMap }: { tournament: Tournamen
     );
 
     if (hasLink) {
-      return <Link href={`/partidas/${match.match_id}`}>{content}</Link>;
+      return <Link href={`/partidas/${match.match_id}`} className="block">{content}</Link>;
     }
     return content;
   };
