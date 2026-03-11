@@ -246,6 +246,64 @@ export async function getVetoes(matchId: number): Promise<{ vetoes: VetoEntry[] 
   return apiFetch(`/vetoes/${matchId}`, true);
 }
 
+export interface KillEvent {
+  id: number;
+  player_steam_id: string;
+  player_name: string;
+  player_side: string;
+  match_id: number;
+  map_id: number;
+  team_id: number;
+  round_number: number;
+  round_time: number;
+  attacker_steam_id: string;
+  attacker_name: string;
+  attacker_side: string;
+  weapon: string;
+  bomb: boolean;
+  headshot: boolean;
+  thru_smoke: boolean;
+  attacker_blind: boolean;
+  no_scope: boolean;
+  suicide: boolean;
+  friendly_fire: boolean;
+  assister_steam_id: string | null;
+  assister_name: string | null;
+  assister_side: string | null;
+  assist_friendly_fire: boolean;
+  flash_assist: boolean;
+}
+
+export interface BombEvent {
+  id: number;
+  match_id: number;
+  map_id: number;
+  player_name: string;
+  round_number: number;
+  round_time: number;
+  site: string;
+  defused: boolean;
+  bomb_time_remaining: number | null;
+}
+
+export async function getKillEvents(matchId: number): Promise<KillEvent[]> {
+  try {
+    const data = await apiFetch<{ playerStatExtra: KillEvent[] }>(`/playerstatsextra/match/${matchId}`, true);
+    return data.playerStatExtra || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getBombEvents(matchId: number): Promise<BombEvent[]> {
+  try {
+    const data = await apiFetch<{ bombInfo: BombEvent[] }>(`/matches/${matchId}/bombs`, true);
+    return data.bombInfo || [];
+  } catch {
+    return [];
+  }
+}
+
 export function getSSEUrl(matchId: number): string {
   return `${getApiBase()}/matches/${matchId}/stream`;
 }

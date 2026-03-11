@@ -5,7 +5,7 @@ import { ArrowLeft, Radio, Map, Users, Target, Skull, Crosshair, RefreshCw, Down
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HudCard } from "@/components/hud-card";
-import { Match, PlayerStats, MapStats, Team, Server, VetoEntry, getStatusText, getStatusType, updateMatch, deleteMatch, pauseMatch, unpauseMatch, restartMatch, addPlayerToMatch, getMatchBackups, restoreMatchBackup, sendMatchRcon } from "@/lib/api";
+import { Match, PlayerStats, MapStats, Team, Server, VetoEntry, KillEvent, BombEvent, getStatusText, getStatusType, getKillEvents, getBombEvents, updateMatch, deleteMatch, pauseMatch, unpauseMatch, restartMatch, addPlayerToMatch, getMatchBackups, restoreMatchBackup, sendMatchRcon } from "@/lib/api";
 import { BracketMatch } from "@/lib/tournament";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState, useCallback } from "react";
@@ -62,6 +62,10 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
   const [vetoes, setVetoes] = useState<VetoEntry[]>([]);
   const [adminAction, setAdminAction] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | number>("all");
+  const [killEvents, setKillEvents] = useState<KillEvent[]>([]);
+  const [bombEvents, setBombEvents] = useState<BombEvent[]>([]);
+  const [gameLogExpanded, setGameLogExpanded] = useState(true);
+  const [gameLogMapFilter, setGameLogMapFilter] = useState<"all" | number>("all");
   const [allstarClips, setAllstarClips] = useState<AllstarClip[]>([]);
   const [allstarLoading, setAllstarLoading] = useState(false);
   const [allstarSubmitting, setAllstarSubmitting] = useState(false);
@@ -135,6 +139,25 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
       .then(d => { if (d?.vetoes) setVetoes(d.vetoes); })
       .catch(() => {});
   }, [match.id]);
+
+  // Fetch game log (kill events + bomb events)
+  const fetchGameLog = useCallback(async () => {
+    const [kills, bombs] = await Promise.all([
+      getKillEvents(match.id),
+      getBombEvents(match.id),
+    ]);
+    setKillEvents(kills);
+    setBombEvents(bombs);
+  }, [match.id]);
+
+  useEffect(() => { fetchGameLog(); }, [fetchGameLog]);
+
+  // Refresh game log when live
+  useEffect(() => {
+    if (!isLive) return;
+    const interval = setInterval(fetchGameLog, 15000);
+    return () => clearInterval(interval);
+  }, [isLive, fetchGameLog]);
 
   // Fetch Allstar clips
   const fetchAllstarClips = useCallback(async () => {
@@ -656,6 +679,19 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         </div>
       </motion.section>
 
+      {/* ═══ GAME LOG ═══ */}
+      {(killEvents.length > 0 || bombEvents.length > 0) && (
+        <GameLog
+          killEvents={killEvents}
+          bombEvents={bombEvents}
+          mapStats={mapStats}
+          expanded={gameLogExpanded}
+          onToggle={() => setGameLogExpanded(!gameLogExpanded)}
+          mapFilter={gameLogMapFilter}
+          onMapFilterChange={setGameLogMapFilter}
+        />
+      )}
+
       {/* ═══ PLAYER STATS (HLTV-style with tabs) ═══ */}
       {(team1Stats.length > 0 || team2Stats.length > 0) ? (
         <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -833,6 +869,288 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         </motion.section>
       )}
     </div>
+  );
+}
+
+// ── Weapon display names ──
+const WEAPON_NAMES: Record<string, string> = {
+  ak47: "AK-47", m4a1: "M4A1-S", m4a1_silencer: "M4A1-S", m4a1_silencer_off: "M4A4",
+  awp: "AWP", deagle: "Desert Eagle", glock: "Glock-18", usp_silencer: "USP-S",
+  p250: "P250", fiveseven: "Five-SeveN", tec9: "Tec-9", cz75a: "CZ75-Auto",
+  elite: "Dual Berettas", mp9: "MP9", mac10: "MAC-10", mp7: "MP7", ump45: "UMP-45",
+  p90: "P90", bizon: "PP-Bizon", famas: "FAMAS", galilar: "Galil AR",
+  aug: "AUG", sg556: "SG 553", ssg08: "SSG 08", g3sg1: "G3SG1", scar20: "SCAR-20",
+  nova: "Nova", xm1014: "XM1014", sawedoff: "Sawed-Off", mag7: "MAG-7",
+  m249: "M249", negev: "Negev", hkp2000: "P2000", revolver: "R8 Revolver",
+  knife: "Knife", knife_t: "Knife", bayonet: "Knife",
+  hegrenade: "HE Grenade", inferno: "Molotov", molotov: "Molotov",
+  flashbang: "Flashbang", smokegrenade: "Smoke", decoy: "Decoy",
+  world: "World", planted_c4: "C4",
+};
+
+function getWeaponName(weapon: string): string {
+  return WEAPON_NAMES[weapon] || weapon.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// ── Game Log Entry type ──
+type GameLogEntry =
+  | { type: "kill"; data: KillEvent; time: number }
+  | { type: "bomb_plant"; data: BombEvent; time: number }
+  | { type: "bomb_defuse"; data: BombEvent; time: number };
+
+// ── Game Log Component ──
+function GameLog({
+  killEvents, bombEvents, mapStats,
+  expanded, onToggle, mapFilter, onMapFilterChange,
+}: {
+  killEvents: KillEvent[];
+  bombEvents: BombEvent[];
+  mapStats: MapStats[];
+  expanded: boolean;
+  onToggle: () => void;
+  mapFilter: "all" | number;
+  onMapFilterChange: (v: "all" | number) => void;
+}) {
+  // Build unified log entries
+  const entries: GameLogEntry[] = [];
+
+  const filteredKills = mapFilter === "all" ? killEvents : killEvents.filter(k => k.map_id === mapFilter);
+  const filteredBombs = mapFilter === "all" ? bombEvents : bombEvents.filter(b => b.map_id === mapFilter);
+
+  for (const k of filteredKills) {
+    entries.push({ type: "kill", data: k, time: k.id });
+  }
+  for (const b of filteredBombs) {
+    entries.push({
+      type: b.defused ? "bomb_defuse" : "bomb_plant",
+      data: b,
+      time: b.id,
+    });
+  }
+
+  // Sort by id (chronological order from DB)
+  entries.sort((a, b) => a.time - b.time);
+
+  // Group by round
+  const roundGroups = new window.Map<string, GameLogEntry[]>();
+  for (const entry of entries) {
+    const roundNum = entry.type === "kill" ? entry.data.round_number : entry.data.round_number;
+    const mapId = entry.type === "kill" ? entry.data.map_id : entry.data.map_id;
+    const key = `${mapId}-${roundNum}`;
+    if (!roundGroups.has(key)) roundGroups.set(key, []);
+    roundGroups.get(key)!.push(entry);
+  }
+
+  // Get round keys sorted
+  const roundKeys = Array.from(roundGroups.keys()).sort((a, b) => {
+    const [mapA, roundA] = a.split("-").map(Number);
+    const [mapB, roundB] = b.split("-").map(Number);
+    if (mapA !== mapB) return mapA - mapB;
+    return roundA - roundB;
+  });
+
+  // Reverse to show most recent first
+  roundKeys.reverse();
+
+  const getSide = (side: string) => {
+    if (side === "CT" || side === "3") return "CT";
+    if (side === "T" || side === "2") return "T";
+    return side;
+  };
+
+  const sideColor = (side: string) => {
+    const s = getSide(side);
+    return s === "CT" ? "text-blue-400" : s === "T" ? "text-yellow-400" : "text-orbital-text-dim";
+  };
+
+  const sideBg = (side: string) => {
+    const s = getSide(side);
+    return s === "CT" ? "bg-blue-500/10" : s === "T" ? "bg-yellow-500/10" : "";
+  };
+
+  const mapName = (mapId: number) => {
+    const ms = mapStats.find(m => m.id === mapId);
+    return ms ? ms.map_name.replace("de_", "").toUpperCase() : `Map ${mapId}`;
+  };
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.18 }}
+      className="mb-6"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <Skull size={14} className="text-orbital-purple" />
+        <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">GAME LOG</h3>
+        <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
+        <button
+          onClick={onToggle}
+          className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim hover:text-orbital-purple transition-colors flex items-center gap-1"
+        >
+          <ChevronDown size={12} className={`transition-transform ${expanded ? "" : "-rotate-90"}`} />
+          {expanded ? "Recolher" : "Expandir"}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="bg-orbital-card border border-orbital-border overflow-hidden">
+          {/* Map filter tabs */}
+          {mapStats.length > 1 && (
+            <div className="flex items-center gap-1 p-2 border-b border-orbital-border/50">
+              <button
+                onClick={() => onMapFilterChange("all")}
+                className={`px-2.5 py-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider border transition-all ${
+                  mapFilter === "all"
+                    ? "border-orbital-purple/50 bg-orbital-purple/10 text-orbital-purple"
+                    : "border-orbital-border text-orbital-text-dim hover:text-orbital-text"
+                }`}
+              >
+                TODOS
+              </button>
+              {mapStats.map(ms => (
+                <button
+                  key={ms.id}
+                  onClick={() => onMapFilterChange(ms.id)}
+                  className={`px-2.5 py-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider border transition-all ${
+                    mapFilter === ms.id
+                      ? "border-orbital-purple/50 bg-orbital-purple/10 text-orbital-purple"
+                      : "border-orbital-border text-orbital-text-dim hover:text-orbital-text"
+                  }`}
+                >
+                  {ms.map_name.replace("de_", "").toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Log entries */}
+          <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
+            {roundKeys.length === 0 ? (
+              <div className="text-center py-8">
+                <Target size={20} className="text-orbital-border mx-auto mb-2" />
+                <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
+                  Nenhum evento registrado
+                </p>
+              </div>
+            ) : (
+              roundKeys.map(key => {
+                const [mapId, roundNum] = key.split("-").map(Number);
+                const events = roundGroups.get(key)!;
+                return (
+                  <div key={key} className="border-b border-orbital-border/30 last:border-0">
+                    {/* Round header */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0d0d0d]">
+                      <Flag size={10} className="text-orbital-purple/60" />
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-purple/80">
+                        ROUND {roundNum}
+                      </span>
+                      {mapStats.length > 1 && (
+                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] text-orbital-text-dim">
+                          {mapName(mapId)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Events in this round */}
+                    <div>
+                      {events.map((entry, idx) => {
+                        if (entry.type === "kill") {
+                          const k = entry.data;
+                          const badges: string[] = [];
+                          if (k.headshot) badges.push("HS");
+                          if (k.no_scope) badges.push("NS");
+                          if (k.thru_smoke) badges.push("SM");
+                          if (k.attacker_blind) badges.push("FB");
+
+                          return (
+                            <div key={`k-${k.id}`} className={`flex items-center gap-1.5 px-3 py-1 text-[0.6rem] font-[family-name:var(--font-jetbrains)] hover:bg-white/[0.02] ${idx % 2 === 0 ? "" : "bg-white/[0.01]"}`}>
+                              {/* Attacker */}
+                              <span className={`${sideColor(k.attacker_side)} font-medium truncate max-w-[100px] sm:max-w-[140px]`} title={k.attacker_name}>
+                                {k.attacker_name}
+                              </span>
+
+                              {/* Assist */}
+                              {k.assister_name && (
+                                <>
+                                  <span className="text-orbital-text-dim">+</span>
+                                  <span className={`${sideColor(k.assister_side || k.attacker_side)} truncate max-w-[80px] opacity-70`} title={k.assister_name}>
+                                    {k.flash_assist ? "⚡" : ""}{k.assister_name}
+                                  </span>
+                                </>
+                              )}
+
+                              {/* Weapon + badges */}
+                              <span className="flex items-center gap-0.5 mx-1">
+                                <Crosshair size={9} className="text-orbital-text-dim shrink-0" />
+                                <span className="text-[0.5rem] text-orbital-text-dim whitespace-nowrap">
+                                  {getWeaponName(k.weapon)}
+                                </span>
+                                {badges.map(b => (
+                                  <span key={b} className={`text-[0.4rem] px-0.5 font-bold ${
+                                    b === "HS" ? "text-orbital-danger" : "text-orbital-warning"
+                                  }`}>
+                                    {b}
+                                  </span>
+                                ))}
+                              </span>
+
+                              {/* Victim */}
+                              <span className={`${sideColor(k.player_side)} truncate max-w-[100px] sm:max-w-[140px]`} title={k.player_name}>
+                                {k.player_name}
+                              </span>
+                            </div>
+                          );
+                        }
+
+                        if (entry.type === "bomb_plant") {
+                          const b = entry.data;
+                          return (
+                            <div key={`bp-${b.id}`} className={`flex items-center gap-1.5 px-3 py-1.5 text-[0.6rem] font-[family-name:var(--font-jetbrains)] ${sideBg("T")}`}>
+                              <span className="text-yellow-400">💣</span>
+                              <span className="text-yellow-400 font-medium">{b.player_name}</span>
+                              <span className="text-orbital-text-dim">plantou a bomba no</span>
+                              <span className="text-yellow-400 font-bold">BOMB {b.site}</span>
+                            </div>
+                          );
+                        }
+
+                        if (entry.type === "bomb_defuse") {
+                          const b = entry.data;
+                          return (
+                            <div key={`bd-${b.id}`} className={`flex items-center gap-1.5 px-3 py-1.5 text-[0.6rem] font-[family-name:var(--font-jetbrains)] ${sideBg("CT")}`}>
+                              <span className="text-blue-400">🔧</span>
+                              <span className="text-blue-400 font-medium">{b.player_name}</span>
+                              <span className="text-orbital-text-dim">desarmou a bomba</span>
+                              {b.bomb_time_remaining != null && (
+                                <span className="text-orbital-danger text-[0.5rem]">
+                                  ({(b.bomb_time_remaining / 1000).toFixed(1)}s restantes)
+                                </span>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Footer with count */}
+          <div className="px-3 py-2 border-t border-orbital-border/50 bg-[#0d0d0d] flex items-center justify-between">
+            <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+              {filteredKills.length} kills • {filteredBombs.filter(b => !b.defused).length} plants • {filteredBombs.filter(b => b.defused).length} defuses
+            </span>
+            <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+              {roundKeys.length} rounds
+            </span>
+          </div>
+        </div>
+      )}
+    </motion.section>
   );
 }
 
