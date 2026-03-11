@@ -266,7 +266,7 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
                 transition={{ delay: 0.5 + i * 0.05 }}
                 className={`group [perspective:600px] ${eliminated ? "opacity-50" : ""}`}
               >
-                <div className="relative w-full h-[140px] transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+                <div className="relative w-full h-[180px] transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
                   {/* Front */}
                   <div className={`absolute inset-0 [backface-visibility:hidden] bg-orbital-card border ${borderClass} ${isChampion ? "bg-orbital-success/5" : ""} p-4 flex flex-col items-center justify-center`}>
                     <div className="w-12 h-12 mb-2 border border-orbital-border flex items-center justify-center bg-[#0A0A0A]">
