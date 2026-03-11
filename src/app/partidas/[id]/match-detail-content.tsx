@@ -638,6 +638,24 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         );
       })()}
 
+      {/* ═══ STREAM ═══ */}
+      <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.17 }} className="mb-6">
+        <div className="flex items-center gap-3 mb-3">
+          <Radio size={14} className="text-orbital-purple" />
+          <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">STREAM</h3>
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
+        </div>
+        <div className="bg-orbital-card border border-orbital-border overflow-hidden">
+          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              src="https://player.twitch.tv/?channel=orbitalcuplives&parent=orbital-cs2.vercel.app&parent=localhost"
+              className="absolute inset-0 w-full h-full"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </motion.section>
+
       {/* ═══ PLAYER STATS (HLTV-style with tabs) ═══ */}
       {(team1Stats.length > 0 || team2Stats.length > 0) ? (
         <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
