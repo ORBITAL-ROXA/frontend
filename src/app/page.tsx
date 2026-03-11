@@ -39,7 +39,8 @@ export default async function HomePage() {
   await Promise.all(
     displayedMatches.map(async (m) => {
       try {
-        const { mapStats } = await getMapStats(m.id);
+        const raw = await getMapStats(m.id) as Record<string, unknown>;
+        const mapStats = (raw.mapstats || raw.mapStats || []) as { team1_score: number; team2_score: number; map_name: string }[];
         if (mapStats?.length > 0) {
           mapScoresMap[m.id] = mapStats.map(ms => ({
             team1_score: ms.team1_score,
