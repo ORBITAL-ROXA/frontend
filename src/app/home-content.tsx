@@ -295,7 +295,7 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
                     <div className="flex-1 flex flex-col justify-center py-1">
                       {players.map((p) => (
                         <div key={p.steamId} className="flex items-center gap-2 px-3 py-0.5">
-                          <span className="text-[0.6rem] leading-none">🇧🇷</span>
+                          <img src="https://www.hltv.org/img/static/flags/30x20/BR.gif" alt="BR" className="w-4 h-3 object-contain" />
                           <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] ${p.captain ? "text-orbital-purple font-bold" : "text-orbital-text"}`}>
                             {p.name}
                           </span>
