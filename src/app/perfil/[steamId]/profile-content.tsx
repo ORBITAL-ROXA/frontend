@@ -62,8 +62,17 @@ export function ProfileContent({ steamId }: { steamId: string }) {
   const [playerClips, setPlayerClips] = useState<{ id: number; match_id: number; map_number: number; rank: number; player_name: string; kills_count: number; score: number; description: string; round_number: number; video_file: string; thumbnail_file: string; duration_s: number; team1_string: string; team2_string: string }[]>([]);
   const [mapPerformance, setMapPerformance] = useState<{ map: string; wins: number; total: number; avgRating: number; kills: number; deaths: number }[]>([]);
   const [matchHistory, setMatchHistory] = useState<MatchDataPoint[]>([]);
+  const [avatar, setAvatar] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    // Fetch Steam avatar
+    fetch(`/api/steam/avatar/${steamId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.avatar) setAvatar(d.avatar); })
+      .catch(() => {});
+  }, [steamId]);
 
   useEffect(() => {
     async function fetchData() {
@@ -367,11 +376,15 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           {/* Avatar */}
           <div className="relative">
             <div className="w-24 h-24 rounded-full border-2 border-orbital-purple/50 overflow-hidden" style={{ boxShadow: "0 0 25px rgba(168,85,247,0.3)" }}>
-              <div className="w-full h-full bg-orbital-border flex items-center justify-center">
-                <span className="font-[family-name:var(--font-orbitron)] text-2xl text-orbital-text-dim">
-                  {stats.name?.charAt(0)?.toUpperCase() || "?"}
-                </span>
-              </div>
+              {avatar ? (
+                <img src={avatar} alt={stats.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-orbital-border flex items-center justify-center">
+                  <span className="font-[family-name:var(--font-orbitron)] text-2xl text-orbital-text-dim">
+                    {stats.name?.charAt(0)?.toUpperCase() || "?"}
+                  </span>
+                </div>
+              )}
             </div>
             {/* Rating badge */}
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orbital-card border border-orbital-border px-3 py-0.5">
