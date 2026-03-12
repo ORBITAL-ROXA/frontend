@@ -101,10 +101,9 @@ export function HighlightsContent() {
               transition={{ delay: 0.05 * i }}
               className="bg-orbital-card border border-orbital-border overflow-hidden group hover:border-orbital-purple/30 transition-colors"
             >
-              {/* Video with auto-generated thumbnail */}
+              {/* Video with auto-generated thumbnail (ignore server thumb — it's the same generic intro for all clips) */}
               <VideoPlayer
                 src={`${G5API_URL}/highlights-files/${clip.video_file}`}
-                thumbnailSrc={clip.thumbnail_file ? `${G5API_URL}/highlights-files/${clip.thumbnail_file}` : undefined}
               />
 
               {/* Info bar */}
@@ -152,14 +151,14 @@ export function HighlightsContent() {
 }
 
 // Video player that seeks to 8s for a unique thumbnail frame per clip
-function VideoPlayer({ src, thumbnailSrc }: { src: string; thumbnailSrc?: string }) {
+function VideoPlayer({ src }: { src: string }) {
   const [playing, setPlaying] = useState(false);
   const [thumbReady, setThumbReady] = useState(false);
   const thumbVideoRef = useRef<HTMLVideoElement>(null);
 
   // Seek the thumbnail video to 8s once it has enough data
   useEffect(() => {
-    if (playing || thumbnailSrc) return;
+    if (playing) return;
     const video = thumbVideoRef.current;
     if (!video) return;
 
@@ -178,7 +177,7 @@ function VideoPlayer({ src, thumbnailSrc }: { src: string; thumbnailSrc?: string
       video.removeEventListener("loadedmetadata", handleCanPlay);
       video.removeEventListener("seeked", handleSeeked);
     };
-  }, [playing, thumbnailSrc, src]);
+  }, [playing, src]);
 
   if (playing) {
     return (
@@ -197,25 +196,19 @@ function VideoPlayer({ src, thumbnailSrc }: { src: string; thumbnailSrc?: string
       onClick={() => setPlaying(true)}
       className="relative w-full aspect-video bg-black group/play cursor-pointer overflow-hidden"
     >
-      {thumbnailSrc ? (
-        <img src={thumbnailSrc} alt="" className="w-full h-full object-cover" />
-      ) : (
-        <>
-          {/* Hidden video that loads and seeks to 8s for a unique frame */}
-          <video
-            ref={thumbVideoRef}
-            muted
-            playsInline
-            preload="auto"
-            className={`w-full h-full object-cover pointer-events-none ${thumbReady ? "" : "opacity-0"}`}
-            src={src}
-          />
-          {!thumbReady && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 size={20} className="text-orbital-purple/40 animate-spin" />
-            </div>
-          )}
-        </>
+      {/* Hidden video that loads and seeks to 8s for a unique frame */}
+      <video
+        ref={thumbVideoRef}
+        muted
+        playsInline
+        preload="auto"
+        className={`w-full h-full object-cover pointer-events-none ${thumbReady ? "" : "opacity-0"}`}
+        src={src}
+      />
+      {!thumbReady && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Loader2 size={20} className="text-orbital-purple/40 animate-spin" />
+        </div>
       )}
       {/* Play overlay */}
       <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/play:bg-black/10 transition-colors">
