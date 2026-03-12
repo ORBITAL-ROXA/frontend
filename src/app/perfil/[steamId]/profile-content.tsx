@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft, Target, Skull, Crosshair, Zap, Award, TrendingUp, Shield, Flame, Map, BarChart3 } from "lucide-react";
+import { ArrowLeft, Target, Skull, Crosshair, Zap, Award, TrendingUp, Shield, Flame, Map, BarChart3, Film } from "lucide-react";
 import Link from "next/link";
 import { HudCard, StatBox } from "@/components/hud-card";
 import { Match, getStatusText, getStatusType } from "@/lib/api";
@@ -49,6 +49,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [recentMatches, setRecentMatches] = useState<Match[]>([]);
   const [mapCounts, setMapCounts] = useState<{ map: string; count: number }[]>([]);
+  const [playerClips, setPlayerClips] = useState<{ id: number; match_id: number; map_number: number; rank: number; player_name: string; kills_count: number; score: number; description: string; round_number: number; video_file: string; thumbnail_file: string; duration_s: number; team1_string: string; team2_string: string }[]>([]);
   const [mapPerformance, setMapPerformance] = useState<{ map: string; wins: number; total: number; avgRating: number; kills: number; deaths: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -214,6 +215,15 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           });
           const resolved = await Promise.all(matchPromises);
           setRecentMatches(resolved.filter((m): m is Match => m !== null));
+        }
+      } catch { /* não crítico */ }
+
+      // Buscar highlights do jogador
+      try {
+        const res = await fetch(`/api/highlights/player/${steamId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPlayerClips(data.clips || []);
         }
       } catch { /* não crítico */ }
 
@@ -441,6 +451,58 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                 })}
               </tbody>
             </table>
+          </div>
+        </HudCard>
+      )}
+
+      {/* Player Highlights */}
+      {playerClips.length > 0 && (
+        <HudCard delay={0.47} label="MELHORES MOMENTOS" className="mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 py-2">
+            {playerClips.map(clip => (
+              <div key={clip.id} className="bg-[#0A0A0A] border border-orbital-border overflow-hidden group">
+                <video
+                  controls
+                  preload="metadata"
+                  poster={clip.thumbnail_file ? `/api/highlights-proxy/${clip.thumbnail_file}` : undefined}
+                  className="w-full aspect-video bg-black"
+                >
+                  <source src={`/api/highlights-proxy/${clip.video_file}`} type="video/mp4" />
+                </video>
+                <div className="p-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple shrink-0">
+                        #{clip.rank}
+                      </span>
+                      {clip.kills_count >= 2 && (
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.45rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
+                          {clip.kills_count >= 5 ? "ACE" : `${clip.kills_count}K`}
+                        </span>
+                      )}
+                      {clip.score > 0 && (
+                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] text-orbital-text-dim">
+                          {clip.score}pts
+                        </span>
+                      )}
+                    </div>
+                    {clip.round_number && (
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] text-orbital-text-dim shrink-0">
+                        R{clip.round_number}
+                      </span>
+                    )}
+                  </div>
+                  {(clip.team1_string || clip.team2_string) && (
+                    <Link
+                      href={`/partidas/${clip.match_id}`}
+                      className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim hover:text-orbital-purple transition-colors block mt-1 truncate"
+                    >
+                      {clip.team1_string} vs {clip.team2_string}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </HudCard>
       )}
