@@ -604,6 +604,135 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         </motion.section>
       )}
 
+      {/* ═══ HIGHLIGHTS ═══ */}
+      {isFinished && mapStats.some(ms => ms.demoFile) && (
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.14 }}
+          className="mb-6"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <Film size={14} className="text-orbital-purple" />
+            <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">HIGHLIGHTS</h3>
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
+            {highlightClips.some(c => c.status !== "ready" && c.status !== "error") && (
+              <button onClick={fetchHighlightClips} className="text-orbital-purple hover:text-orbital-text transition-colors">
+                <RefreshCw size={12} />
+              </button>
+            )}
+          </div>
+
+          {highlightsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 size={20} className="text-orbital-purple animate-spin" />
+            </div>
+          ) : (
+            <>
+              {/* Ready clips — 3 per row */}
+              {highlightClips.filter(c => c.status === "ready" && c.video_file).length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {highlightClips.filter(c => c.status === "ready" && c.video_file).map(clip => (
+                    <div key={clip.id} className="bg-orbital-card border border-orbital-border overflow-hidden group">
+                      <video
+                        controls
+                        preload="metadata"
+                        poster={clip.thumbnail_file ? `/api/highlights-proxy/${clip.thumbnail_file}` : undefined}
+                        className="w-full aspect-video bg-black"
+                      >
+                        <source src={`/api/highlights-proxy/${clip.video_file}`} type="video/mp4" />
+                      </video>
+                      <div className="p-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple shrink-0">
+                            #{clip.rank}
+                          </span>
+                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text truncate">
+                            {clip.player_name || "Highlight"}
+                          </span>
+                          {clip.kills_count >= 2 && (
+                            <span className="font-[family-name:var(--font-orbitron)] text-[0.45rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
+                              {clip.kills_count >= 5 ? "ACE" : `${clip.kills_count}K`}
+                            </span>
+                          )}
+                        </div>
+                        {clip.round_number && (
+                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] text-orbital-text-dim shrink-0">
+                            R{clip.round_number}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* In-progress clips */}
+              {highlightClips.filter(c => ["pending", "extracting", "recording", "processing"].includes(c.status)).length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                  {highlightClips.filter(c => ["pending", "extracting", "recording", "processing"].includes(c.status)).map(clip => {
+                    const statusLabels: Record<string, string> = {
+                      pending: "Aguardando...",
+                      extracting: "Analisando demo...",
+                      recording: "Gravando clip...",
+                      processing: "Aplicando efeitos...",
+                    };
+                    return (
+                      <HudCard key={clip.id} className="flex items-center gap-3 p-3">
+                        <Loader2 size={12} className="text-orbital-purple animate-spin shrink-0" />
+                        <div className="min-w-0">
+                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim block truncate">
+                            {statusLabels[clip.status] || "Processando..."}
+                          </span>
+                          {clip.player_name && (
+                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-purple truncate block">
+                              #{clip.rank} {clip.player_name}
+                            </span>
+                          )}
+                        </div>
+                      </HudCard>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Admin: generate highlights button */}
+              {isAdmin && mapStats.filter(ms => ms.demoFile && ms.end_time).map(ms => {
+                const hasClip = highlightClips.some(c => c.map_number === ms.map_number);
+                if (hasClip) return null;
+                return (
+                  <button
+                    key={`gen-${ms.map_number}`}
+                    onClick={() => triggerHighlights(ms.map_number)}
+                    disabled={highlightsTriggering}
+                    className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-orbital-card border border-dashed border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/5 transition-all disabled:opacity-50"
+                  >
+                    {highlightsTriggering ? (
+                      <Loader2 size={14} className="text-orbital-purple animate-spin" />
+                    ) : (
+                      <Sparkles size={14} className="text-orbital-purple" />
+                    )}
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple">
+                      {highlightsTriggering ? "GERANDO..." : `GERAR HIGHLIGHTS — ${ms.map_name?.replace("de_", "").toUpperCase() || `MAPA ${ms.map_number + 1}`}`}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {/* No clips yet and not admin */}
+              {highlightClips.length === 0 && !isAdmin && (
+                <HudCard className="text-center py-6">
+                  <Film size={20} className="text-orbital-border mx-auto mb-2" />
+                  <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
+                    Nenhum highlight disponível
+                  </p>
+                </HudCard>
+              )}
+            </>
+          )}
+        </motion.section>
+      )}
+
       {/* ═══ VETO + STREAM (side by side) ═══ */}
       {(() => {
         // Use G5API vetoes first, fallback to bracket match veto_actions
@@ -763,159 +892,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         </HudCard>
       ) : null}
 
-      {/* ═══ HIGHLIGHTS ═══ */}
-      {isFinished && mapStats.some(ms => ms.demoFile) && (
-        <motion.section
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="mt-6"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <Film size={14} className="text-orbital-purple" />
-            <h3 className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">HIGHLIGHTS</h3>
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
-            {highlightClips.some(c => c.status !== "ready" && c.status !== "error") && (
-              <button onClick={fetchHighlightClips} className="text-orbital-purple hover:text-orbital-text transition-colors">
-                <RefreshCw size={12} />
-              </button>
-            )}
-          </div>
-
-          {highlightsLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 size={20} className="text-orbital-purple animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {/* Ready clips — show video player */}
-              {highlightClips.filter(c => c.status === "ready" && c.video_file).map(clip => (
-                <div key={clip.id} className="bg-orbital-card border border-orbital-border overflow-hidden">
-                  <div className="p-3 border-b border-orbital-border flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] text-orbital-purple">
-                        #{clip.rank}
-                      </span>
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text">
-                        {clip.player_name || "Highlight"}
-                      </span>
-                      {clip.kills_count >= 2 && (
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple bg-orbital-purple/10 px-2 py-0.5">
-                          {clip.kills_count >= 5 ? "ACE" : `${clip.kills_count}K`}
-                        </span>
-                      )}
-                      {clip.score > 0 && (
-                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
-                          {clip.score}pts
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {clip.round_number && (
-                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
-                          Round {clip.round_number}
-                        </span>
-                      )}
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-success bg-orbital-success/10 px-2 py-0.5">
-                        PRONTO
-                      </span>
-                    </div>
-                  </div>
-                  {clip.description && (
-                    <div className="px-3 py-1.5 border-b border-orbital-border/50">
-                      <p className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
-                        {clip.description}
-                      </p>
-                    </div>
-                  )}
-                  <video
-                    controls
-                    preload="metadata"
-                    poster={clip.thumbnail_file ? `/api/highlights-proxy/${clip.thumbnail_file}` : undefined}
-                    className="w-full aspect-video bg-black"
-                  >
-                    <source src={`/api/highlights-proxy/${clip.video_file}`} type="video/mp4" />
-                  </video>
-                </div>
-              ))}
-
-              {/* In-progress clips — show granular status */}
-              {highlightClips.filter(c => ["pending", "extracting", "recording", "processing"].includes(c.status)).map(clip => {
-                const statusLabels: Record<string, string> = {
-                  pending: "Aguardando worker local...",
-                  extracting: "Analisando demo...",
-                  recording: "Gravando clip no CS2...",
-                  processing: "Aplicando efeitos visuais...",
-                };
-                return (
-                  <HudCard key={clip.id} className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <Loader2 size={14} className="text-orbital-purple animate-spin" />
-                      <div>
-                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim block">
-                          {statusLabels[clip.status] || "Processando..."}
-                        </span>
-                        {clip.player_name && (
-                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple">
-                            #{clip.rank} {clip.player_name} {clip.kills_count >= 2 ? `(${clip.kills_count}K)` : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple/50">
-                      {clip.status.toUpperCase()}
-                    </span>
-                  </HudCard>
-                );
-              })}
-
-              {/* Error clips */}
-              {highlightClips.filter(c => c.status === "error").map(clip => (
-                <HudCard key={clip.id} className="p-4 border-orbital-danger/30">
-                  <div className="flex items-center gap-2">
-                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-danger">
-                      Erro clip #{clip.rank}: {clip.error_message || "Falha ao gerar highlight"}
-                    </span>
-                  </div>
-                </HudCard>
-              ))}
-
-              {/* Admin: generate highlights button for maps without clips */}
-              {isAdmin && mapStats.filter(ms => ms.demoFile && ms.end_time).map(ms => {
-                const hasClip = highlightClips.some(c => c.map_number === ms.map_number);
-                if (hasClip) return null;
-                return (
-                  <button
-                    key={`gen-${ms.map_number}`}
-                    onClick={() => triggerHighlights(ms.map_number)}
-                    disabled={highlightsTriggering}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orbital-card border border-dashed border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/5 transition-all disabled:opacity-50"
-                  >
-                    {highlightsTriggering ? (
-                      <Loader2 size={14} className="text-orbital-purple animate-spin" />
-                    ) : (
-                      <Sparkles size={14} className="text-orbital-purple" />
-                    )}
-                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple">
-                      {highlightsTriggering ? "GERANDO..." : `GERAR HIGHLIGHTS — ${ms.map_name?.replace("de_", "").toUpperCase() || `MAPA ${ms.map_number + 1}`}`}
-                    </span>
-                  </button>
-                );
-              })}
-
-              {/* No clips yet and not admin */}
-              {highlightClips.length === 0 && !isAdmin && (
-                <HudCard className="text-center py-6">
-                  <Film size={20} className="text-orbital-border mx-auto mb-2" />
-                  <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
-                    Nenhum highlight disponível
-                  </p>
-                </HudCard>
-              )}
-            </div>
-          )}
-        </motion.section>
-      )}
+      {/* Old highlights section removed — now above veto+stream */}
     </div>
   );
 }
