@@ -83,9 +83,9 @@ COLOR_WHITE = "FFFFFF"
 # ============================================================
 # HUD OVERLAY
 # ============================================================
-HUD_CARD_WIDTH = 750
-HUD_CARD_HEIGHT = 170
-HUD_CARD_Y = 860
+HUD_CARD_WIDTH = 550
+HUD_CARD_HEIGHT = 120
+HUD_CARD_Y = 910
 HUD_SHOW_AT = 0.5         # quando o HUD aparece (segundos)
 HUD_ANIM_IN = 0.6         # duração do fade in
 HUD_ANIM_OUT = 0.5        # duração do fade out

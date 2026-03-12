@@ -261,6 +261,7 @@ def process_match_map(match_id, map_number, demo_file):
         # Dados do highlight para o HUD
         h_info = {
             "player": h["player"],
+            "steamid": h["steamid"],
             "kills_count": h["kills_count"],
             "round": h["round"] + 1,
             "rank": rank,

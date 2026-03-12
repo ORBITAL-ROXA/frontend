@@ -1,11 +1,13 @@
 """
-Módulo de pós-processamento de highlights.
-Aplica efeitos: color grading, HUD cyberpunk, intro, outro, concatenação final.
+Modulo de pos-processamento de highlights.
+Aplica efeitos: color grading, HUD cyberpunk com avatar, intro, outro, concatenacao final.
 """
 import os
+import re
 import json
 import subprocess
 import shutil
+import requests
 from .config import (
     FFMPEG, FFPROBE, LOGO_WHITE, INTRO_VIDEO,
     FONT_BOLD, FONT_LIGHT, FONT_MONO,
@@ -33,7 +35,7 @@ def run_ffmpeg(cmd, timeout=300):
 
 
 def get_video_duration(video_path):
-    """Retorna duração do video em segundos."""
+    """Retorna duracao do video em segundos."""
     cmd = [
         FFPROBE, "-v", "quiet",
         "-print_format", "json",
@@ -47,7 +49,7 @@ def get_video_duration(video_path):
 def generate_intro(output_path):
     """Converte o video de intro customizado para 1080p/60fps."""
     if not os.path.exists(INTRO_VIDEO):
-        print(f"  AVISO: Intro não encontrada em {INTRO_VIDEO}")
+        print(f"  AVISO: Intro nao encontrada em {INTRO_VIDEO}")
         return False
 
     cmd = [
@@ -66,9 +68,37 @@ def generate_intro(output_path):
     return run_ffmpeg(cmd)
 
 
-def build_hud_filters(player, multikill, rank, round_num, kills_count, hs_count,
-                       weapon_text, score, duration):
-    """Gera filtros FFmpeg para o HUD card estilo cyberpunk centralizado."""
+def download_avatar(steamid, output_path):
+    """Baixa avatar da Steam via perfil publico XML. Retorna True se sucesso."""
+    try:
+        url = f"https://steamcommunity.com/profiles/{steamid}?xml=1"
+        r = requests.get(url, timeout=10)
+        if r.status_code != 200:
+            return False
+
+        # Extrair avatarFull da resposta XML
+        match = re.search(r'<avatarFull><!\[CDATA\[(.*?)\]\]></avatarFull>', r.text)
+        if not match:
+            match = re.search(r'<avatarFull>(.*?)</avatarFull>', r.text)
+        if not match:
+            return False
+
+        avatar_url = match.group(1)
+        img = requests.get(avatar_url, timeout=10)
+        if img.status_code != 200:
+            return False
+
+        with open(output_path, "wb") as f:
+            f.write(img.content)
+        return True
+    except Exception as e:
+        print(f"  AVISO: Nao conseguiu baixar avatar: {e}")
+        return False
+
+
+def build_hud_filters(player, multikill, rank, kills_count, hs_count, duration,
+                       has_avatar=False):
+    """Gera filtros FFmpeg para o HUD card minimalista com avatar."""
     CW = HUD_CARD_WIDTH
     CH = HUD_CARD_HEIGHT
     CX = (WIDTH - CW) // 2
@@ -92,118 +122,109 @@ def build_hud_filters(player, multikill, rank, round_num, kills_count, hs_count,
 
     enable = f"enable='between(t,{SHOW_AT},{HIDE_AT + ANIM_OUT_DUR})'"
     ACCENT = COLOR_ACCENT
-    ACCENT_L = COLOR_ACCENT_LIGHT
+
+    # Se tem avatar, conteudo comeca mais a direita
+    AVATAR_SIZE = 70
+    AVATAR_PAD = 15
+    content_x = CX + (AVATAR_SIZE + AVATAR_PAD * 2 if has_avatar else 20)
 
     parts = []
 
-    # Background
-    parts.append(f"drawbox=x={CX}:y={CY}:w={CW}:h={CH}:color=0x{COLOR_BG}@0.9:t=fill:{enable}")
+    # ── Background ──
+    parts.append(f"drawbox=x={CX}:y={CY}:w={CW}:h={CH}:color=0x{COLOR_BG}@0.85:t=fill:{enable}")
 
-    # Bordas
-    parts.append(f"drawbox=x={CX}:y={CY}:w={CW}:h=3:color=0x{ACCENT}@0.9:t=fill:{enable}")
-    parts.append(f"drawbox=x={CX}:y={CY+CH-1}:w={CW}:h=1:color=0x{ACCENT}@0.3:t=fill:{enable}")
-    parts.append(f"drawbox=x={CX}:y={CY}:w=1:h={CH}:color=0x{ACCENT}@0.3:t=fill:{enable}")
-    parts.append(f"drawbox=x={CX+CW-1}:y={CY}:w=1:h={CH}:color=0x{ACCENT}@0.3:t=fill:{enable}")
+    # ── Accent line no topo ──
+    parts.append(f"drawbox=x={CX}:y={CY}:w={CW}:h=2:color=0x{ACCENT}:t=fill:{enable}")
+    parts.append(f"drawbox=x={CX}:y={CY+2}:w={CW}:h=1:color=0x{ACCENT}@0.3:t=fill:{enable}")
 
-    # Corner accents
-    c, ct = 30, 3
-    for cx, cy in [(CX, CY), (CX+CW-c, CY), (CX, CY+CH-ct), (CX+CW-c, CY+CH-ct)]:
-        parts.append(f"drawbox=x={cx}:y={cy}:w={c}:h={ct}:color=0x{ACCENT}:t=fill:{enable}")
-    for cx, cy in [(CX, CY), (CX+CW-ct, CY), (CX, CY+CH-c), (CX+CW-ct, CY+CH-c)]:
-        parts.append(f"drawbox=x={cx}:y={cy}:w={ct}:h={c}:color=0x{ACCENT}:t=fill:{enable}")
+    # ── Bordas sutis ──
+    parts.append(f"drawbox=x={CX}:y={CY+CH-1}:w={CW}:h=1:color=0x{ACCENT}@0.15:t=fill:{enable}")
+    parts.append(f"drawbox=x={CX}:y={CY}:w=1:h={CH}:color=0x{ACCENT}@0.15:t=fill:{enable}")
+    parts.append(f"drawbox=x={CX+CW-1}:y={CY}:w=1:h={CH}:color=0x{ACCENT}@0.15:t=fill:{enable}")
 
-    # Indicador lateral
-    parts.append(f"drawbox=x={CX}:y={CY+25}:w=5:h=45:color=0x{ACCENT}:t=fill:{enable}")
+    # ── Avatar border (se tem avatar, o overlay eh feito separado no filter_complex) ──
+    if has_avatar:
+        ax = CX + AVATAR_PAD
+        ay = CY + (CH - AVATAR_SIZE) // 2
+        # Borda purple do avatar
+        parts.append(f"drawbox=x={ax-2}:y={ay-2}:w={AVATAR_SIZE+4}:h={AVATAR_SIZE+4}:color=0x{ACCENT}@0.7:t=fill:{enable}")
 
-    # Glow line topo
-    parts.append(f"drawbox=x={CX+80}:y={CY+3}:w={CW-160}:h=1:color=0x{ACCENT_L}@0.2:t=fill:{enable}")
-
-    # Separador
-    sep_y = CY + 70
-    parts.append(f"drawbox=x={CX+20}:y={sep_y}:w={CW-40}:h=1:color=0x{ACCENT}@0.2:t=fill:{enable}")
-
-    # Player name
+    # ── Player name ──
     parts.append(
         f"drawtext=fontfile='{FONT_BOLD}':"
-        f"text='{player}':fontcolor=0x{COLOR_WHITE}:fontsize=50:"
-        f"x={CX+25}:y={CY+14}:"
+        f"text='{player}':fontcolor=0x{COLOR_WHITE}:fontsize=42:"
+        f"x={content_x}:y={CY+12}:"
         f"alpha='{alpha_expr(0)}'"
     )
 
-    # Multi-kill badge
-    badge_x = CX + 25 + len(player) * 29 + 20
+    # ── Multi-kill badge ──
+    badge_x = content_x + len(player) * 24 + 15
     parts.append(
         f"drawtext=fontfile='{FONT_BOLD}':"
-        f"text='{multikill}':fontcolor=0x{ACCENT}:fontsize=50:"
-        f"x={badge_x}:y={CY+14}:"
+        f"text='{multikill}':fontcolor=0x{ACCENT}:fontsize=42:"
+        f"x={badge_x}:y={CY+12}:"
         f"alpha='{alpha_expr(0.05)}'"
     )
 
-    # Rank indicator
+    # ── Rank + branding (canto direito) ──
     parts.append(
         f"drawtext=fontfile='{FONT_MONO}':"
-        f"text='#{rank} HIGHLIGHT':fontcolor=0x{ACCENT}@0.7:fontsize=15:"
-        f"x={CX+CW-160}:y={CY+12}:"
+        f"text='#{rank} HIGHLIGHT':fontcolor=0x{ACCENT}@0.6:fontsize=14:"
+        f"x={CX+CW-155}:y={CY+15}:"
+        f"alpha='{alpha_expr(0.1)}'"
+    )
+    parts.append(
+        f"drawtext=fontfile='{FONT_MONO}':"
+        f"text='ORBITAL ROXA':fontcolor=0x{ACCENT}@0.3:fontsize=11:"
+        f"x={CX+CW-130}:y={CY+33}:"
         f"alpha='{alpha_expr(0.15)}'"
     )
 
-    # Branding
-    parts.append(
-        f"drawtext=fontfile='{FONT_MONO}':"
-        f"text='ORBITAL ROXA':fontcolor=0x{ACCENT}@0.4:fontsize=12:"
-        f"x={CX+CW-140}:y={CY+32}:"
-        f"alpha='{alpha_expr(0.2)}'"
-    )
+    # ── Separador fino ──
+    sep_y = CY + 60
+    parts.append(f"drawbox=x={content_x}:y={sep_y}:w={CW - (content_x - CX) - 20}:h=1:color=0x{ACCENT}@0.15:t=fill:{enable}")
 
-    # Stat boxes
+    # ── Stats: KILLS e HEADSHOTS ──
     stat_y = sep_y + 12
-    stat_h = 55
-    gap = 12
     stats = [
-        ("ROUND", str(round_num), 120),
-        ("KILLS", str(kills_count), 100),
-        ("HEADSHOTS", str(hs_count), 140),
-        ("WEAPON", weapon_text, 160),
-        ("SCORE", str(score), 120),
+        ("KILLS", str(kills_count)),
+        ("HEADSHOTS", str(hs_count)),
     ]
 
-    sx = CX + 25
-    for i, (label, value, bw) in enumerate(stats):
+    sx = content_x
+    for i, (label, value) in enumerate(stats):
         delay = 0.08 * i
-        parts.append(f"drawbox=x={sx}:y={stat_y}:w={bw}:h={stat_h}:color=0x{ACCENT}@0.06:t=fill:{enable}")
-        parts.append(f"drawbox=x={sx}:y={stat_y}:w={bw}:h=1:color=0x{ACCENT}@0.35:t=fill:{enable}")
+
+        # Label pequeno
         parts.append(
             f"drawtext=fontfile='{FONT_MONO}':"
-            f"text='{label}':fontcolor=0x{ACCENT}:fontsize=12:"
-            f"x={sx+10}:y={stat_y+8}:"
+            f"text='{label}':fontcolor=0x{ACCENT}@0.7:fontsize=11:"
+            f"x={sx}:y={stat_y}:"
             f"alpha='{alpha_expr(0.1 + delay)}'"
         )
+
+        # Valor grande
         parts.append(
             f"drawtext=fontfile='{FONT_BOLD}':"
-            f"text='{value}':fontcolor=0x{COLOR_WHITE}:fontsize=28:"
-            f"x={sx+10}:y={stat_y+24}:"
+            f"text='{value}':fontcolor=0x{COLOR_WHITE}:fontsize=30:"
+            f"x={sx}:y={stat_y+14}:"
             f"alpha='{alpha_expr(0.15 + delay)}'"
         )
-        sx += bw + gap
 
-    # Scanline decorativa
-    parts.append(f"drawbox=x={CX+20}:y={CY-4}:w={CW-40}:h=1:color=0x{ACCENT}@0.1:t=fill:{enable}")
+        sx += 120
 
     return ",".join(parts)
 
 
 def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_intro=True):
-    """Aplica efeitos: color grading, vignette, HUD overlay, fade. Opcionalmente adiciona intro."""
+    """Aplica efeitos: color grading, vignette, HUD overlay com avatar, fade. Opcionalmente adiciona intro."""
     duration = get_video_duration(input_path)
 
     player = highlight_info["player"]
     kills_count = highlight_info["kills_count"]
-    round_num = highlight_info["round"]
     rank = highlight_info.get("rank", 1)
-    score = highlight_info.get("score", 0)
+    steamid = highlight_info.get("steamid", "")
 
-    weapons = list(set(k["weapon"] for k in highlight_info["kills"]))
-    weapon_text = ", ".join(weapons).upper()
     hs_count = sum(1 for k in highlight_info["kills"] if k.get("headshot"))
 
     if kills_count >= 5: multikill = "ACE"
@@ -214,19 +235,67 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_int
 
     fade_out_start = max(0, duration - FADE_DURATION)
 
+    # Tentar baixar avatar da Steam
+    avatar_path = None
+    if steamid:
+        avatar_path = output_path + ".avatar.jpg"
+        print(f"  Baixando avatar Steam para {player} ({steamid})...")
+        if not download_avatar(steamid, avatar_path):
+            avatar_path = None
+            print(f"  Avatar nao disponivel, continuando sem")
+        else:
+            print(f"  Avatar OK!")
+
+    has_avatar = avatar_path is not None and os.path.exists(avatar_path)
+
     hud_filter = build_hud_filters(
-        player, multikill, rank, round_num, kills_count,
-        hs_count, weapon_text, score, duration
+        player, multikill, rank, kills_count,
+        hs_count, duration, has_avatar=has_avatar
     )
 
-    filter_complex = (
-        f"[0:v]eq=contrast=1.08:brightness=0.02:saturation=1.15,"
-        f"unsharp=5:5:0.5:5:5:0[s1];"
-        f"[s1]vignette=PI/5,format=yuv420p[s2];"
-        f"[s2]{hud_filter},"
-        f"fade=t=in:st=0:d={FADE_DURATION},"
-        f"fade=t=out:st={fade_out_start}:d={FADE_DURATION}[vout]"
-    )
+    # Card dimensions for avatar positioning
+    CW = HUD_CARD_WIDTH
+    CH = HUD_CARD_HEIGHT
+    CX = (WIDTH - CW) // 2
+    CY = HUD_CARD_Y
+    AVATAR_SIZE = 70
+    AVATAR_PAD = 15
+    AX = CX + AVATAR_PAD
+    AY = CY + (CH - AVATAR_SIZE) // 2
+
+    SHOW_AT = HUD_SHOW_AT
+    ANIM_IN = HUD_ANIM_IN
+    HOLD = min(HUD_HOLD, duration - 2.0)
+    HIDE_AT = SHOW_AT + ANIM_IN + HOLD
+    ANIM_OUT_DUR = HUD_ANIM_OUT
+
+    if has_avatar:
+        # Com avatar: input[0]=video, input[1]=avatar
+        filter_complex = (
+            f"[0:v]eq=contrast=1.08:brightness=0.02:saturation=1.15,"
+            f"unsharp=5:5:0.5:5:5:0[s1];"
+            f"[s1]vignette=PI/5,format=yuv420p[s2];"
+            f"[1:v]scale={AVATAR_SIZE}:{AVATAR_SIZE}:force_original_aspect_ratio=decrease,"
+            f"pad={AVATAR_SIZE}:{AVATAR_SIZE}:(ow-iw)/2:(oh-ih)/2:black,format=yuva420p,"
+            f"colorchannelmixer=aa="
+            f"'if(lt(t,{SHOW_AT}),0,"
+            f"if(lt(t,{SHOW_AT+ANIM_IN}),(t-{SHOW_AT})/{ANIM_IN},"
+            f"if(lt(t,{HIDE_AT}),1,"
+            f"if(lt(t,{HIDE_AT+ANIM_OUT_DUR}),({HIDE_AT+ANIM_OUT_DUR}-t)/{ANIM_OUT_DUR},0))))'[avatar];"
+            f"[s2]{hud_filter}[s3];"
+            f"[s3][avatar]overlay=x={AX}:y={AY}:format=auto,"
+            f"fade=t=in:st=0:d={FADE_DURATION},"
+            f"fade=t=out:st={fade_out_start}:d={FADE_DURATION}[vout]"
+        )
+    else:
+        filter_complex = (
+            f"[0:v]eq=contrast=1.08:brightness=0.02:saturation=1.15,"
+            f"unsharp=5:5:0.5:5:5:0[s1];"
+            f"[s1]vignette=PI/5,format=yuv420p[s2];"
+            f"[s2]{hud_filter},"
+            f"fade=t=in:st=0:d={FADE_DURATION},"
+            f"fade=t=out:st={fade_out_start}:d={FADE_DURATION}[vout]"
+        )
 
     audio_filter = (
         f"afade=t=in:st=0:d={FADE_DURATION},"
@@ -235,7 +304,7 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_int
 
     # Passo 1: Processar clip com efeitos
     print(f"  Processando: {os.path.basename(input_path)}")
-    print(f"  Player: {player} | {multikill} | Round {round_num}")
+    print(f"  Player: {player} | {multikill} | {kills_count}K {hs_count}HS")
 
     # Se com intro, processar para arquivo temp e depois concatenar
     if with_intro and os.path.exists(INTRO_VIDEO):
@@ -243,9 +312,10 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_int
     else:
         temp_processed = output_path
 
-    cmd = [
-        FFMPEG, "-y",
-        "-i", input_path,
+    cmd = [FFMPEG, "-y", "-i", input_path]
+    if has_avatar:
+        cmd.extend(["-i", avatar_path])
+    cmd.extend([
         "-filter_complex", filter_complex,
         "-af", audio_filter,
         "-map", "[vout]", "-map", "0:a",
@@ -254,9 +324,14 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_int
         "-pix_fmt", "yuv420p",
         "-movflags", "+faststart",
         temp_processed
-    ]
+    ])
 
     ok = run_ffmpeg(cmd)
+
+    # Limpar avatar temp
+    if avatar_path and os.path.exists(avatar_path):
+        os.remove(avatar_path)
+
     if not ok:
         return False
 
@@ -267,7 +342,7 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_int
         if generate_intro(intro_norm):
             if concat_clips([intro_norm, temp_processed], output_path):
                 print(f"  OK: {os.path.basename(output_path)} (com intro)")
-                # Limpar arquivos temporários
+                # Limpar arquivos temporarios
                 os.remove(temp_processed)
                 os.remove(intro_norm)
                 return True
@@ -341,7 +416,7 @@ def concat_clips(clip_paths, output_path):
 
 
 def postprocess(highlights_json, clips_dir, output_dir=None):
-    """Pipeline principal de pós-processamento."""
+    """Pipeline principal de pos-processamento."""
     print(f"\n{'='*60}")
     print(f"  ORBITAL ROXA - Post-Processing Pipeline")
     print(f"{'='*60}\n")
@@ -372,7 +447,7 @@ def postprocess(highlights_json, clips_dir, output_dir=None):
         if matched:
             clip_highlight_map.append((matched, h))
         else:
-            print(f"  AVISO: Clip não encontrado para {h['description']}")
+            print(f"  AVISO: Clip nao encontrado para {h['description']}")
 
     if not clip_highlight_map:
         print("ERRO: Nenhum clip mapeado para highlights!")
@@ -384,7 +459,7 @@ def postprocess(highlights_json, clips_dir, output_dir=None):
     intro_ok = generate_intro(intro_path)
     print(f"  {'OK' if intro_ok else 'Falhou (continuando sem intro)'}")
 
-    # 2. Processar clips (rank reverso = clímax no final)
+    # 2. Processar clips (rank reverso = climax no final)
     print("\n[2/4] Processando clips...")
     processed_clips = []
     clip_highlight_map.sort(key=lambda x: x[1]["rank"], reverse=True)
