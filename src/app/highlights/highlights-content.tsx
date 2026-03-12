@@ -185,8 +185,9 @@ function VideoPlayer({ src, thumbnailSrc }: { src: string; thumbnailSrc?: string
     };
 
     const handleLoaded = () => {
-      // Seek to 2 seconds or 25% of duration (whichever is less)
-      video.currentTime = Math.min(2, video.duration * 0.25);
+      // Seek past the intro (usually ~4-5s) to capture actual gameplay
+      // Use 40% of duration or 8 seconds, whichever is less
+      video.currentTime = Math.min(8, video.duration * 0.4);
     };
 
     video.addEventListener("loadedmetadata", handleLoaded);
