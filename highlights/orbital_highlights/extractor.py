@@ -44,6 +44,17 @@ def group_kills(deaths):
         except (ValueError, TypeError):
             continue
 
+        # Ignorar suicidios (attacker == victim) e mortes ambientais (world, planted_c4)
+        weapon = str(row.get("weapon", ""))
+        if weapon in ("world", "worldent", "planted_c4", "trigger_hurt"):
+            continue
+        victim_sid = row.get("user_steamid")
+        try:
+            if int(victim_sid) == attacker_sid:
+                continue
+        except (ValueError, TypeError):
+            pass
+
         round_num = int(row.get("total_rounds_played", 0))
         key = f"{round_num}_{attacker_sid}"
 

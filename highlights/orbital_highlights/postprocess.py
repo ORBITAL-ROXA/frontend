@@ -192,8 +192,8 @@ def build_hud_filters(player, multikill, rank, round_num, kills_count, hs_count,
     return ",".join(parts)
 
 
-def process_clip(input_path, output_path, highlight_info, tick_rate=64):
-    """Aplica efeitos: color grading, vignette, HUD overlay, fade."""
+def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_intro=True):
+    """Aplica efeitos: color grading, vignette, HUD overlay, fade. Opcionalmente adiciona intro."""
     duration = get_video_duration(input_path)
 
     player = highlight_info["player"]
@@ -233,6 +233,16 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64):
         f"afade=t=out:st={fade_out_start}:d={FADE_DURATION}"
     )
 
+    # Passo 1: Processar clip com efeitos
+    print(f"  Processando: {os.path.basename(input_path)}")
+    print(f"  Player: {player} | {multikill} | Round {round_num}")
+
+    # Se com intro, processar para arquivo temp e depois concatenar
+    if with_intro and os.path.exists(INTRO_VIDEO):
+        temp_processed = output_path + ".temp.mp4"
+    else:
+        temp_processed = output_path
+
     cmd = [
         FFMPEG, "-y",
         "-i", input_path,
@@ -243,15 +253,35 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64):
         "-c:a", "aac", "-b:a", "192k",
         "-pix_fmt", "yuv420p",
         "-movflags", "+faststart",
-        output_path
+        temp_processed
     ]
 
-    print(f"  Processando: {os.path.basename(input_path)}")
-    print(f"  Player: {player} | {multikill} | Round {round_num}")
     ok = run_ffmpeg(cmd)
-    if ok:
+    if not ok:
+        return False
+
+    # Passo 2: Adicionar intro se solicitado
+    if with_intro and os.path.exists(INTRO_VIDEO) and temp_processed != output_path:
+        print(f"  Adicionando intro...")
+        intro_norm = output_path + ".intro.mp4"
+        if generate_intro(intro_norm):
+            if concat_clips([intro_norm, temp_processed], output_path):
+                print(f"  OK: {os.path.basename(output_path)} (com intro)")
+                # Limpar arquivos temporários
+                os.remove(temp_processed)
+                os.remove(intro_norm)
+                return True
+            else:
+                # Fallback: usar clip sem intro
+                shutil.move(temp_processed, output_path)
+                if os.path.exists(intro_norm):
+                    os.remove(intro_norm)
+        else:
+            shutil.move(temp_processed, output_path)
+    else:
         print(f"  OK: {os.path.basename(output_path)}")
-    return ok
+
+    return True
 
 
 def generate_outro(output_path):

@@ -42,6 +42,11 @@ yarn-error.log*
 # uploaded logos
 /public/uploads
 
+# highlights worker temp files
+highlights/temp_clips/
+highlights/temp_demos/
+highlights/output/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
