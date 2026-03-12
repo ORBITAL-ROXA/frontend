@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Loader2, Swords } from "lucide-react";
+import { Sparkles, Loader2, Swords, Play } from "lucide-react";
 import Link from "next/link";
 import { HudCard } from "@/components/hud-card";
 
@@ -101,15 +101,11 @@ export function HighlightsContent() {
               transition={{ delay: 0.05 * i }}
               className="bg-orbital-card border border-orbital-border overflow-hidden group hover:border-orbital-purple/30 transition-colors"
             >
-              {/* Video */}
-              <video
-                controls
-                preload="metadata"
-                poster={clip.thumbnail_file ? `${G5API_URL}/highlights-files/${clip.thumbnail_file}` : undefined}
-                className="w-full aspect-video bg-black"
-              >
-                <source src={`${G5API_URL}/highlights-files/${clip.video_file}`} type="video/mp4" />
-              </video>
+              {/* Video with auto-generated thumbnail */}
+              <VideoPlayer
+                src={`${G5API_URL}/highlights-files/${clip.video_file}`}
+                thumbnailSrc={clip.thumbnail_file ? `${G5API_URL}/highlights-files/${clip.thumbnail_file}` : undefined}
+              />
 
               {/* Info bar */}
               <div className="p-2.5">
@@ -152,5 +148,91 @@ export function HighlightsContent() {
         </motion.div>
       )}
     </div>
+  );
+}
+
+// Video player that auto-generates a thumbnail from the video itself
+function VideoPlayer({ src, thumbnailSrc }: { src: string; thumbnailSrc?: string }) {
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Generate thumbnail by seeking to 2s and capturing a canvas frame
+  useEffect(() => {
+    // If server has a custom thumbnail, skip auto-generation
+    if (thumbnailSrc) return;
+
+    const video = document.createElement("video");
+    video.crossOrigin = "anonymous";
+    video.preload = "metadata";
+    video.muted = true;
+    video.src = src;
+
+    const handleSeeked = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(video, 0, 0);
+          setThumbUrl(canvas.toDataURL("image/jpeg", 0.7));
+        }
+      } catch {
+        // CORS or other error — no thumbnail
+      }
+      video.remove();
+    };
+
+    const handleLoaded = () => {
+      // Seek to 2 seconds or 25% of duration (whichever is less)
+      video.currentTime = Math.min(2, video.duration * 0.25);
+    };
+
+    video.addEventListener("loadedmetadata", handleLoaded);
+    video.addEventListener("seeked", handleSeeked);
+    video.load();
+
+    return () => {
+      video.removeEventListener("loadedmetadata", handleLoaded);
+      video.removeEventListener("seeked", handleSeeked);
+      video.remove();
+    };
+  }, [src, thumbnailSrc]);
+
+  const poster = thumbnailSrc || thumbUrl || undefined;
+
+  if (playing) {
+    return (
+      <video
+        ref={videoRef}
+        controls
+        autoPlay
+        className="w-full aspect-video bg-black"
+      >
+        <source src={src} type="video/mp4" />
+      </video>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setPlaying(true)}
+      className="relative w-full aspect-video bg-black group/play cursor-pointer overflow-hidden"
+    >
+      {poster ? (
+        <img src={poster} alt="" className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <Loader2 size={20} className="text-orbital-purple/40 animate-spin" />
+        </div>
+      )}
+      {/* Play overlay */}
+      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/play:bg-black/10 transition-colors">
+        <div className="w-12 h-12 rounded-full bg-orbital-purple/80 flex items-center justify-center group-hover/play:bg-orbital-purple group-hover/play:scale-110 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+          <Play size={20} className="text-white ml-0.5" fill="white" />
+        </div>
+      </div>
+    </button>
   );
 }
