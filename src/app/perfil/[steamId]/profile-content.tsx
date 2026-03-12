@@ -32,6 +32,16 @@ interface ProfileStats {
   firstdeath_ct: number;
 }
 
+interface MatchDataPoint {
+  matchId: number;
+  rating: number;
+  kd: number;
+  adr: number;
+  hsp: number;
+  kills: number;
+  deaths: number;
+}
+
 // Rating formula matching G5API Utils.getRating
 function calcRating(kills: number, roundsplayed: number, deaths: number, k1: number, k2: number, k3: number, k4: number, k5: number): number {
   if (roundsplayed === 0) return 0;
@@ -51,6 +61,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
   const [mapCounts, setMapCounts] = useState<{ map: string; count: number }[]>([]);
   const [playerClips, setPlayerClips] = useState<{ id: number; match_id: number; map_number: number; rank: number; player_name: string; kills_count: number; score: number; description: string; round_number: number; video_file: string; thumbnail_file: string; duration_s: number; team1_string: string; team2_string: string }[]>([]);
   const [mapPerformance, setMapPerformance] = useState<{ map: string; wins: number; total: number; avgRating: number; kills: number; deaths: number }[]>([]);
+  const [matchHistory, setMatchHistory] = useState<MatchDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -93,14 +104,23 @@ export function ProfileContent({ steamId }: { steamId: string }) {
         };
 
         let totalK1 = 0, totalK2 = 0, totalK3 = 0, totalK4 = 0, totalK5 = 0;
+        const history: MatchDataPoint[] = [];
         for (const m of matches) {
-          aggregated.kills += (m.kills as number) || 0;
-          aggregated.deaths += (m.deaths as number) || 0;
+          const mKills = (m.kills as number) || 0;
+          const mDeaths = (m.deaths as number) || 0;
+          const mHsk = (m.headshot_kills as number) || 0;
+          const mDmg = (m.damage as number) || 0;
+          const mRounds = (m.roundsplayed as number) || 0;
+          const mk1 = (m.k1 as number) || 0, mk2 = (m.k2 as number) || 0;
+          const mk3 = (m.k3 as number) || 0, mk4 = (m.k4 as number) || 0, mk5 = (m.k5 as number) || 0;
+
+          aggregated.kills += mKills;
+          aggregated.deaths += mDeaths;
           aggregated.assists += (m.assists as number) || 0;
-          aggregated.headshot_kills += (m.headshot_kills as number) || 0;
+          aggregated.headshot_kills += mHsk;
           aggregated.flash_assists += (m.flashbang_assists as number) || (m.flash_assists as number) || 0;
-          aggregated.damage += (m.damage as number) || 0;
-          aggregated.total_rounds += (m.roundsplayed as number) || 0;
+          aggregated.damage += mDmg;
+          aggregated.total_rounds += mRounds;
           aggregated.contribution_score += (m.contribution_score as number) || 0;
           aggregated.mvp += (m.mvp as number) || 0;
           aggregated.firstkill_t += (m.firstkill_t as number) || 0;
@@ -108,12 +128,22 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           aggregated.firstdeath_t += (m.firstdeath_t as number) || 0;
           aggregated.firstdeath_ct += (m.firstdeath_ct as number) || 0;
           aggregated.kast += (m.kast as number) || 0;
-          totalK1 += (m.k1 as number) || 0;
-          totalK2 += (m.k2 as number) || 0;
-          totalK3 += (m.k3 as number) || 0;
-          totalK4 += (m.k4 as number) || 0;
-          totalK5 += (m.k5 as number) || 0;
+          totalK1 += mk1; totalK2 += mk2; totalK3 += mk3; totalK4 += mk4; totalK5 += mk5;
+
+          history.push({
+            matchId: (m.match_id as number) || 0,
+            rating: calcRating(mKills, mRounds, mDeaths, mk1, mk2, mk3, mk4, mk5),
+            kd: mDeaths > 0 ? +(mKills / mDeaths).toFixed(2) : mKills,
+            adr: mRounds > 0 ? Math.round(mDmg / mRounds) : 0,
+            hsp: mKills > 0 ? Math.round((mHsk / mKills) * 100) : 0,
+            kills: mKills,
+            deaths: mDeaths,
+          });
         }
+
+        // Sort by match_id ascending (chronological)
+        history.sort((a, b) => a.matchId - b.matchId);
+        setMatchHistory(history);
 
         aggregated.average_rating = calcRating(aggregated.kills, aggregated.total_rounds, aggregated.deaths, totalK1, totalK2, totalK3, totalK4, totalK5);
         aggregated.kdr = aggregated.deaths > 0 ? aggregated.kills / aggregated.deaths : aggregated.kills;
@@ -407,9 +437,43 @@ export function ProfileContent({ steamId }: { steamId: string }) {
         </div>
       </HudCard>
 
+      {/* Evolution Charts */}
+      {matchHistory.length >= 2 && (
+        <HudCard delay={0.45} label="EVOLUÇÃO" className="mt-6">
+          <div className="space-y-6 py-2">
+            <EvolutionChart
+              data={matchHistory.map(d => d.rating)}
+              label="Rating"
+              color="#A855F7"
+              refLine={1.0}
+              format={v => v.toFixed(2)}
+            />
+            <EvolutionChart
+              data={matchHistory.map(d => d.kd)}
+              label="K/D"
+              color="#22C55E"
+              refLine={1.0}
+              format={v => v.toFixed(2)}
+            />
+            <EvolutionChart
+              data={matchHistory.map(d => d.adr)}
+              label="ADR"
+              color="#F59E0B"
+              format={v => Math.round(v).toString()}
+            />
+            <EvolutionChart
+              data={matchHistory.map(d => d.hsp)}
+              label="HS%"
+              color="#EF4444"
+              format={v => `${Math.round(v)}%`}
+            />
+          </div>
+        </HudCard>
+      )}
+
       {/* Recent Matches */}
       {recentMatches.length > 0 && (
-        <HudCard delay={0.45} label="ÚLTIMAS PARTIDAS" className="mt-6">
+        <HudCard delay={0.5} label="ÚLTIMAS PARTIDAS" className="mt-6">
           <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
@@ -457,7 +521,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
 
       {/* Player Highlights */}
       {playerClips.length > 0 && (
-        <HudCard delay={0.47} label="MELHORES MOMENTOS" className="mt-6">
+        <HudCard delay={0.52} label="MELHORES MOMENTOS" className="mt-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 py-2">
             {playerClips.map(clip => (
               <div key={clip.id} className="bg-[#0A0A0A] border border-orbital-border overflow-hidden group">
@@ -509,7 +573,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
 
       {/* Per-Map Performance */}
       {mapPerformance.length > 0 && (
-        <HudCard delay={0.5} label="PERFORMANCE POR MAPA" className="mt-6">
+        <HudCard delay={0.55} label="PERFORMANCE POR MAPA" className="mt-6">
           <div className="space-y-3 py-2">
             {mapPerformance.map(({ map, wins, total, avgRating, kills, deaths }) => {
               const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
@@ -582,6 +646,92 @@ function StatRow({ icon, label, value, highlight }: { icon: React.ReactNode; lab
       <span className={`font-[family-name:var(--font-jetbrains)] text-sm font-bold ${highlight || "text-orbital-text"}`}>
         {value}
       </span>
+    </div>
+  );
+}
+
+function EvolutionChart({ data, label, color, refLine, format }: {
+  data: number[];
+  label: string;
+  color: string;
+  refLine?: number;
+  format: (v: number) => string;
+}) {
+  if (data.length < 2) return null;
+
+  const W = 600, H = 80;
+  const padL = 0, padR = 0, padT = 4, padB = 4;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  // Add 10% padding to range
+  const yMin = min - range * 0.1;
+  const yMax = max + range * 0.1;
+  const yRange = yMax - yMin;
+
+  const toX = (i: number) => padL + (i / (data.length - 1)) * chartW;
+  const toY = (v: number) => padT + chartH - ((v - yMin) / yRange) * chartH;
+
+  const points = data.map((v, i) => `${toX(i)},${toY(v)}`).join(" ");
+  const areaPoints = `${toX(0)},${padT + chartH} ${points} ${toX(data.length - 1)},${padT + chartH}`;
+
+  const avg = data.reduce((s, v) => s + v, 0) / data.length;
+  const last = data[data.length - 1];
+  const prev = data[data.length - 2];
+  const trend = last - prev;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+          <span className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text">
+            {label}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+            Avg: <span className="text-orbital-text">{format(avg)}</span>
+          </span>
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+            Último: <span style={{ color }}>{format(last)}</span>
+          </span>
+          <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold ${
+            trend > 0 ? "text-orbital-success" : trend < 0 ? "text-orbital-danger" : "text-orbital-text-dim"
+          }`}>
+            {trend > 0 ? "+" : ""}{format(trend)}
+          </span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 80 }}>
+        {/* Area fill */}
+        <polygon points={areaPoints} fill={color} opacity={0.08} />
+        {/* Reference line */}
+        {refLine !== undefined && refLine >= yMin && refLine <= yMax && (
+          <line
+            x1={padL} y1={toY(refLine)} x2={W - padR} y2={toY(refLine)}
+            stroke={color} strokeWidth={0.5} opacity={0.3} strokeDasharray="4 3"
+          />
+        )}
+        {/* Average line */}
+        <line
+          x1={padL} y1={toY(avg)} x2={W - padR} y2={toY(avg)}
+          stroke="#666" strokeWidth={0.5} opacity={0.3} strokeDasharray="2 2"
+        />
+        {/* Line */}
+        <polyline points={points} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+        {/* Dots */}
+        {data.map((v, i) => (
+          <circle key={i} cx={toX(i)} cy={toY(v)} r={2.5} fill={color} opacity={0.8}>
+            <title>#{i + 1}: {format(v)}</title>
+          </circle>
+        ))}
+        {/* Last dot highlight */}
+        <circle cx={toX(data.length - 1)} cy={toY(last)} r={4} fill={color} opacity={0.3} />
+      </svg>
     </div>
   );
 }
