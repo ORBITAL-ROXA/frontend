@@ -271,19 +271,16 @@ def process_clip(input_path, output_path, highlight_info, tick_rate=64, with_int
 
     if has_avatar:
         # Com avatar: input[0]=video, input[1]=avatar
+        # Avatar usa overlay com enable para aparecer/desaparecer com o card
+        avatar_enable = f"enable='between(t,{SHOW_AT},{HIDE_AT + ANIM_OUT_DUR})'"
         filter_complex = (
             f"[0:v]eq=contrast=1.08:brightness=0.02:saturation=1.15,"
             f"unsharp=5:5:0.5:5:5:0[s1];"
             f"[s1]vignette=PI/5,format=yuv420p[s2];"
             f"[1:v]scale={AVATAR_SIZE}:{AVATAR_SIZE}:force_original_aspect_ratio=decrease,"
-            f"pad={AVATAR_SIZE}:{AVATAR_SIZE}:(ow-iw)/2:(oh-ih)/2:black,format=yuva420p,"
-            f"colorchannelmixer=aa="
-            f"'if(lt(t,{SHOW_AT}),0,"
-            f"if(lt(t,{SHOW_AT+ANIM_IN}),(t-{SHOW_AT})/{ANIM_IN},"
-            f"if(lt(t,{HIDE_AT}),1,"
-            f"if(lt(t,{HIDE_AT+ANIM_OUT_DUR}),({HIDE_AT+ANIM_OUT_DUR}-t)/{ANIM_OUT_DUR},0))))'[avatar];"
+            f"pad={AVATAR_SIZE}:{AVATAR_SIZE}:(ow-iw)/2:(oh-ih)/2:black[avatar];"
             f"[s2]{hud_filter}[s3];"
-            f"[s3][avatar]overlay=x={AX}:y={AY}:format=auto,"
+            f"[s3][avatar]overlay=x={AX}:y={AY}:{avatar_enable},"
             f"fade=t=in:st=0:d={FADE_DURATION},"
             f"fade=t=out:st={fade_out_start}:d={FADE_DURATION}[vout]"
         )

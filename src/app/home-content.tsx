@@ -72,11 +72,13 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
   const tournamentMatchIds = new Set(t.matches.filter(m => m.match_id).map(m => m.match_id!));
   const tournamentRecentMatches = recentMatches.filter(m => tournamentMatchIds.has(m.id));
 
-  // Format date
+  // Format date (timezone-safe: parse as UTC to avoid server/client mismatch)
   const formatDate = (d: string | null | undefined) => {
     if (!d) return null;
     try {
-      return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" });
+      const [year, month, day] = d.split("-").map(Number);
+      const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+      return `${day} de ${months[month - 1]} de ${year}`;
     } catch { return d; }
   };
 

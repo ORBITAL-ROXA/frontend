@@ -18,3 +18,20 @@ export async function getTournamentsFromDB(): Promise<Tournament[]> {
     await connection?.end();
   }
 }
+
+export async function saveTournamentToDB(tournament: Tournament): Promise<boolean> {
+  let connection;
+  try {
+    connection = await mysql.createConnection(DATABASE_URL);
+    await connection.execute(
+      "UPDATE tournament SET name = ?, data = ? WHERE id = ?",
+      [tournament.name, JSON.stringify(tournament), tournament.id]
+    );
+    return true;
+  } catch (err) {
+    console.error("[TOURNAMENTS DB SAVE]", err);
+    return false;
+  } finally {
+    await connection?.end();
+  }
+}
