@@ -398,9 +398,6 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                 </>
               )}
             </div>
-            <p className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim mt-1">
-              {steamId}
-            </p>
             <div className="flex items-center gap-4 mt-3 justify-center sm:justify-start">
               <div className="flex items-center gap-1.5">
                 <Award size={14} className="text-orbital-success" />
