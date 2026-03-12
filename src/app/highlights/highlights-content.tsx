@@ -163,7 +163,7 @@ function VideoPlayer({ src }: { src: string }) {
     if (!video) return;
 
     const handleCanPlay = () => {
-      video.currentTime = Math.min(8, video.duration * 0.4);
+      video.currentTime = Math.min(12, video.duration * 0.4);
     };
     const handleSeeked = () => {
       video.pause();
