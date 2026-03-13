@@ -8,7 +8,7 @@ import { HudCard } from "@/components/hud-card";
 import { Match, PlayerStats, MapStats, Team, Server, VetoEntry, KillEvent, BombEvent, getStatusText, getStatusType, getKillEvents, getBombEvents, updateMatch, deleteMatch, pauseMatch, unpauseMatch, restartMatch, addPlayerToMatch, getMatchBackups, restoreMatchBackup, sendMatchRcon } from "@/lib/api";
 import { BracketMatch } from "@/lib/tournament";
 import { useAuth } from "@/lib/auth-context";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 // Map screenshot URLs (GitHub: ghostcap-gaming/cs2-map-images)
 const MAP_IMAGES: Record<string, string> = {
@@ -639,14 +639,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {highlightClips.filter(c => c.status === "ready" && c.video_file).map(clip => (
                     <div key={clip.id} className="bg-orbital-card border border-orbital-purple/20 overflow-hidden group hover:border-orbital-purple/40 transition-all" style={{ boxShadow: "0 0 12px rgba(168,85,247,0.08)" }}>
-                      <video
-                        controls
-                        preload="metadata"
-                        poster={clip.thumbnail_file ? `/api/highlights-proxy/${clip.thumbnail_file}` : undefined}
-                        className="w-full aspect-video bg-black"
-                      >
-                        <source src={`/api/highlights-proxy/${clip.video_file}`} type="video/mp4" />
-                      </video>
+                      <ClipPlayer src={`/api/highlights-proxy/${clip.video_file}`} clipId={clip.id} />
                       <div className="p-2.5 flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] text-orbital-purple font-bold shrink-0">
@@ -1587,5 +1580,79 @@ function AdminActions({ match, isActive, team1, team2, adminAction, setAdminActi
         </motion.div>
       )}
     </motion.div>
+  );
+}
+
+function ClipPlayer({ src, clipId }: { src: string; clipId: number }) {
+  const [playing, setPlaying] = useState(false);
+  const [thumbReady, setThumbReady] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const seekTime = 12 + (clipId % 5);
+
+  useEffect(() => {
+    if (playing) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    let cancelled = false;
+
+    const onLoadedData = () => {
+      if (cancelled) return;
+      video.currentTime = Math.min(seekTime, video.duration * 0.5);
+    };
+
+    const onSeeked = () => {
+      if (cancelled) return;
+      setThumbReady(true);
+    };
+
+    if (video.readyState >= 2) {
+      video.currentTime = Math.min(seekTime, video.duration * 0.5);
+    }
+
+    video.addEventListener("loadeddata", onLoadedData);
+    video.addEventListener("seeked", onSeeked);
+
+    return () => {
+      cancelled = true;
+      video.removeEventListener("loadeddata", onLoadedData);
+      video.removeEventListener("seeked", onSeeked);
+    };
+  }, [playing, src, seekTime]);
+
+  if (playing) {
+    return (
+      <video controls autoPlay className="w-full aspect-video bg-black">
+        <source src={src} type="video/mp4" />
+      </video>
+    );
+  }
+
+  return (
+    <div
+      onClick={() => setPlaying(true)}
+      className="relative w-full aspect-video bg-black group/play cursor-pointer overflow-hidden"
+    >
+      <video
+        ref={videoRef}
+        muted
+        playsInline
+        preload="auto"
+        crossOrigin="anonymous"
+        className={`w-full h-full object-cover pointer-events-none ${thumbReady ? "" : "opacity-0"}`}
+        src={`${src}#t=${seekTime}`}
+      />
+      {!thumbReady && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Loader2 size={20} className="text-orbital-purple/40 animate-spin" />
+        </div>
+      )}
+      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover/play:bg-black/10 transition-colors">
+        <div className="w-12 h-12 rounded-full bg-orbital-purple/80 flex items-center justify-center group-hover/play:bg-orbital-purple group-hover/play:scale-110 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+          <Play size={20} className="text-white ml-0.5" fill="white" />
+        </div>
+      </div>
+    </div>
   );
 }

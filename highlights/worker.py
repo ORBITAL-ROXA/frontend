@@ -172,15 +172,19 @@ def download_demo(demo_file):
         return None
 
 
-def process_match_map(match_id, map_number, demo_file):
+def process_match_map(match_id, map_number, demo_file, local_dem=None):
     """Processa uma partida/mapa: extract → record → process → upload."""
     log(f"\n{'='*60}")
     log(f"  Processando: match {match_id} map {map_number}")
-    log(f"  Demo: {demo_file}")
+    log(f"  Demo: {local_dem or demo_file}")
     log(f"{'='*60}")
 
-    # 1. Download demo
-    dem_path = download_demo(demo_file)
+    # 1. Download demo (ou usar local)
+    if local_dem:
+        dem_path = local_dem
+        log(f"  Usando demo local: {dem_path}")
+    else:
+        dem_path = download_demo(demo_file)
     if not dem_path:
         for rank in range(1, TOP_N + 1):
             update_status(match_id, map_number, rank, "error", "Falha ao baixar/extrair demo")
@@ -238,8 +242,16 @@ def process_match_map(match_id, map_number, demo_file):
         return
 
     # 4. Post-process cada clip individualmente
+    all_uploaded = True
     log("\n[PROCESS] Pós-processando clips...")
-    clip_files = sorted([f for f in os.listdir(clips_output) if f.endswith(".mp4")])
+    # Buscar MP4s recursivamente (CSDM gera em subdiretórios)
+    clip_files = []
+    for root, dirs, files in os.walk(clips_output):
+        for f in files:
+            if f.endswith(".mp4"):
+                clip_files.append(os.path.relpath(os.path.join(root, f), clips_output))
+    clip_files.sort()
+    log(f"  Clips encontrados: {clip_files}")
 
     for i, h in enumerate(highlights):
         rank = i + 1
@@ -304,18 +316,23 @@ def process_match_map(match_id, map_number, demo_file):
 
         if upload_clip(match_id, map_number, rank, processed_path, metadata):
             log(f"  Clip #{rank} OK!")
+            all_uploaded = True
             # Upload thumbnail
             if os.path.exists(thumb_path):
                 upload_thumbnail(match_id, map_number, rank, thumb_path)
         else:
+            all_uploaded = False
             update_status(match_id, map_number, rank, "error", "Falha no upload do clip")
 
-    # Cleanup
-    log("\n[CLEANUP] Limpando arquivos temporários...")
-    try:
-        shutil.rmtree(clips_output, ignore_errors=True)
-    except Exception:
-        pass
+    # Cleanup — só limpa se todos os uploads tiveram sucesso
+    if all_uploaded:
+        log("\n[CLEANUP] Limpando arquivos temporários...")
+        try:
+            shutil.rmtree(clips_output, ignore_errors=True)
+        except Exception:
+            pass
+    else:
+        log(f"\n[CLEANUP] Upload falhou — mantendo arquivos em: {clips_output}")
 
     log(f"\nProcessamento concluído para match {match_id} map {map_number}")
 
@@ -391,9 +408,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ORBITAL ROXA - Highlight Worker")
     parser.add_argument("--once", action="store_true", help="Processa uma vez e sai")
     parser.add_argument("--test", type=str, help="Testa pipeline com demo local")
+    parser.add_argument("--local", type=str, help="Processa match com demo local (match_id:map_number:dem_path)")
     args = parser.parse_args()
 
-    if args.test:
+    if args.local:
+        # Formato: match_id:map_number:/path/to/demo.dem
+        parts = args.local.split(":", 2)
+        if len(parts) != 3:
+            print("Uso: --local match_id:map_number:/path/to/demo.dem")
+            sys.exit(1)
+        match_id, map_number, dem_path = int(parts[0]), int(parts[1]), parts[2]
+        process_match_map(match_id, map_number, None, local_dem=dem_path)
+    elif args.test:
         run_test(args.test)
     elif args.once:
         run_once()

@@ -25,9 +25,21 @@ def parse_demo(demo_path):
     print(f"  Header: {header}")
 
     deaths = parser.parse_event("player_death", other=["total_rounds_played"])
-    round_ends = parser.parse_event("round_end")
+    round_ends = parser.parse_event("round_end", other=["total_rounds_played"])
 
     return deaths, round_ends, parser
+
+
+def detect_knife_round_end(round_ends):
+    """Detecta o tick onde o knife round termina.
+    O knife round é o primeiro round_end real (tick > 1).
+    Kills antes deste tick são do knife round e devem ser ignoradas.
+    """
+    for _, row in round_ends.iterrows():
+        tick = int(row["tick"])
+        if tick > 1:
+            return tick
+    return 0
 
 
 def group_kills(deaths):
@@ -157,6 +169,15 @@ def find_highlights(demo_path, top_n=3):
 
     tick_rate = detect_tick_rate(parser)
     print(f"  Tick rate detectado: {tick_rate}")
+
+    # Detectar e filtrar knife round
+    knife_end_tick = detect_knife_round_end(round_ends)
+    if knife_end_tick > 0:
+        before = len(deaths)
+        deaths = deaths[deaths["tick"] > knife_end_tick]
+        filtered = before - len(deaths)
+        if filtered > 0:
+            print(f"  Knife round detectado (tick {knife_end_tick}): {filtered} kills filtradas")
 
     print("\n[2/4] Agrupando kills por jogador/round...")
     groups = group_kills(deaths)

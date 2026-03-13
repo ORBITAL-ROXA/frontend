@@ -33,16 +33,16 @@ def record_clips(highlights, demo_path, output_dir="output"):
         clip_output = os.path.abspath(os.path.join(output_dir, clip_name))
         os.makedirs(clip_output, exist_ok=True)
 
-        is_last = (i == total)
         accountid = _steamid64_to_accountid(h["steamid"])
 
         print(f"\n[CSDM] Gerando video #{i}/{total}: {h['description']}")
         print(f"  Ticks: {h['tick_start']} -> {h['tick_end']}")
-        print(f"  Focus: {h['player']} (accountid={accountid})")
+        print(f"  Focus: {h['player']} (steamid={h['steamid']}, accountid={accountid})")
 
-        # --cfg injeta spec_lock_to_accountid no console do CS2 para travar câmera no jogador
-        # Sem ; pois o batch file do CSDM interpreta como separador de comandos
+        # spec_lock_to_accountid requer que a conta Steam logada NÃO seja
+        # o jogador alvo. O worker deve rodar com outra conta Steam logada.
         cfg_cmds = f"spec_lock_to_accountid {accountid}"
+
         cmd = [
             CSDM, "video", demo_abs,
             str(h["tick_start"]), str(h["tick_end"]),
@@ -57,11 +57,8 @@ def record_clips(highlights, demo_path, output_dir="output"):
             "--no-show-x-ray",
             "--output", clip_output,
             "--verbose",
+            "--close-game-after-recording",
         ]
-
-        # Sempre fechar o CS2 após cada clip — o CSDM não consegue
-        # navegar para outro tick na mesma sessão de demo
-        cmd.append("--close-game-after-recording")
 
         try:
             print(f"  CMD: {' '.join(cmd)}")
