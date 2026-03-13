@@ -84,8 +84,13 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20 overflow-x-hidden">
       {/* Hero Banner */}
-      <section className="relative py-12 sm:py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-orbital-purple/5 via-transparent to-transparent pointer-events-none" />
+      <section className="relative py-12 sm:py-20 overflow-hidden rounded-lg">
+        {/* Background image */}
+        <div className="absolute inset-0 pointer-events-none">
+          <img src="/fundo.png" alt="" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/60 via-[#0A0A0A]/40 to-[#0A0A0A]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0A]/80 via-transparent to-[#0A0A0A]/80" />
+        </div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,200vw)] h-[400px] bg-orbital-purple/[0.03] blur-[150px] rounded-full pointer-events-none" />
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative text-center">
