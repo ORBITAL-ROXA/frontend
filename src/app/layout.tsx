@@ -41,7 +41,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <Navbar />
-          <main className="min-h-screen pt-20">
+          <main className="min-h-screen pt-20 overflow-x-hidden">
             {children}
           </main>
           <LiveToastProvider />

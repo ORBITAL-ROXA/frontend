@@ -60,13 +60,13 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
             {/* Scoreboard */}
             <div className="flex items-center justify-between">
               {/* Team 1 */}
-              <div className="flex-1 flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-2 min-w-0">
                 {team1Logo ? (
                   <img src={team1Logo} alt="" className="w-6 h-6 object-contain shrink-0" />
                 ) : (
                   <Shield size={14} className="text-orbital-purple shrink-0" />
                 )}
-                <span className={`font-[family-name:var(--font-orbitron)] text-sm font-semibold tracking-wide ${
+                <span className={`font-[family-name:var(--font-orbitron)] text-xs sm:text-sm font-semibold tracking-wide truncate ${
                   match.winner === match.team1_id ? "text-orbital-success" : "text-orbital-text"
                 }`}>
                   {match.team1_string || `Time ${match.team1_id}`}
@@ -89,8 +89,8 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
               </div>
 
               {/* Team 2 */}
-              <div className="flex-1 flex items-center gap-2 justify-end">
-                <span className={`font-[family-name:var(--font-orbitron)] text-sm font-semibold tracking-wide ${
+              <div className="flex-1 flex items-center gap-2 justify-end min-w-0">
+                <span className={`font-[family-name:var(--font-orbitron)] text-xs sm:text-sm font-semibold tracking-wide truncate ${
                   match.winner === match.team2_id ? "text-orbital-success" : "text-orbital-text"
                 }`}>
                   {match.team2_string || `Time ${match.team2_id}`}

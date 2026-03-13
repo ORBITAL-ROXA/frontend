@@ -83,11 +83,11 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20 overflow-x-hidden">
       {/* Hero Banner */}
-      <section className="relative py-12 sm:py-20">
+      <section className="relative py-12 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-orbital-purple/5 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-orbital-purple/[0.03] blur-[150px] rounded-full pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,200vw)] h-[400px] bg-orbital-purple/[0.03] blur-[150px] rounded-full pointer-events-none" />
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative text-center">
           {/* Status badge */}
@@ -212,14 +212,14 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
                 }`}>
                   <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-orbital-purple/40 to-transparent" />
                   {liveMatch && <div className="absolute inset-0 bg-orbital-live/[0.02] animate-pulse pointer-events-none" />}
-                  <div className="relative flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1 justify-end">
-                      <span className="font-[family-name:var(--font-orbitron)] text-sm sm:text-base font-bold text-orbital-text text-right">{team1}</span>
+                  <div className="relative flex items-center justify-between min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1 justify-end min-w-0">
+                      <span className="font-[family-name:var(--font-orbitron)] text-xs sm:text-base font-bold text-orbital-text text-right truncate">{team1}</span>
                       <div className="w-10 h-10 border border-orbital-border flex items-center justify-center bg-[#0A0A0A] shrink-0">
                         <TeamLogo logo={team1Logo} size={32} className="w-8 h-8" />
                       </div>
                     </div>
-                    <div className="px-6 text-center">
+                    <div className="px-3 sm:px-6 text-center shrink-0">
                       <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim mb-1">{m.label}</div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">
                         {liveMatch ? (
@@ -239,11 +239,11 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 flex-1">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
                       <div className="w-10 h-10 border border-orbital-border flex items-center justify-center bg-[#0A0A0A] shrink-0">
                         <TeamLogo logo={team2Logo} size={32} className="w-8 h-8" />
                       </div>
-                      <span className="font-[family-name:var(--font-orbitron)] text-sm sm:text-base font-bold text-orbital-text">{team2}</span>
+                      <span className="font-[family-name:var(--font-orbitron)] text-xs sm:text-base font-bold text-orbital-text truncate">{team2}</span>
                     </div>
                   </div>
                 </div>
@@ -256,7 +256,7 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
       {/* Bracket Preview */}
       <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8">
         <SectionHeader icon={Swords} title="BRACKET" href={`/campeonato/${t.id}`} />
-        <HudCard className="p-5">
+        <HudCard className="p-5 overflow-hidden">
           <BracketPreview tournament={t} mapScoresMap={mapScoresMap} />
           <div className="text-center mt-4">
             <Link href={`/campeonato/${t.id}`} className="inline-flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple">
@@ -560,9 +560,9 @@ function BracketPreview({ tournament: t, mapScoresMap }: { tournament: Tournamen
 // ── Default homepage (no tournament) ──
 function DefaultHome({ liveMatches, recentMatches, upcomingMatches, totalMatches, teamCount, teamsMap, mapScoresMap }: Omit<HomeContentProps, "tournament">) {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
-      <section className="py-16 sm:py-24 text-center relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-orbital-purple/5 blur-[120px] rounded-full pointer-events-none" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20 overflow-x-hidden">
+      <section className="py-16 sm:py-24 text-center relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(600px,200vw)] h-[400px] bg-orbital-purple/5 blur-[120px] rounded-full pointer-events-none" />
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative">
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="h-[1px] w-16 bg-gradient-to-r from-transparent to-orbital-purple/60" />
