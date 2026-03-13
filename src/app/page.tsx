@@ -49,17 +49,15 @@ export default async function HomePage() {
   let teams: Team[] = [];
   let tournaments: Tournament[] = [];
 
-  const [tournamentsData, apiData] = await Promise.all([
+  const [tournamentsData, matchesData, teamsData] = await Promise.all([
     getTournamentsFromDB(),
-    Promise.all([getMatches(), getTeams()]).catch(() => [{ matches: [] }, { teams: [] }]),
+    getMatches().catch(() => ({ matches: [] as Match[] })),
+    getTeams().catch(() => ({ teams: [] as Team[] })),
   ]);
 
   tournaments = tournamentsData;
-
-  if (Array.isArray(apiData)) {
-    matches = (apiData[0] as { matches: Match[] }).matches || [];
-    teams = (apiData[1] as { teams: Team[] }).teams || [];
-  }
+  matches = matchesData.matches || [];
+  teams = teamsData.teams || [];
 
   const teamsMap: Record<number, { name: string; logo: string | null; players?: { name: string; steamId: string; captain: number }[] }> = {};
   teams.forEach((t) => {
