@@ -192,10 +192,10 @@ export function Navbar() {
 
             {/* Mobile Toggle */}
             <button
-              className="lg:hidden text-orbital-text-dim hover:text-orbital-purple transition-colors"
+              className="lg:hidden text-orbital-text hover:text-orbital-purple transition-colors p-1"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
-              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
