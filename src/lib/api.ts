@@ -498,11 +498,17 @@ export async function createMatch(match: {
   maplist?: string[];
   veto_mappool?: string;
 }): Promise<{ match: { id: number } }> {
+  // G5API expects veto_mappool as space-separated string, not maplist array
+  const { maplist, ...rest } = match;
+  const payload = {
+    ...rest,
+    veto_mappool: maplist ? maplist.join(" ") : rest.veto_mappool,
+  };
   const res = await fetch(`${API_WRITE_PROXY}/matches`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify([match]),
+    body: JSON.stringify([payload]),
   });
   if (!res.ok) {
     const text = await res.text();

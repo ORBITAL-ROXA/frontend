@@ -112,7 +112,7 @@ export default function AdminPartidas() {
         min_player_ready: parseInt(minReady),
         season_id: seasonId ? parseInt(seasonId) : undefined,
         title: title || undefined,
-        maplist: selectedMaps.length > 0 ? selectedMaps : undefined,
+        maplist: selectedMaps.length > 0 ? selectedMaps : (skipVeto ? CS2_MAPS.slice(0, parseInt(numMaps)) : undefined),
       });
       setFeedback({ type: "success", msg: `Partida #${result.match.id} criada com sucesso!` });
       setTeam1Id(""); setTeam2Id(""); setServerId(""); setTitle(""); setSelectedMaps([]);
