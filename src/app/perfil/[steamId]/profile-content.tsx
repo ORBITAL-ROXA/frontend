@@ -63,6 +63,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
   const [mapPerformance, setMapPerformance] = useState<{ map: string; wins: number; total: number; avgRating: number; kills: number; deaths: number }[]>([]);
   const [matchHistory, setMatchHistory] = useState<MatchDataPoint[]>([]);
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<{ admin: boolean; superAdmin: boolean }>({ admin: false, superAdmin: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -80,7 +81,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
         if (d?.user) {
           setUserRole({ admin: !!d.user.admin, superAdmin: !!d.user.super_admin });
           if (d.user.name) {
-            setStats(prev => prev && prev.name === steamId ? { ...prev, name: d.user.name } : prev);
+            setUserName(d.user.name);
           }
         }
       })
@@ -391,6 +392,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
     );
   }
 
+  const displayName = userName || (stats.name !== steamId ? stats.name : steamId);
   const adr = stats.total_rounds > 0 ? Math.round(stats.damage / stats.total_rounds) : 0;
   const hsp = stats.kills > 0 ? Math.round((stats.headshot_kills / stats.kills) * 100) : (stats.hsp || 0);
   const kdr = stats.kdr || (stats.deaths > 0 ? (stats.kills / stats.deaths) : stats.kills);
@@ -414,11 +416,11 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           <div className="relative">
             <div className="w-24 h-24 rounded-full border-2 border-orbital-purple/50 overflow-hidden" style={{ boxShadow: "0 0 25px rgba(168,85,247,0.3)" }}>
               {avatar ? (
-                <img src={avatar} alt={stats.name} className="w-full h-full object-cover" />
+                <img src={avatar} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-orbital-border flex items-center justify-center">
                   <span className="font-[family-name:var(--font-orbitron)] text-2xl text-orbital-text-dim">
-                    {stats.name?.charAt(0)?.toUpperCase() || "?"}
+                    {displayName?.charAt(0)?.toUpperCase() || "?"}
                   </span>
                 </div>
               )}
@@ -435,7 +437,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           <div className="text-center sm:text-left flex-1">
             <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
               <h1 className="font-[family-name:var(--font-orbitron)] text-xl sm:text-2xl font-bold text-orbital-text tracking-wider">
-                {stats.name}
+                {displayName}
               </h1>
               {steamId === "76561198023055702" && (
                 <span className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.1em] px-2 py-0.5 bg-red-500/20 border border-red-500/50 text-red-400">
