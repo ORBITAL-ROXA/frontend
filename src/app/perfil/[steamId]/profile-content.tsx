@@ -72,7 +72,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
     // Fetch Steam avatar
     fetch(`/api/steam/avatar/${steamId}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.avatar) setAvatar(d.avatar); })
+      .then(d => { if (d?.avatar) setAvatar(d.avatar); if (d?.name) setUserName(prev => prev || d.name); })
       .catch(() => {});
     // Fetch user role + name (admin/super_admin)
     fetch(`/api/users/${steamId}`)
@@ -341,6 +341,9 @@ export function ProfileContent({ steamId }: { steamId: string }) {
           const entry = (data.leaderboard || []).find((e: { steamId: string }) => e.steamId === steamId);
           if (entry) {
             setStats(prev => prev ? { ...prev, wins: entry.wins || 0 } : prev);
+            if (entry.name) {
+              setUserName(prev => prev || entry.name);
+            }
           }
         }
       } catch {
