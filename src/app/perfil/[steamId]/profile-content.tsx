@@ -69,19 +69,31 @@ export function ProfileContent({ steamId }: { steamId: string }) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Fetch Steam avatar
+    // Fetch Steam avatar + personaname (lowest priority name)
     fetch(`/api/steam/avatar/${steamId}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.avatar) setAvatar(d.avatar); if (d?.name) setUserName(prev => prev || d.name); })
       .catch(() => {});
-    // Fetch user role + name (admin/super_admin)
+    // Fetch user role + name
     fetch(`/api/users/${steamId}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (d?.user) {
           setUserRole({ admin: !!d.user.admin, superAdmin: !!d.user.super_admin });
-          if (d.user.name) {
-            setUserName(d.user.name);
+        }
+      })
+      .catch(() => {});
+    // Fetch registered nick from team auth_name (highest priority)
+    fetch(`/api/teams`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        const teams = d?.teams || [];
+        for (const t of teams) {
+          if (!t.auth_name) continue;
+          const entry = t.auth_name[steamId];
+          if (entry) {
+            const nick = typeof entry === "string" ? entry : entry.name;
+            if (nick) { setUserName(nick); return; }
           }
         }
       })
