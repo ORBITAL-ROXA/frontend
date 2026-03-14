@@ -50,7 +50,7 @@ export default function AdminPartidas() {
   const canAdvance = (step: number) => {
     if (step === 0) return !!serverId;
     if (step === 1) return !!team1Id && !!team2Id && team1Id !== team2Id;
-    if (step === 2) return !skipVeto || selectedMaps.length >= parseInt(numMaps);
+    if (step === 2) return !skipVeto || selectedMaps.length === parseInt(numMaps);
     return true;
   };
 
@@ -79,9 +79,13 @@ export default function AdminPartidas() {
   useEffect(() => { fetchData(); }, []);
 
   const toggleMap = (map: string) => {
-    setSelectedMaps(prev =>
-      prev.includes(map) ? prev.filter(m => m !== map) : [...prev, map]
-    );
+    setSelectedMaps(prev => {
+      if (prev.includes(map)) return prev.filter(m => m !== map);
+      // Limitar ao número de mapas do formato (BO1=1, BO3=3, BO5=5)
+      const max = parseInt(numMaps);
+      if (prev.length >= max) return prev;
+      return [...prev, map];
+    });
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -330,7 +334,7 @@ export default function AdminPartidas() {
                           {[{ v: "1", l: "BO1" }, { v: "3", l: "BO3" }, { v: "5", l: "BO5" }].map(f => (
                             <button
                               key={f.v} type="button"
-                              onClick={() => setNumMaps(f.v)}
+                              onClick={() => { setNumMaps(f.v); setSelectedMaps([]); }}
                               className={`px-5 py-2.5 border font-[family-name:var(--font-orbitron)] text-xs tracking-wider transition-all ${
                                 numMaps === f.v
                                   ? "bg-orbital-purple/15 border-orbital-purple/50 text-orbital-purple"
