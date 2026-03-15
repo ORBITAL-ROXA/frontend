@@ -454,7 +454,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
       </motion.section>
 
       {/* ═══ CHAMPION BANNER (tournament finals) ═══ */}
-      {isFinished && match.winner && tournamentName && (
+      {isFinished && match.winner && tournamentName && bracketMatch?.bracket === "grand_final" && (
         <motion.section
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
