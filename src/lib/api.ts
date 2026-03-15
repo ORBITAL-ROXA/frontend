@@ -601,7 +601,9 @@ export async function getMatchBackups(matchId: number): Promise<string[]> {
     console.log("[backups] RCON response:", res.status, data);
     if (res.ok && typeof data.response === "string") {
       const rconBackups = data.response.split("\n").map((s: string) => s.trim()).filter(Boolean);
-      results.push(...rconBackups);
+      // Each line from get5_listbackups is "filename.json date time team1 team2 map score1 score2"
+      // Extract only the filename (first word)
+      results.push(...rconBackups.map((line: string) => line.split(/\s+/)[0]));
     }
   } catch (err) {
     console.error("[backups] RCON error:", err);
