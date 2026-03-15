@@ -9,7 +9,7 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import {
-  createMatch, getServers, Server, getMatch,
+  createMatch, getServers, Server, getMatch, BackupEntry,
   pauseMatch, unpauseMatch, getMatchBackups, restoreMatchBackup, sendMatchRcon,
 } from "@/lib/api";
 import {
@@ -35,7 +35,7 @@ export function MissionControlContent({ initialTournament }: { initialTournament
   // Live match controls state
   const [rconCommand, setRconCommand] = useState("");
   const [rconResponse, setRconResponse] = useState<string | null>(null);
-  const [backups, setBackups] = useState<string[]>([]);
+  const [backups, setBackups] = useState<BackupEntry[]>([]);
   const [controlLoading, setControlLoading] = useState<string | null>(null);
   const [liveScore, setLiveScore] = useState<{ team1: number; team2: number } | null>(null);
 
@@ -663,7 +663,7 @@ function ControlsTab({
   onPause: () => void;
   onUnpause: () => void;
   onLoadBackups: () => void;
-  backups: string[];
+  backups: BackupEntry[];
   onRestoreBackup: (file: string) => void;
   rconCommand: string;
   onRconCommandChange: (cmd: string) => void;
@@ -756,12 +756,12 @@ function ControlsTab({
             {backups.map((b, i) => (
               <button
                 key={i}
-                onClick={() => onRestoreBackup(b)}
+                onClick={() => onRestoreBackup(b.filename)}
                 disabled={controlLoading === "restore"}
                 className="w-full text-left px-3 py-2 bg-[#0A0A0A] border border-orbital-border hover:border-orbital-warning/30 hover:bg-orbital-warning/5 transition-all font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim hover:text-orbital-warning truncate"
               >
                 <RotateCcw size={9} className="inline mr-2" />
-                {b}
+                {b.label}
               </button>
             ))}
           </div>
