@@ -5,7 +5,7 @@ import { ArrowLeft, Radio, Map, Users, Target, Skull, Crosshair, RefreshCw, Down
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HudCard } from "@/components/hud-card";
-import { Match, PlayerStats, MapStats, Team, Server, VetoEntry, KillEvent, BombEvent, getStatusText, getStatusType, getKillEvents, getBombEvents, updateMatch, deleteMatch, pauseMatch, unpauseMatch, restartMatch, addPlayerToMatch, getMatchBackups, restoreMatchBackup, sendMatchRcon } from "@/lib/api";
+import { Match, PlayerStats, MapStats, Team, Server, VetoEntry, KillEvent, BombEvent, BackupEntry, getStatusText, getStatusType, getKillEvents, getBombEvents, updateMatch, deleteMatch, pauseMatch, unpauseMatch, restartMatch, addPlayerToMatch, getMatchBackups, restoreMatchBackup, sendMatchRcon } from "@/lib/api";
 import { BracketMatch } from "@/lib/tournament";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -1446,7 +1446,7 @@ function AdminActions({ match, isActive, team1, team2, adminAction, setAdminActi
   const [playerSteamId, setPlayerSteamId] = useState("");
   const [playerNickname, setPlayerNickname] = useState("");
   const [playerTeam, setPlayerTeam] = useState("team1");
-  const [backups, setBackups] = useState<string[]>([]);
+  const [backups, setBackups] = useState<BackupEntry[]>([]);
   const [backupsLoading, setBackupsLoading] = useState(false);
   const [backupsError, setBackupsError] = useState("");
 
@@ -1651,8 +1651,8 @@ function AdminActions({ match, isActive, team1, team2, adminAction, setAdminActi
             <div className="space-y-1 max-h-48 overflow-y-auto">
               {backups.map((b, i) => (
                 <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 bg-orbital-bg/50 border border-orbital-border/30">
-                  <span className="text-[0.6rem] text-orbital-text font-[family-name:var(--font-jetbrains)] truncate">{b}</span>
-                  <button onClick={() => handleRestoreBackup(b)} className="shrink-0 px-2 py-1 text-[0.55rem] text-orbital-purple hover:bg-orbital-purple/10 border border-orbital-purple/30 transition-all font-[family-name:var(--font-jetbrains)]">
+                  <span className="text-[0.6rem] text-orbital-text font-[family-name:var(--font-jetbrains)] truncate">{b.label}</span>
+                  <button onClick={() => handleRestoreBackup(b.filename)} className="shrink-0 px-2 py-1 text-[0.55rem] text-orbital-purple hover:bg-orbital-purple/10 border border-orbital-purple/30 transition-all font-[family-name:var(--font-jetbrains)]">
                     Restaurar
                   </button>
                 </div>

@@ -588,9 +588,43 @@ export async function addPlayerToMatch(matchId: number, steamId: string, nicknam
   if (!res.ok) throw new Error(`Erro ao adicionar jogador: ${res.status}`);
 }
 
-export async function getMatchBackups(matchId: number): Promise<string[]> {
-  // Tenta buscar backups via RCON (servidor ativo) e via remote (filesystem do G5API)
-  const results: string[] = [];
+export interface BackupEntry {
+  filename: string;
+  label: string;
+}
+
+function parseBackupLine(line: string): BackupEntry {
+  // Format from get5_listbackups: "filename.json date time team1 team2 map score1 score2"
+  const parts = line.split(/\s+/);
+  const filename = parts[0];
+
+  // Extract round number from filename (e.g. matchzy_29_0_round06.json -> 6)
+  const roundMatch = filename.match(/round(\d+)/);
+  const round = roundMatch ? parseInt(roundMatch[1]) : null;
+
+  if (parts.length >= 8) {
+    const date = parts[1]; // 2026-03-15
+    const time = parts[2]; // 02:32:08
+    const team1 = parts[3];
+    const team2 = parts[4];
+    const map = parts[5].replace("de_", "");
+    const score1 = parts[6];
+    const score2 = parts[7];
+    const timeStr = time.substring(0, 5); // HH:MM
+    const label = `Round ${round ?? "?"} · ${team1} ${score1}×${score2} ${team2} · ${map} · ${timeStr}`;
+    return { filename, label };
+  }
+
+  // Fallback: just format the filename nicely
+  if (round !== null) {
+    return { filename, label: `Round ${round}` };
+  }
+  return { filename, label: filename };
+}
+
+export async function getMatchBackups(matchId: number): Promise<BackupEntry[]> {
+  const results: BackupEntry[] = [];
+  const seen = new Set<string>();
 
   // 1. RCON (get5_listbackups no servidor de jogo)
   try {
@@ -598,12 +632,15 @@ export async function getMatchBackups(matchId: number): Promise<string[]> {
       credentials: "include",
     });
     const data = await res.json();
-    console.log("[backups] RCON response:", res.status, data);
     if (res.ok && typeof data.response === "string") {
       const rconBackups = data.response.split("\n").map((s: string) => s.trim()).filter(Boolean);
-      // Each line from get5_listbackups is "filename.json date time team1 team2 map score1 score2"
-      // Extract only the filename (first word)
-      results.push(...rconBackups.map((line: string) => line.split(/\s+/)[0]));
+      for (const line of rconBackups) {
+        const entry = parseBackupLine(line);
+        if (!seen.has(entry.filename)) {
+          seen.add(entry.filename);
+          results.push(entry);
+        }
+      }
     }
   } catch (err) {
     console.error("[backups] RCON error:", err);
@@ -615,10 +652,14 @@ export async function getMatchBackups(matchId: number): Promise<string[]> {
       credentials: "include",
     });
     const data = await res.json();
-    console.log("[backups] Remote response:", res.status, data);
     if (res.ok && Array.isArray(data.response)) {
       for (const f of data.response) {
-        if (!results.includes(f)) results.push(f);
+        if (!seen.has(f)) {
+          seen.add(f);
+          const roundMatch = f.match(/round(\d+)/);
+          const round = roundMatch ? parseInt(roundMatch[1]) : null;
+          results.push({ filename: f, label: round !== null ? `Round ${round} (remoto)` : f });
+        }
       }
     }
   } catch (err) {
