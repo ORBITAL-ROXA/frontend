@@ -226,33 +226,6 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
         </motion.div>
       </section>
 
-      {/* Stats Row */}
-      <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <HudCard className="text-center" delay={0.1}>
-          <StatBox label="Partidas" value={`${finished}/${total}`} />
-        </HudCard>
-        <HudCard className="text-center" delay={0.2}>
-          <StatBox label="Progresso" value={`${progress}%`} />
-          {/* Progress bar */}
-          <div className="mt-2 mx-3 mb-1">
-            <div className="h-1.5 bg-orbital-border/30 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                className="h-full bg-gradient-to-r from-orbital-purple to-orbital-purple/60 rounded-full"
-              />
-            </div>
-          </div>
-        </HudCard>
-        <HudCard className="text-center" delay={0.3}>
-          <StatBox label="Times" value={t.teams.length} />
-        </HudCard>
-        <HudCard className="text-center" delay={0.4}>
-          <StatBox label="Formato" value="BO1/BO3" />
-        </HudCard>
-      </motion.section>
-
       {/* Live / Next Match */}
       {(liveMatch || nextMatch) && (
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
