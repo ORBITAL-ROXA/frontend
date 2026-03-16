@@ -77,11 +77,11 @@ export default async function HomePage() {
     .filter((m) => getStatusType(m) === "upcoming")
     .slice(0, 3);
 
-  // Fetch map stats for finished + live matches (to show round scores)
-  const displayedMatches = [...liveMatches, ...recentMatches];
+  // Fetch map stats for ALL finished + live matches (bracket needs all scores)
+  const allFinishedAndLive = matches.filter((m) => getStatusType(m) === "finished" || getStatusType(m) === "live");
   const mapScoresMap: Record<number, { team1_score: number; team2_score: number; map_name: string }[]> = {};
   await Promise.all(
-    displayedMatches.map(async (m) => {
+    allFinishedAndLive.map(async (m) => {
       try {
         const raw = await getMapStats(m.id) as Record<string, unknown>;
         const mapStats = (raw.mapstats || raw.mapStats || []) as { team1_score: number; team2_score: number; map_name: string }[];

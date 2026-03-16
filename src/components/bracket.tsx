@@ -89,8 +89,17 @@ export function BracketMatchCard({
   const isReady = match.team1_id && match.team2_id && match.status === "pending";
 
   const scores = match.match_id ? mapScoresMap?.[match.match_id] : undefined;
-  const t1Score = scores?.[0]?.team1_score;
-  const t2Score = scores?.[0]?.team2_score;
+  let t1Score: number | undefined;
+  let t2Score: number | undefined;
+  if (scores && scores.length > 1) {
+    // BO3+: show maps won
+    t1Score = scores.filter(s => s.team1_score > s.team2_score).length;
+    t2Score = scores.filter(s => s.team2_score > s.team1_score).length;
+  } else if (scores && scores.length === 1) {
+    // BO1: show round score
+    t1Score = scores[0].team1_score;
+    t2Score = scores[0].team2_score;
+  }
 
   const team1Logo = match.team1_id ? teamsMap?.[match.team1_id]?.logo : null;
   const team2Logo = match.team2_id ? teamsMap?.[match.team2_id]?.logo : null;
