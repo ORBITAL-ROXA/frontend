@@ -37,6 +37,8 @@ export default function AdminFaceit() {
   const [importing, setImporting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState<string | null>(null);
 
   const fetchMatches = async () => {
     try {
@@ -48,6 +50,47 @@ export default function AdminFaceit() {
   };
 
   useEffect(() => { fetchMatches(); }, []);
+
+  // Re-importar stats atualizados da Faceit
+  const handleRefresh = async (faceitMatchId: string) => {
+    setRefreshing(faceitMatchId);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/faceit/match", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ faceit_match_id: faceitMatchId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro");
+      setFeedback({ type: "success", msg: `Stats atualizados: ${data.match.team1_name} ${data.match.team1_score}-${data.match.team2_score} ${data.match.team2_name}` });
+      fetchMatches();
+    } catch (err) {
+      setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro" });
+    }
+    setRefreshing(null);
+  };
+
+  // Sync para G5API (inserir match + stats no banco principal)
+  const handleSyncG5 = async (faceitMatchId: string) => {
+    setSyncing(faceitMatchId);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/faceit/sync", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ faceit_match_id: faceitMatchId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao sincronizar");
+      setFeedback({ type: "success", msg: `Sincronizado com G5API: match #${data.g5_match_id}` });
+    } catch (err) {
+      setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro" });
+    }
+    setSyncing(null);
+  };
 
   const handleImport = async () => {
     if (!importId.trim()) return;
@@ -372,8 +415,30 @@ export default function AdminFaceit() {
                           </div>
                         ))}
 
+                        {/* Actions */}
+                        <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-orbital-border/20">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleRefresh(match.faceit_match_id); }}
+                            disabled={refreshing === match.faceit_match_id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF5500]/10 border border-[#FF5500]/30 hover:border-[#FF5500]/60 disabled:opacity-40 transition-all font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-[#FF5500]"
+                          >
+                            {refreshing === match.faceit_match_id ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
+                            ATUALIZAR STATS
+                          </button>
+                          {match.status === "finished" && match.maps.length > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleSyncG5(match.faceit_match_id); }}
+                              disabled={syncing === match.faceit_match_id}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 disabled:opacity-40 transition-all font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple"
+                            >
+                              {syncing === match.faceit_match_id ? <Loader2 size={10} className="animate-spin" /> : <Download size={10} />}
+                              SYNC G5API
+                            </button>
+                          )}
+                        </div>
+
                         {/* Meta info */}
-                        <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-orbital-border/20">
+                        <div className="flex flex-wrap items-center gap-3 mt-2 pt-2 border-t border-orbital-border/10">
                           <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40">
                             BO{match.num_maps}
                           </span>
