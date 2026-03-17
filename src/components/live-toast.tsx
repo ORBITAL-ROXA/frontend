@@ -28,7 +28,7 @@ export function LiveToastProvider() {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  // Match status polling
+  // Match status polling — only when page is visible
   useEffect(() => {
     const checkMatches = async () => {
       try {
@@ -85,12 +85,38 @@ export function LiveToastProvider() {
       } catch { /* */ }
     };
 
-    checkMatches();
-    const interval = setInterval(checkMatches, 15000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      checkMatches();
+      interval = setInterval(checkMatches, 30000);
+    };
+
+    const stopPolling = () => {
+      if (interval) { clearInterval(interval); interval = null; }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    // Start immediately if visible
+    if (document.visibilityState === "visible") {
+      startPolling();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [removeToast]);
 
-  // Highlight clips polling
+  // Highlight clips polling — only when page is visible
   useEffect(() => {
     const checkHighlights = async () => {
       try {
@@ -124,9 +150,34 @@ export function LiveToastProvider() {
       } catch { /* */ }
     };
 
-    checkHighlights();
-    const interval = setInterval(checkHighlights, 30000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      checkHighlights();
+      interval = setInterval(checkHighlights, 60000);
+    };
+
+    const stopPolling = () => {
+      if (interval) { clearInterval(interval); interval = null; }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (document.visibilityState === "visible") {
+      startPolling();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [removeToast]);
 
   return (

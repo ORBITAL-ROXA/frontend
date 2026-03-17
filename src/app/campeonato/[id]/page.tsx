@@ -20,6 +20,7 @@ import {
   getVetoTeamOrder,
   VetoAction,
 } from "@/lib/tournament";
+import { autoAdvanceTournament } from "@/lib/tournament-utils";
 
 export default function CampeonatoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -70,36 +71,16 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
     const liveMatches = tournament.matches.filter(m => m.status === "live" && m.match_id);
     if (liveMatches.length === 0) return;
 
+    const clientFetcher = async (matchId: number) => {
+      const res = await fetch(`/api/matches/${matchId}`);
+      const data = await res.json();
+      return data.match || null;
+    };
+
     const checkAutoAdvance = async () => {
-      let changed = false;
-      let updated = { ...tournament, matches: tournament.matches.map(m => ({ ...m })) };
-
-      for (const bm of liveMatches) {
-        try {
-          const res = await fetch(`/api/matches/${bm.match_id}`);
-          const data = await res.json();
-          const g5match = data.match;
-
-          if (g5match && g5match.end_time && !bm.winner_id) {
-            // Match finished in G5API — determine winner
-            let winnerId = g5match.winner;
-            if (!winnerId && g5match.team1_score !== g5match.team2_score) {
-              winnerId = g5match.team1_score > g5match.team2_score ? g5match.team1_id : g5match.team2_id;
-            }
-            if (winnerId) {
-              // Map G5API team ID to tournament team ID
-              const tourTeam = updated.teams.find(t => t.id === winnerId);
-              if (tourTeam) {
-                updated = advanceBracket(updated, bm.id, tourTeam.id);
-                changed = true;
-              }
-            }
-          }
-        } catch { /* ignore */ }
-      }
-
-      if (changed) {
-        await saveTournament(updated);
+      const result = await autoAdvanceTournament(tournament, clientFetcher);
+      if (result.changed) {
+        await saveTournament(result.tournament);
       }
     };
 

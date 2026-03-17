@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { Shield } from "lucide-react";
 import { Match, getStatusText, getStatusType } from "@/lib/api";
@@ -62,7 +63,7 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
               {/* Team 1 */}
               <div className="flex-1 flex items-center gap-2 min-w-0">
                 {team1Logo ? (
-                  <img src={team1Logo} alt="" className="w-6 h-6 object-contain shrink-0" />
+                  <Image src={team1Logo} alt="Team 1 logo" width={24} height={24} className="w-6 h-6 object-contain shrink-0" unoptimized />
                 ) : (
                   <Shield size={14} className="text-orbital-purple shrink-0" />
                 )}
@@ -96,7 +97,7 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
                   {match.team2_string || `Time ${match.team2_id}`}
                 </span>
                 {team2Logo ? (
-                  <img src={team2Logo} alt="" className="w-6 h-6 object-contain shrink-0" />
+                  <Image src={team2Logo} alt="Team 2 logo" width={24} height={24} className="w-6 h-6 object-contain shrink-0" unoptimized />
                 ) : (
                   <Shield size={14} className="text-orbital-purple shrink-0" />
                 )}

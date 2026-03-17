@@ -7,11 +7,16 @@ import Link from "next/link";
 import { HudCard } from "@/components/hud-card";
 import { LeaderboardEntry, Season } from "@/lib/api";
 
-export function LeaderboardContent() {
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [seasons, setSeasons] = useState<Season[]>([]);
+interface LeaderboardContentProps {
+  initialLeaderboard?: LeaderboardEntry[];
+  initialSeasons?: Season[];
+}
+
+export function LeaderboardContent({ initialLeaderboard, initialSeasons }: LeaderboardContentProps) {
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard || []);
+  const [seasons, setSeasons] = useState<Season[]>(initialSeasons || []);
   const [selectedSeason, setSelectedSeason] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialLeaderboard);
 
   const fetchLeaderboard = useCallback(async (seasonId?: number) => {
     setLoading(true);
@@ -25,12 +30,16 @@ export function LeaderboardContent() {
   }, []);
 
   useEffect(() => {
-    fetchLeaderboard();
-    fetch("/api/seasons")
-      .then(r => r.json())
-      .then(d => setSeasons(d.seasons || []))
-      .catch(() => {});
-  }, [fetchLeaderboard]);
+    if (!initialLeaderboard) {
+      fetchLeaderboard();
+    }
+    if (!initialSeasons) {
+      fetch("/api/seasons")
+        .then(r => r.json())
+        .then(d => setSeasons(d.seasons || []))
+        .catch(() => {});
+    }
+  }, [fetchLeaderboard, initialLeaderboard, initialSeasons]);
 
   const handleSeasonChange = (value: string) => {
     setSelectedSeason(value);

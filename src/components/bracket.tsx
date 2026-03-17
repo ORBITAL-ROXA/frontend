@@ -1,6 +1,7 @@
 "use client";
 
 import { Shield, Check, Swords, Trophy } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Tournament, BracketMatch, getTeamName } from "@/lib/tournament";
 
@@ -17,7 +18,7 @@ interface AdminActions {
 // ── Team Logo ──
 function TeamLogo({ logo, size = 16 }: { logo: string | null | undefined; size?: number }) {
   if (!logo) return <Shield size={size * 0.7} className="text-orbital-text-dim/40" />;
-  return <img src={logo} alt="" width={size} height={size} className="object-contain" />;
+  return <Image src={logo} alt="Team logo" width={size} height={size} className="object-contain" unoptimized />;
 }
 
 // ── Team Row ──

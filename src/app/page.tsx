@@ -1,48 +1,10 @@
-import { getMatches, getTeams, getMatch, getMapStats, getLeaderboard, Match, Team, MapStats, LeaderboardEntry, getStatusType } from "@/lib/api";
-import { Tournament, advanceBracket } from "@/lib/tournament";
+import { getMatches, getTeams, getMatch, getMapStats, getLeaderboard, Match, Team, LeaderboardEntry, getStatusType } from "@/lib/api";
+import { Tournament } from "@/lib/tournament";
+import { autoAdvanceTournament } from "@/lib/tournament-utils";
 import { getTournamentsFromDB, saveTournamentToDB } from "@/lib/tournaments-db";
 import { HomeContent } from "./home-content";
 
 export const revalidate = 30;
-
-// Server-side auto-advance: check if any live bracket matches have finished in G5API
-async function autoAdvanceTournament(tournament: Tournament, matches: Match[]): Promise<Tournament> {
-  if (tournament.status === "finished") return tournament;
-
-  const liveInBracket = tournament.matches.filter(m => m.status === "live" && m.match_id);
-  if (liveInBracket.length === 0) return tournament;
-
-  let updated = { ...tournament, matches: tournament.matches.map(m => ({ ...m })) };
-  let changed = false;
-
-  for (const bm of liveInBracket) {
-    try {
-      // Check G5API match status
-      const data = await getMatch(bm.match_id!);
-      const g5match = data.match;
-
-      if (g5match && g5match.end_time && !bm.winner_id) {
-        let winnerId = g5match.winner;
-        if (!winnerId && g5match.team1_score !== g5match.team2_score) {
-          winnerId = g5match.team1_score > g5match.team2_score ? g5match.team1_id : g5match.team2_id;
-        }
-        if (winnerId) {
-          const tourTeam = updated.teams.find(t => t.id === winnerId);
-          if (tourTeam) {
-            updated = advanceBracket(updated, bm.id, tourTeam.id);
-            changed = true;
-          }
-        }
-      }
-    } catch { /* ignore */ }
-  }
-
-  if (changed) {
-    await saveTournamentToDB(updated);
-  }
-
-  return changed ? updated : tournament;
-}
 
 export default async function HomePage() {
   let matches: Match[] = [];
@@ -104,7 +66,15 @@ export default async function HomePage() {
 
   // Auto-advance: if tournament has live matches that finished in G5API, update bracket
   if (activeTournament) {
-    activeTournament = await autoAdvanceTournament(activeTournament, matches);
+    const serverFetcher = async (matchId: number) => {
+      const data = await getMatch(matchId);
+      return data.match || null;
+    };
+    const result = await autoAdvanceTournament(activeTournament, serverFetcher);
+    if (result.changed) {
+      await saveTournamentToDB(result.tournament);
+    }
+    activeTournament = result.tournament;
   }
 
   // Fetch tournament MVP (top player by rating in tournament season)

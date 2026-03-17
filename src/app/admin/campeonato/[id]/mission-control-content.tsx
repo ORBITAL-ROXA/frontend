@@ -16,6 +16,7 @@ import {
   Tournament, BracketMatch, advanceBracket, getTeamName, getNextPlayableMatch,
   getVetoSequence, getVetoTeamOrder, VetoAction,
 } from "@/lib/tournament";
+import { autoAdvanceTournament } from "@/lib/tournament-utils";
 
 type Tab = "bracket" | "controls" | "veto" | "queue";
 
@@ -67,39 +68,26 @@ export function MissionControlContent({ initialTournament }: { initialTournament
     const liveMatches = tournament.matches.filter(m => m.status === "live" && m.match_id);
     if (liveMatches.length === 0) return;
 
+    const clientFetcher = async (matchId: number) => {
+      const res = await fetch(`/api/matches/${matchId}`);
+      const data = await res.json();
+      return data.match || null;
+    };
+
     const checkAutoAdvance = async () => {
-      let changed = false;
-      let updated = { ...tournament, matches: tournament.matches.map(m => ({ ...m })) };
+      const result = await autoAdvanceTournament(tournament, clientFetcher);
 
-      for (const bm of liveMatches) {
-        try {
-          const res = await fetch(`/api/matches/${bm.match_id}`);
-          const data = await res.json();
-          const g5match = data.match;
-
-          // Update live score
-          if (g5match && bm.match_id === currentLiveMatch?.match_id) {
-            setLiveScore({ team1: g5match.team1_score || 0, team2: g5match.team2_score || 0 });
-          }
-
-          if (g5match && g5match.end_time && !bm.winner_id) {
-            let winnerId = g5match.winner;
-            if (!winnerId && g5match.team1_score !== g5match.team2_score) {
-              winnerId = g5match.team1_score > g5match.team2_score ? g5match.team1_id : g5match.team2_id;
-            }
-            if (winnerId) {
-              const tourTeam = updated.teams.find(t => t.id === winnerId);
-              if (tourTeam) {
-                updated = advanceBracket(updated, bm.id, tourTeam.id);
-                changed = true;
-              }
-            }
-          }
-        } catch { /* */ }
+      // Update live score from fetched G5API data
+      const currentLive = tournament.matches.find(m => m.status === "live" && m.match_id);
+      if (currentLive?.match_id) {
+        const liveResult = result.results.find(r => r.match_id === currentLive.match_id);
+        if (liveResult) {
+          setLiveScore({ team1: liveResult.g5match.team1_score || 0, team2: liveResult.g5match.team2_score || 0 });
+        }
       }
 
-      if (changed) {
-        await saveTournament(updated);
+      if (result.changed) {
+        await saveTournament(result.tournament);
       }
     };
 
