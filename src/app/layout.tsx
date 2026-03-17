@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Orbitron, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
@@ -27,6 +27,25 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ORBITAL ROXA | CS2 Tournament",
   description: "Plataforma de gerenciamento de campeonatos CS2 - ORBITAL ROXA",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ORBITAL ROXA",
+  },
+  icons: {
+    icon: [
+      { url: "/app-icon/192", sizes: "192x192", type: "image/png" },
+      { url: "/app-icon/512", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/app-icon/192", sizes: "192x192", type: "image/png" },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0A0A0A",
 };
 
 export default function RootLayout({
