@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Target, Skull, Crosshair, Medal, Filter, Download, Search } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +18,17 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
   const [selectedSeason, setSelectedSeason] = useState<string>("");
   const [loading, setLoading] = useState(!initialLeaderboard);
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<string>("average_rating");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir(key === "deaths" ? "asc" : "desc");
+    }
+  };
 
   const fetchLeaderboard = useCallback(async (seasonId?: number) => {
     setLoading(true);
@@ -74,7 +85,17 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
   const filtered = search
     ? leaderboard.filter(p => (p.name || "").toLowerCase().includes(search.toLowerCase()) || (p.steamId || "").includes(search))
     : leaderboard;
-  const sorted = [...filtered].sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
+
+  const getVal = (p: LeaderboardEntry, key: string): number => {
+    if (key === "kd") return (p.deaths || 0) > 0 ? (p.kills || 0) / p.deaths : (p.kills || 0);
+    return (p[key as keyof LeaderboardEntry] as number) || 0;
+  };
+
+  const sorted = [...filtered].sort((a, b) => {
+    const av = getVal(a, sortKey);
+    const bv = getVal(b, sortKey);
+    return sortDir === "asc" ? av - bv : bv - av;
+  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
@@ -144,14 +165,18 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
       ) : sorted.length > 0 ? (
         <>
           {/* Top 3 Podium */}
-          {sorted.length >= 3 && (
-            <div className="grid grid-cols-3 gap-4 mb-8">
+          {sorted.length >= 1 && (
+            <div className={`grid gap-4 mb-8 ${
+              sorted.length === 1 ? "grid-cols-1 max-w-xs mx-auto" :
+              sorted.length === 2 ? "grid-cols-2 max-w-lg mx-auto" :
+              "grid-cols-3"
+            }`}>
               {/* 2nd */}
-              <PodiumCard player={sorted[1]} rank={2} delay={0.2} />
+              {sorted.length >= 2 && <PodiumCard player={sorted[1]} rank={2} delay={0.2} />}
               {/* 1st */}
               <PodiumCard player={sorted[0]} rank={1} delay={0.1} />
               {/* 3rd */}
-              <PodiumCard player={sorted[2]} rank={3} delay={0.3} />
+              {sorted.length >= 3 && <PodiumCard player={sorted[2]} rank={3} delay={0.3} />}
             </div>
           )}
 
@@ -168,13 +193,13 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
                   <tr>
                     <th>#</th>
                     <th>Jogador</th>
-                    <th><Target size={10} className="inline" /> K</th>
-                    <th><Skull size={10} className="inline" /> D</th>
-                    <th>K/D</th>
-                    <th><Crosshair size={10} className="inline" /> HS%</th>
-                    <th>Wins</th>
-                    <th>Rounds</th>
-                    <th>Rating</th>
+                    <SortableTh label="K" sortKey="kills" currentKey={sortKey} dir={sortDir} onSort={handleSort} icon={<Target size={10} className="inline" />} />
+                    <SortableTh label="D" sortKey="deaths" currentKey={sortKey} dir={sortDir} onSort={handleSort} icon={<Skull size={10} className="inline" />} />
+                    <SortableTh label="K/D" sortKey="kd" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
+                    <SortableTh label="HS%" sortKey="hsp" currentKey={sortKey} dir={sortDir} onSort={handleSort} icon={<Crosshair size={10} className="inline" />} />
+                    <SortableTh label="Wins" sortKey="wins" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
+                    <SortableTh label="Rounds" sortKey="trp" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
+                    <SortableTh label="Rating" sortKey="average_rating" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                   </tr>
                 </thead>
                 <tbody>
@@ -197,6 +222,7 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
                           <Link href={`/perfil/${player.steamId}`} className="hover:text-orbital-purple transition-colors">
                             {player.name}
                           </Link>
+                          <RatingTier rating={rating} />
                         </td>
                         <td className="text-orbital-success">{player.kills}</td>
                         <td className="text-orbital-danger">{player.deaths}</td>
@@ -231,6 +257,37 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
       )}
     </div>
   );
+}
+
+function SortableTh({
+  label, sortKey, currentKey, dir, onSort, icon,
+}: {
+  label: string;
+  sortKey: string;
+  currentKey: string;
+  dir: "asc" | "desc";
+  onSort: (key: string) => void;
+  icon?: React.ReactNode;
+}) {
+  const active = currentKey === sortKey;
+  return (
+    <th
+      onClick={() => onSort(sortKey)}
+      className={`cursor-pointer select-none hover:text-orbital-purple transition-colors font-[family-name:var(--font-orbitron)] ${active ? "text-orbital-purple" : ""}`}
+    >
+      {icon && <>{icon}{" "}</>}
+      {label}
+      {active && (
+        <span className="ml-1 text-[0.55rem]">{dir === "asc" ? "▲" : "▼"}</span>
+      )}
+    </th>
+  );
+}
+
+function RatingTier({ rating }: { rating: number }) {
+  if (rating >= 1.2) return <span className="ml-1.5 text-[0.6rem] text-green-400" title="Rating alto">↑</span>;
+  if (rating >= 0.8) return <span className="ml-1.5 text-[0.6rem] text-gray-500" title="Rating médio">—</span>;
+  return <span className="ml-1.5 text-[0.6rem] text-red-400" title="Rating baixo">↓</span>;
 }
 
 function PodiumCard({ player, rank, delay }: { player: LeaderboardEntry; rank: number; delay: number }) {

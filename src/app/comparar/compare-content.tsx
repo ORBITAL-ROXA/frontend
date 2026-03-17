@@ -492,7 +492,7 @@ export function CompareContent({ initialPlayers }: CompareContentProps) {
           </h1>
         </div>
         <p className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">
-          Selecione dois jogadores para comparar suas estatisticas
+          Selecione dois jogadores para comparar suas estatísticas
         </p>
       </motion.div>
 
@@ -587,7 +587,7 @@ export function CompareContent({ initialPlayers }: CompareContentProps) {
             </HudCard>
 
             {/* Stat Bars */}
-            <HudCard label="ESTATISTICAS">
+            <HudCard label="ESTATÍSTICAS">
               <div className="divide-y divide-orbital-border/30">
                 {STATS.map((stat, i) => (
                   <StatBar key={stat.key} stat={stat} p1={player1} p2={player2} index={i} />
@@ -613,7 +613,7 @@ export function CompareContent({ initialPlayers }: CompareContentProps) {
                 AGUARDANDO JOGADORES
               </p>
               <p className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim/60">
-                Selecione dois jogadores acima para iniciar a comparacao
+                Selecione dois jogadores acima para iniciar a comparação
               </p>
 
               {/* Decorative scan line */}

@@ -61,6 +61,24 @@ export function TeamDetailContent({ team, matches, playerStats, mapStats, teamsM
   // Last 5 results
   const last5 = finishedMatches.slice(0, 5);
 
+  // Head-to-Head stats per opponent
+  const h2h = useMemo(() => {
+    const map: Record<number, { name: string; logo: string | null; wins: number; losses: number; matches: number }> = {};
+    for (const m of finishedMatches) {
+      const opponentId = m.team1_id === team.id ? m.team2_id : m.team1_id;
+      const opponentName = m.team1_id === team.id ? (m.team2_string || "?") : (m.team1_string || "?");
+      if (!map[opponentId]) {
+        map[opponentId] = { name: opponentName, logo: teamsMap[opponentId]?.logo || null, wins: 0, losses: 0, matches: 0 };
+      }
+      map[opponentId].matches++;
+      if (m.winner === team.id) map[opponentId].wins++;
+      else map[opponentId].losses++;
+    }
+    return Object.entries(map)
+      .map(([id, data]) => ({ id: parseInt(id), ...data }))
+      .sort((a, b) => b.matches - a.matches);
+  }, [finishedMatches, team.id, teamsMap]);
+
   // Player aggregated stats (from playerStats for this team)
   interface PlayerAgg {
     steamId: string;
@@ -448,6 +466,40 @@ export function TeamDetailContent({ team, matches, playerStats, mapStats, teamsM
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Head-to-Head */}
+          {h2h.length > 0 && (
+            <HudCard label="HEAD-TO-HEAD">
+              <div className="space-y-1 mt-2">
+                {h2h.map(opp => {
+                  const wr = opp.matches > 0 ? Math.round((opp.wins / opp.matches) * 100) : 0;
+                  return (
+                    <Link key={opp.id} href={`/times/${opp.id}`} className="flex items-center gap-3 p-2.5 hover:bg-white/[0.02] transition-colors group">
+                      <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                        {opp.logo ? (
+                          <img src={opp.logo} alt={opp.name} className="w-5 h-5 object-contain" />
+                        ) : (
+                          <Shield size={14} className="text-orbital-text-dim/30" />
+                        )}
+                      </div>
+                      <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text group-hover:text-orbital-purple transition-colors flex-1 truncate">
+                        {opp.name}
+                      </span>
+                      <span className={`font-[family-name:var(--font-jetbrains)] text-xs font-bold ${opp.wins > opp.losses ? "text-orbital-success" : opp.wins < opp.losses ? "text-orbital-danger" : "text-orbital-text-dim"}`}>
+                        {opp.wins}W - {opp.losses}L
+                      </span>
+                      <div className="w-16 h-1.5 bg-orbital-border shrink-0">
+                        <div className={`h-full ${wr >= 50 ? "bg-orbital-success" : "bg-orbital-danger"}`} style={{ width: `${wr}%` }} />
+                      </div>
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim w-6 text-right">
+                        {opp.matches}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </HudCard>
           )}
 
           {/* Upcoming matches */}

@@ -2,93 +2,25 @@
 
 export default function OfflinePage() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#0A0A0A",
-        color: "#FFFFFF",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        padding: "2rem",
-        textAlign: "center",
-      }}
-    >
+    <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-8 text-center">
       {/* Glow ring icon */}
-      <div
-        style={{
-          width: 120,
-          height: 120,
-          borderRadius: "50%",
-          border: "3px solid #A855F7",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: "2rem",
-          boxShadow: "0 0 30px 6px rgba(168,85,247,0.4)",
-        }}
-      >
-        <span
-          style={{
-            fontSize: 36,
-            fontWeight: 800,
-            color: "#A855F7",
-            letterSpacing: "0.05em",
-          }}
-        >
+      <div className="w-[120px] h-[120px] rounded-full border-[3px] border-orbital-purple flex items-center justify-center mb-8 shadow-[0_0_30px_6px_rgba(168,85,247,0.4)]">
+        <span className="text-4xl font-extrabold text-orbital-purple tracking-wider font-[family-name:var(--font-orbitron)]">
           OR
         </span>
       </div>
 
-      <h1
-        style={{
-          fontSize: "2rem",
-          fontWeight: 700,
-          color: "#A855F7",
-          marginBottom: "1rem",
-          letterSpacing: "0.1em",
-        }}
-      >
+      <h1 className="text-3xl font-bold text-orbital-purple mb-4 tracking-[0.1em] font-[family-name:var(--font-orbitron)]">
         SEM CONEXÃO
       </h1>
 
-      <p
-        style={{
-          fontSize: "1.1rem",
-          color: "#A3A3A3",
-          maxWidth: 400,
-          lineHeight: 1.6,
-          marginBottom: "2rem",
-        }}
-      >
+      <p className="text-lg text-[#A3A3A3] max-w-[400px] leading-relaxed mb-8 font-[family-name:var(--font-jetbrains)]">
         Você está offline. Verifique sua conexão com a internet e tente novamente.
       </p>
 
       <button
         onClick={() => window.location.reload()}
-        style={{
-          backgroundColor: "transparent",
-          color: "#A855F7",
-          border: "2px solid #A855F7",
-          padding: "0.75rem 2rem",
-          fontSize: "1rem",
-          fontWeight: 600,
-          letterSpacing: "0.08em",
-          cursor: "pointer",
-          borderRadius: 0,
-          textTransform: "uppercase",
-          transition: "all 0.2s",
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.backgroundColor = "#A855F7";
-          e.currentTarget.style.color = "#0A0A0A";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = "#A855F7";
-        }}
+        className="bg-transparent text-orbital-purple border-2 border-orbital-purple px-8 py-3 text-base font-semibold tracking-wider cursor-pointer uppercase transition-all duration-200 hover:bg-orbital-purple hover:text-[#0A0A0A] font-[family-name:var(--font-orbitron)]"
       >
         Tentar Novamente
       </button>
