@@ -38,391 +38,190 @@ function getRatingColor(rating: number): string {
 }
 
 export function PlayerCardExport({ steamId, displayName, stats }: PlayerCardExportProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
 
   const handleExport = useCallback(async () => {
-    if (!cardRef.current || exporting) return;
+    if (exporting) return;
     setExporting(true);
 
     try {
-      // Generate PNG at 2x resolution
-      const dataUrl = await toPng(cardRef.current, {
-        pixelRatio: 2,
-        cacheBust: true,
+      const tier = getTierBadge(stats.avgRating);
+      const rc = getRatingColor(stats.avgRating);
+      const avatarUrl = `/api/steam/avatar-image/${steamId}`;
+
+      // Pre-load avatar image
+      const avatarImg = new Image();
+      avatarImg.crossOrigin = "anonymous";
+      await new Promise<void>((resolve) => {
+        avatarImg.onload = () => resolve();
+        avatarImg.onerror = () => resolve();
+        avatarImg.src = avatarUrl;
+        setTimeout(resolve, 3000); // timeout fallback
       });
 
-      // Try Web Share API on mobile
+      // Build card DOM imperatively
+      const card = document.createElement("div");
+      card.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:900px;background:#0A0A0A;overflow:hidden;z-index:99999;background-image:linear-gradient(rgba(168,85,247,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(168,85,247,0.04) 1px,transparent 1px);background-size:40px 40px;border:1px solid rgba(168,85,247,0.25);`;
+
+      // Top accent
+      const accent = document.createElement("div");
+      accent.style.cssText = "position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#A855F7,#C084FC,transparent)";
+      card.appendChild(accent);
+
+      // Header
+      const header = document.createElement("div");
+      header.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(168,85,247,0.2);background:rgba(168,85,247,0.04)";
+      header.innerHTML = `<span style="font-family:Orbitron,monospace;font-size:11px;font-weight:800;letter-spacing:0.2em;color:#A855F7">ORBITAL ROXA</span><span style="font-family:Orbitron,monospace;font-size:8px;letter-spacing:0.25em;color:rgba(255,255,255,0.25);border:1px solid rgba(168,85,247,0.2);padding:3px 8px">PLAYER CARD</span>`;
+      card.appendChild(header);
+
+      // Avatar section
+      const avatarSection = document.createElement("div");
+      avatarSection.style.cssText = "display:flex;flex-direction:column;align-items:center;padding:32px 24px 16px";
+
+      const avatarWrap = document.createElement("div");
+      avatarWrap.style.cssText = "position:relative;width:128px;height:128px;margin-bottom:18px";
+
+      // Glow rings
+      const ring1 = document.createElement("div");
+      ring1.style.cssText = "position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 2px rgba(168,85,247,0.15),0 0 30px rgba(168,85,247,0.35)";
+      avatarWrap.appendChild(ring1);
+      const ring2 = document.createElement("div");
+      ring2.style.cssText = "position:absolute;inset:-3px;border-radius:50%;border:2px solid rgba(168,85,247,0.6)";
+      avatarWrap.appendChild(ring2);
+
+      // Avatar img
+      const avImg = document.createElement("img");
+      avImg.src = avatarImg.src;
+      avImg.width = 128;
+      avImg.height = 128;
+      avImg.style.cssText = "width:128px;height:128px;border-radius:50%;object-fit:cover;display:block;background:#1A1A1A";
+      avatarWrap.appendChild(avImg);
+      avatarSection.appendChild(avatarWrap);
+
+      // Player name
+      const nameEl = document.createElement("div");
+      nameEl.style.cssText = "font-family:Orbitron,monospace;font-size:22px;font-weight:800;color:#E2E8F0;letter-spacing:0.05em;text-align:center;text-shadow:0 0 20px rgba(168,85,247,0.25)";
+      nameEl.textContent = displayName;
+      avatarSection.appendChild(nameEl);
+
+      // Sub-label
+      const subLabel = document.createElement("div");
+      subLabel.style.cssText = "font-family:'JetBrains Mono',monospace;font-size:10px;color:#64748B;letter-spacing:0.15em;margin-top:6px;display:flex;align-items:center;gap:8px";
+      subLabel.innerHTML = '<span style="color:#A855F7">■</span> CS2 PLAYER <span style="color:#A855F7">■</span>';
+      avatarSection.appendChild(subLabel);
+      card.appendChild(avatarSection);
+
+      // Rating section
+      const ratingSection = document.createElement("div");
+      ratingSection.style.cssText = "text-align:center;padding:8px 24px 16px";
+
+      const ratingLabel = document.createElement("div");
+      ratingLabel.style.cssText = "font-family:Orbitron,monospace;font-size:9px;letter-spacing:0.3em;color:#64748B;margin-bottom:4px";
+      ratingLabel.textContent = "RATING GERAL";
+      ratingSection.appendChild(ratingLabel);
+
+      const ratingVal = document.createElement("div");
+      ratingVal.style.cssText = `font-family:Orbitron,monospace;font-size:72px;font-weight:900;color:${rc};line-height:1;letter-spacing:-0.02em;text-shadow:0 0 40px ${rc}55`;
+      ratingVal.textContent = stats.avgRating > 0 ? stats.avgRating.toFixed(2) : "—";
+      ratingSection.appendChild(ratingVal);
+
+      const tierBadge = document.createElement("div");
+      tierBadge.style.cssText = `display:inline-block;font-family:Orbitron,monospace;font-size:8px;letter-spacing:0.2em;color:${tier.color};border:1px solid ${tier.color}55;padding:3px 12px;margin-top:8px;background:${tier.bg}`;
+      tierBadge.textContent = tier.label;
+      ratingSection.appendChild(tierBadge);
+      card.appendChild(ratingSection);
+
+      // Separator
+      const sep = document.createElement("div");
+      sep.style.cssText = "display:flex;align-items:center;gap:12px;padding:0 24px 16px";
+      sep.innerHTML = '<div style="flex:1;height:1px;background:rgba(168,85,247,0.25)"></div><span style="font-family:Orbitron,monospace;font-size:8px;letter-spacing:0.3em;color:#A855F7">ESTATÍSTICAS</span><div style="flex:1;height:1px;background:rgba(168,85,247,0.25)"></div>';
+      card.appendChild(sep);
+
+      // Stats grid
+      const grid = document.createElement("div");
+      grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 40px";
+
+      const statItems = [
+        { label: "K / D", value: stats.kdr.toFixed(2), color: stats.kdr >= 1.0 ? "#22C55E" : "#EF4444" },
+        { label: "HS %", value: `${Math.round(stats.hsp)}%`, color: "#A855F7" },
+        { label: "KILLS", value: stats.kills.toLocaleString("pt-BR"), color: "#E2E8F0" },
+        { label: "DEATHS", value: stats.deaths.toLocaleString("pt-BR"), color: "#EF4444" },
+        { label: "VITÓRIAS", value: stats.wins.toString(), color: "#22C55E" },
+        { label: "ADR", value: stats.adr.toString(), color: "#F59E0B" },
+      ];
+
+      for (const s of statItems) {
+        const cell = document.createElement("div");
+        cell.style.cssText = "background:rgba(255,255,255,0.03);border:1px solid rgba(168,85,247,0.12);padding:14px 12px;text-align:center";
+        cell.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(237,237,237,0.4);letter-spacing:2px;margin-bottom:6px">${s.label}</div><div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:${s.color};line-height:1">${s.value}</div>`;
+        grid.appendChild(cell);
+      }
+      card.appendChild(grid);
+
+      // Secondary stats
+      const secondary = document.createElement("div");
+      secondary.style.cssText = "display:flex;justify-content:space-around;padding:20px 32px 0;border-top:1px solid rgba(168,85,247,0.1);margin-top:20px";
+      for (const s of [
+        { label: "ASSISTS", value: stats.assists.toLocaleString("pt-BR") },
+        { label: "MVPs", value: stats.mvp.toString() },
+        { label: "MAPAS", value: stats.total_maps.toString() },
+      ]) {
+        const el = document.createElement("div");
+        el.style.cssText = "text-align:center";
+        el.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:#E2E8F0">${s.value}</div><div style="font-family:Orbitron,monospace;font-size:7px;letter-spacing:0.2em;color:#64748B;margin-top:3px">${s.label}</div>`;
+        secondary.appendChild(el);
+      }
+      card.appendChild(secondary);
+
+      // Footer
+      const footer = document.createElement("div");
+      footer.style.cssText = "position:absolute;bottom:0;left:0;right:0;height:48px;border-top:1px solid rgba(168,85,247,0.15);display:flex;align-items:center;justify-content:center;gap:16px;background:rgba(168,85,247,0.03)";
+      footer.innerHTML = '<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:0.12em;color:rgba(168,85,247,0.5)">orbitalroxa.com.br</span>';
+      card.appendChild(footer);
+
+      // Append to body, capture, remove
+      document.body.appendChild(card);
+
+      // Wait a tick for rendering
+      await new Promise(r => setTimeout(r, 200));
+
+      const dataUrl = await toPng(card, {
+        pixelRatio: 2,
+        backgroundColor: "#0A0A0A",
+      });
+
+      document.body.removeChild(card);
+
+      // Download or share
+      const fileName = `${displayName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}_orbital_card.png`;
       if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
         try {
           const res = await fetch(dataUrl);
           const blob = await res.blob();
-          const file = new File([blob], `${displayName}-orbital-card.png`, { type: "image/png" });
-          await navigator.share({
-            title: `${displayName} - ORBITAL ROXA`,
-            files: [file],
-          });
-          setExporting(false);
+          const file = new File([blob], fileName, { type: "image/png" });
+          await navigator.share({ files: [file], title: `${displayName} - ORBITAL ROXA` });
           return;
-        } catch {
-          // Fallback to download if share fails/cancels
-        }
+        } catch { /* fall through */ }
       }
-
-      // Download fallback
       const link = document.createElement("a");
-      link.download = `${displayName}-orbital-card.png`;
+      link.download = fileName;
       link.href = dataUrl;
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
     } catch (err) {
       console.error("Player card export failed:", err);
     } finally {
       setExporting(false);
     }
-  }, [displayName, exporting]);
-
-  const tier = getTierBadge(stats.avgRating);
-  const ratingColor = getRatingColor(stats.avgRating);
-  const avatarUrl = `/api/steam/avatar-image/${steamId}`;
+  }, [displayName, exporting, stats, steamId]);
 
   return (
-    <>
-      {/* Export Button */}
-      <button
-        onClick={handleExport}
-        disabled={exporting}
-        className="inline-flex items-center gap-1.5 px-3 py-1 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <Download size={11} />
-        {exporting ? "GERANDO..." : "EXPORTAR CARD"}
-      </button>
-
-      {/* Hidden Card for Capture */}
-      <div
-        ref={cardRef}
-        style={{
-          position: "fixed",
-          left: "-9999px",
-          top: "0",
-          width: "600px",
-          height: "900px",
-          backgroundColor: "#0A0A0A",
-          fontFamily: "Arial, Helvetica, sans-serif",
-          overflow: "hidden",
-          zIndex: -1,
-        }}
-      >
-        {/* Background Pattern */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "radial-gradient(circle at 50% 0%, rgba(168,85,247,0.08) 0%, transparent 60%), " +
-              "radial-gradient(circle at 80% 100%, rgba(168,85,247,0.05) 0%, transparent 40%)",
-          }}
-        />
-
-        {/* Border Frame */}
-        <div
-          style={{
-            position: "absolute",
-            inset: "8px",
-            border: "1px solid rgba(168,85,247,0.25)",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Corner Accents */}
-        {[
-          { top: "8px", left: "8px" },
-          { top: "8px", right: "8px" },
-          { bottom: "8px", left: "8px" },
-          { bottom: "8px", right: "8px" },
-        ].map((pos, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              ...pos,
-              width: "20px",
-              height: "20px",
-              borderTop: pos.top ? "2px solid #A855F7" : "none",
-              borderBottom: pos.bottom ? "2px solid #A855F7" : "none",
-              borderLeft: pos.left === "8px" ? "2px solid #A855F7" : "none",
-              borderRight: pos.right === "8px" ? "2px solid #A855F7" : "none",
-            }}
-          />
-        ))}
-
-        {/* Header - ORBITAL ROXA */}
-        <div
-          style={{
-            position: "relative",
-            textAlign: "center",
-            paddingTop: "32px",
-            paddingBottom: "8px",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Orbitron', Arial, sans-serif",
-              fontSize: "14px",
-              fontWeight: 700,
-              letterSpacing: "6px",
-              color: "#A855F7",
-              textTransform: "uppercase",
-            }}
-          >
-            ORBITAL ROXA
-          </div>
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "9px",
-              color: "rgba(237,237,237,0.4)",
-              letterSpacing: "3px",
-              marginTop: "4px",
-            }}
-          >
-            CS2 PLAYER CARD
-          </div>
-        </div>
-
-        {/* Avatar Section */}
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            justifyContent: "center",
-            paddingTop: "20px",
-            paddingBottom: "16px",
-          }}
-        >
-          {/* Glow Rings */}
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "180px",
-              height: "180px",
-              borderRadius: "50%",
-              border: "1px solid rgba(168,85,247,0.1)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "160px",
-              height: "160px",
-              borderRadius: "50%",
-              border: "1px solid rgba(168,85,247,0.2)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "200px",
-              height: "200px",
-              borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)",
-            }}
-          />
-
-          {/* Avatar Image */}
-          <div
-            style={{
-              width: "130px",
-              height: "130px",
-              borderRadius: "50%",
-              border: "3px solid rgba(168,85,247,0.6)",
-              overflow: "hidden",
-              position: "relative",
-              boxShadow: "0 0 30px rgba(168,85,247,0.3), 0 0 60px rgba(168,85,247,0.1)",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              width={130}
-              height={130}
-              style={{
-                width: "130px",
-                height: "130px",
-                objectFit: "cover",
-                display: "block",
-              }}
-              crossOrigin="anonymous"
-            />
-          </div>
-        </div>
-
-        {/* Player Name */}
-        <div
-          style={{
-            textAlign: "center",
-            padding: "0 40px",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Orbitron', Arial, sans-serif",
-              fontSize: "26px",
-              fontWeight: 700,
-              color: "#EDEDED",
-              letterSpacing: "3px",
-              textTransform: "uppercase",
-              lineHeight: 1.2,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {displayName}
-          </div>
-        </div>
-
-        {/* Rating Section */}
-        <div
-          style={{
-            textAlign: "center",
-            paddingTop: "24px",
-            paddingBottom: "8px",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Orbitron', Arial, sans-serif",
-              fontSize: "72px",
-              fontWeight: 700,
-              color: ratingColor,
-              lineHeight: 1,
-              letterSpacing: "2px",
-              textShadow: `0 0 40px ${ratingColor}33`,
-            }}
-          >
-            {stats.avgRating.toFixed(2)}
-          </div>
-          <div
-            style={{
-              display: "inline-block",
-              marginTop: "8px",
-              padding: "4px 16px",
-              backgroundColor: tier.bg,
-              border: `1px solid ${tier.color}40`,
-              fontFamily: "'Orbitron', Arial, sans-serif",
-              fontSize: "11px",
-              fontWeight: 700,
-              color: tier.color,
-              letterSpacing: "4px",
-            }}
-          >
-            {tier.label}
-          </div>
-        </div>
-
-        {/* Separator */}
-        <div
-          style={{
-            margin: "20px 40px",
-            height: "1px",
-            background: "linear-gradient(90deg, transparent, rgba(168,85,247,0.3), transparent)",
-          }}
-        />
-
-        {/* Stats Grid - 2 columns x 3 rows */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "12px 20px",
-            padding: "0 50px",
-          }}
-        >
-          {[
-            { label: "K/D", value: stats.kdr.toFixed(2), color: stats.kdr >= 1.0 ? "#22C55E" : "#EF4444" },
-            { label: "HS%", value: `${Math.round(stats.hsp)}%`, color: stats.hsp >= 50 ? "#22C55E" : "#EDEDED" },
-            { label: "KILLS", value: stats.kills.toLocaleString(), color: "#EDEDED" },
-            { label: "DEATHS", value: stats.deaths.toLocaleString(), color: "#EDEDED" },
-            { label: "WINS", value: stats.wins.toString(), color: "#22C55E" },
-            { label: "ADR", value: stats.adr.toString(), color: stats.adr >= 80 ? "#22C55E" : "#EDEDED" },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              style={{
-                backgroundColor: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(168,85,247,0.12)",
-                padding: "14px 16px",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "9px",
-                  color: "rgba(237,237,237,0.4)",
-                  letterSpacing: "2px",
-                  marginBottom: "6px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {stat.label}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "22px",
-                  fontWeight: 700,
-                  color: stat.color,
-                  lineHeight: 1,
-                }}
-              >
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              margin: "0 40px 12px",
-              height: "1px",
-              background: "linear-gradient(90deg, transparent, rgba(168,85,247,0.2), transparent)",
-            }}
-          />
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "10px",
-              color: "rgba(168,85,247,0.5)",
-              letterSpacing: "3px",
-            }}
-          >
-            orbitalroxa.com.br
-          </div>
-        </div>
-      </div>
-    </>
+    <button
+      onClick={handleExport}
+      disabled={exporting}
+      className="inline-flex items-center gap-1.5 px-3 py-1 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <Download size={11} />
+      {exporting ? "GERANDO..." : "EXPORTAR CARD"}
+    </button>
   );
 }
