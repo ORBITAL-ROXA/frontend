@@ -14,6 +14,8 @@ const G5API_URL =
   "https://g5api-production-998f.up.railway.app";
 
 const nextConfig: NextConfig = {
+  // Required: next-pwa adds webpack config, Turbopack needs this to coexist
+  turbopack: {},
   async headers() {
     return [
       {
