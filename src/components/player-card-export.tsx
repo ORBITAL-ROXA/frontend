@@ -204,7 +204,7 @@ async function generateCard(
 
   // ── Player name ──
   let nameY = avatarY + avatarSize + 30;
-  ctx.font = "800 24px Orbitron, monospace";
+  ctx.font = "700 18px Orbitron, monospace";
   ctx.fillStyle = textMain;
   ctx.textAlign = "center";
   ctx.shadowColor = "rgba(168,85,247,0.25)";
@@ -223,15 +223,15 @@ async function generateCard(
   ctx.fillStyle = textDim;
   drawSpacedText(ctx, "RATING GERAL", W / 2, ratingY, 3);
 
-  ctx.font = "900 42px Orbitron, monospace";
+  ctx.font = "700 28px Orbitron, monospace";
   ctx.fillStyle = rc;
   ctx.shadowColor = rc + "55";
-  ctx.shadowBlur = 25;
-  ctx.fillText(stats.avgRating > 0 ? stats.avgRating.toFixed(2) : "—", W / 2, ratingY + 40);
+  ctx.shadowBlur = 15;
+  ctx.fillText(stats.avgRating > 0 ? stats.avgRating.toFixed(2) : "—", W / 2, ratingY + 30);
   ctx.shadowBlur = 0;
 
   // Tier badge
-  const tierY = ratingY + 60;
+  const tierY = ratingY + 48;
   const tierText = tier.label;
   ctx.font = "700 9px Orbitron, monospace";
   // Measure with spacing
@@ -303,9 +303,9 @@ async function generateCard(
     drawSpacedText(ctx, s.label, x + cellW / 2, y + 22, 2);
 
     // Value
-    ctx.font = "700 26px 'JetBrains Mono', monospace";
+    ctx.font = "700 18px 'JetBrains Mono', monospace";
     ctx.fillStyle = s.color;
-    ctx.fillText(s.value, x + cellW / 2, y + 52);
+    ctx.fillText(s.value, x + cellW / 2, y + 48);
   }
 
   // ── Secondary stats ──
