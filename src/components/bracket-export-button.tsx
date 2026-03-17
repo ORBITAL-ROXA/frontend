@@ -16,91 +16,77 @@ export function BracketExportButton({ bracketRef, tournamentName }: BracketExpor
     if (!bracketRef.current || loading) return;
     setLoading(true);
 
+    const el = bracketRef.current;
+
+    // Salvar estado original
+    const originalOverflow = el.style.overflow;
+    const originalOverflowX = el.style.overflowX;
+    const originalPadding = el.style.padding;
+    const originalBg = el.style.background;
+
     try {
-      // Create off-screen wrapper
-      const wrapper = document.createElement("div");
-      wrapper.style.position = "absolute";
-      wrapper.style.left = "-99999px";
-      wrapper.style.top = "0";
-      wrapper.style.background = "#0A0A0A";
-      wrapper.style.padding = "32px";
-      wrapper.style.width = "fit-content";
+      // Temporariamente ajustar o elemento para captura
+      el.style.overflow = "visible";
+      el.style.overflowX = "visible";
+      el.style.background = "#0A0A0A";
+      el.style.padding = "16px";
 
-      // Header
-      const header = document.createElement("div");
-      header.style.display = "flex";
-      header.style.justifyContent = "space-between";
-      header.style.alignItems = "center";
-      header.style.marginBottom = "24px";
-      header.style.paddingBottom = "16px";
-      header.style.borderBottom = "1px solid rgba(168,85,247,0.3)";
-
-      const title = document.createElement("div");
-      title.style.fontFamily = "Orbitron, sans-serif";
-      title.style.fontSize = "18px";
-      title.style.fontWeight = "800";
-      title.style.letterSpacing = "0.1em";
-      title.style.color = "#A855F7";
-      title.textContent = tournamentName;
-
-      const brand = document.createElement("div");
-      brand.style.fontFamily = "Orbitron, sans-serif";
-      brand.style.fontSize = "12px";
-      brand.style.letterSpacing = "0.15em";
-      brand.style.color = "rgba(255,255,255,0.4)";
-      brand.textContent = "ORBITAL ROXA";
-
-      header.appendChild(title);
-      header.appendChild(brand);
-      wrapper.appendChild(header);
-
-      // Clone bracket content
-      const clone = bracketRef.current.cloneNode(true) as HTMLElement;
-
-      // Fix overflow:auto -> visible in clone so full bracket is captured
-      const fixOverflow = (el: HTMLElement) => {
-        if (el.style) {
-          const computed = window.getComputedStyle(el);
-          if (computed.overflow === "auto" || computed.overflow === "scroll" ||
-              computed.overflowX === "auto" || computed.overflowX === "scroll" ||
-              computed.overflowY === "auto" || computed.overflowY === "scroll") {
-            el.style.overflow = "visible";
-            el.style.overflowX = "visible";
-            el.style.overflowY = "visible";
-          }
+      // Também corrigir overflow em filhos
+      const overflowChildren: { el: HTMLElement; overflow: string; overflowX: string }[] = [];
+      el.querySelectorAll("*").forEach((child) => {
+        const htmlChild = child as HTMLElement;
+        const cs = getComputedStyle(htmlChild);
+        if (cs.overflowX === "auto" || cs.overflowX === "scroll" ||
+            cs.overflow === "auto" || cs.overflow === "scroll") {
+          overflowChildren.push({
+            el: htmlChild,
+            overflow: htmlChild.style.overflow,
+            overflowX: htmlChild.style.overflowX,
+          });
+          htmlChild.style.overflow = "visible";
+          htmlChild.style.overflowX = "visible";
         }
-        for (let i = 0; i < el.children.length; i++) {
-          fixOverflow(el.children[i] as HTMLElement);
-        }
-      };
-      fixOverflow(clone);
-      clone.style.overflow = "visible";
-      wrapper.appendChild(clone);
-
-      // Footer
-      const footer = document.createElement("div");
-      footer.style.marginTop = "24px";
-      footer.style.paddingTop = "16px";
-      footer.style.borderTop = "1px solid rgba(168,85,247,0.2)";
-      footer.style.textAlign = "center";
-      footer.style.fontFamily = "JetBrains Mono, monospace";
-      footer.style.fontSize = "11px";
-      footer.style.letterSpacing = "0.1em";
-      footer.style.color = "rgba(255,255,255,0.3)";
-      footer.textContent = "orbitalroxa.com.br";
-      wrapper.appendChild(footer);
-
-      document.body.appendChild(wrapper);
-
-      // Generate image
-      const dataUrl = await toPng(wrapper, {
-        pixelRatio: 2,
-        backgroundColor: "#0A0A0A",
       });
 
-      document.body.removeChild(wrapper);
+      // Adicionar header temporário
+      const header = document.createElement("div");
+      header.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(168,85,247,0.3)";
+      header.innerHTML = `
+        <span style="font-family:Orbitron,monospace;font-size:16px;font-weight:800;letter-spacing:0.1em;color:#A855F7;text-transform:uppercase">${tournamentName}</span>
+        <span style="font-family:Orbitron,monospace;font-size:11px;letter-spacing:0.15em;color:rgba(255,255,255,0.4)">ORBITAL ROXA</span>
+      `;
+      el.insertBefore(header, el.firstChild);
 
-      // Try Web Share API (mobile), fallback to download
+      // Adicionar footer temporário
+      const footer = document.createElement("div");
+      footer.style.cssText = "margin-top:20px;padding-top:12px;border-top:1px solid rgba(168,85,247,0.2);text-align:center;font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:0.1em;color:rgba(255,255,255,0.3)";
+      footer.textContent = "orbitalroxa.com.br";
+      el.appendChild(footer);
+
+      // Capturar
+      const dataUrl = await toPng(el, {
+        pixelRatio: 2,
+        backgroundColor: "#0A0A0A",
+        style: {
+          overflow: "visible",
+        },
+      });
+
+      // Remover header/footer temporários
+      el.removeChild(header);
+      el.removeChild(footer);
+
+      // Restaurar estado original
+      el.style.overflow = originalOverflow;
+      el.style.overflowX = originalOverflowX;
+      el.style.padding = originalPadding;
+      el.style.background = originalBg;
+      overflowChildren.forEach(({ el: child, overflow, overflowX }) => {
+        child.style.overflow = overflow;
+        child.style.overflowX = overflowX;
+      });
+
+      // Download ou Share
       const fileName = `${tournamentName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}_bracket.png`;
 
       if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
@@ -110,7 +96,6 @@ export function BracketExportButton({ bracketRef, tournamentName }: BracketExpor
           const file = new File([blob], fileName, { type: "image/png" });
           await navigator.share({ files: [file], title: `${tournamentName} - Bracket` });
         } catch {
-          // Share cancelled or failed, fallback to download
           downloadImage(dataUrl, fileName);
         }
       } else {
@@ -118,6 +103,11 @@ export function BracketExportButton({ bracketRef, tournamentName }: BracketExpor
       }
     } catch (err) {
       console.error("Erro ao exportar bracket:", err);
+      // Restaurar em caso de erro
+      el.style.overflow = originalOverflow;
+      el.style.overflowX = originalOverflowX;
+      el.style.padding = originalPadding;
+      el.style.background = originalBg;
     } finally {
       setLoading(false);
     }
