@@ -14,7 +14,7 @@ import {
 } from "@/lib/api";
 import {
   Tournament, BracketMatch, advanceBracket, getTeamName, getNextPlayableMatch,
-  getVetoSequence, getVetoTeamOrder, VetoAction,
+  getVetoSequence, getVetoTeamOrder, VetoAction, getSwissStandings,
 } from "@/lib/tournament";
 import { autoAdvanceTournament } from "@/lib/tournament-utils";
 
@@ -1098,8 +1098,63 @@ function QueueTab({
   );
   const finished = tournament.matches.filter(m => m.status === "finished");
 
+  // Swiss standings
+  const isSwiss = tournament.format === "swiss";
+  const standings = isSwiss ? getSwissStandings(tournament) : [];
+  const currentRound = tournament.swiss_round || 1;
+
   return (
     <div className="space-y-5">
+      {/* Swiss Standings */}
+      {isSwiss && standings.length > 0 && (
+        <div>
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple mb-2">
+            CLASSIFICAÇÃO — ROUND {currentRound}
+          </div>
+          <div className="border border-orbital-border overflow-hidden">
+            <table className="w-full text-[0.6rem] font-[family-name:var(--font-jetbrains)]">
+              <thead>
+                <tr className="text-orbital-text-dim/50 border-b border-orbital-border bg-[#080808]">
+                  <th className="text-left py-1.5 px-2">#</th>
+                  <th className="text-left py-1.5 px-2">Time</th>
+                  <th className="text-center py-1.5 px-1">W</th>
+                  <th className="text-center py-1.5 px-1">L</th>
+                  <th className="text-center py-1.5 px-1">Buch.</th>
+                  <th className="text-center py-1.5 px-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {standings.map((s, i) => (
+                  <tr
+                    key={s.team_id}
+                    className={`border-b border-orbital-border/30 ${
+                      s.status === "advanced" ? "bg-green-500/5" :
+                      s.status === "eliminated" ? "bg-red-500/5 opacity-50" :
+                      ""
+                    }`}
+                  >
+                    <td className="py-1.5 px-2 text-orbital-text-dim">{i + 1}</td>
+                    <td className="py-1.5 px-2 text-orbital-text">{s.name}</td>
+                    <td className="text-center py-1.5 px-1 text-green-400">{s.wins}</td>
+                    <td className="text-center py-1.5 px-1 text-red-400/70">{s.losses}</td>
+                    <td className="text-center py-1.5 px-1 text-orbital-text-dim">{s.buchholz}</td>
+                    <td className="text-center py-1.5 px-2">
+                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.4rem] tracking-wider px-1.5 py-0.5 border ${
+                        s.status === "advanced" ? "text-green-400 border-green-400/20" :
+                        s.status === "eliminated" ? "text-red-400/50 border-red-400/10" :
+                        "text-orbital-text-dim border-orbital-border"
+                      }`}>
+                        {s.status === "advanced" ? "3-" + s.losses : s.status === "eliminated" ? s.wins + "-3" : s.wins + "-" + s.losses}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Live */}
       {live.length > 0 && (
         <div>
@@ -1117,24 +1172,26 @@ function QueueTab({
       {pendingReady.length > 0 && (
         <div>
           <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple mb-2">
-            PRONTAS PARA JOGAR ({pendingReady.length})
+            {isSwiss ? `ROUND ${currentRound} — PARTIDAS` : "PRONTAS PARA JOGAR"} ({pendingReady.length})
           </div>
           {pendingReady.map(m => (
             <div key={m.id} className="mb-2">
               <QueueItem match={m} tournament={tournament} />
-              <button
-                onClick={() => onStartVeto(m)}
-                className="w-full mt-1 flex items-center justify-center gap-1 px-3 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-wider text-orbital-purple"
-              >
-                <Swords size={10} /> INICIAR VETO
-              </button>
+              {tournament.mode === "presencial" && (
+                <button
+                  onClick={() => onStartVeto(m)}
+                  className="w-full mt-1 flex items-center justify-center gap-1 px-3 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-wider text-orbital-purple"
+                >
+                  <Swords size={10} /> INICIAR VETO
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
 
       {/* Waiting for teams */}
-      {waitingTeams.length > 0 && (
+      {waitingTeams.length > 0 && !isSwiss && (
         <div>
           <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim mb-2">
             AGUARDANDO ({waitingTeams.length})

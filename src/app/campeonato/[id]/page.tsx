@@ -27,6 +27,7 @@ import {
   getVetoSequence,
   getVetoTeamOrder,
   VetoAction,
+  getSwissStandings,
 } from "@/lib/tournament";
 import { autoAdvanceTournament } from "@/lib/tournament-utils";
 
@@ -757,20 +758,24 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                     );
                   })()}
 
-                  {/* Bracket */}
-                  <HudCard className="p-5 overflow-hidden" label="BRACKET">
-                    <div ref={bracketRef}>
-                      <FullBracket
-                        tournament={tournament}
-                        teamsMap={teamsMap}
-                        mapScoresMap={mapScoresMap}
-                        admin={adminActions}
-                      />
-                    </div>
-                    <div className="text-center mt-4">
-                      <BracketExportButton bracketRef={bracketRef} tournamentName={tournament.name} />
-                    </div>
-                  </HudCard>
+                  {/* Bracket or Swiss Standings */}
+                  {tournament.format === "swiss" ? (
+                    <SwissStandingsView tournament={tournament} teamsMap={teamsMap} mapScoresMap={mapScoresMap} />
+                  ) : (
+                    <HudCard className="p-5 overflow-hidden" label="BRACKET">
+                      <div ref={bracketRef}>
+                        <FullBracket
+                          tournament={tournament}
+                          teamsMap={teamsMap}
+                          mapScoresMap={mapScoresMap}
+                          admin={adminActions}
+                        />
+                      </div>
+                      <div className="text-center mt-4">
+                        <BracketExportButton bracketRef={bracketRef} tournamentName={tournament.name} />
+                      </div>
+                    </HudCard>
+                  )}
 
                   {/* Teams Grid */}
                   <HudCard className="p-5" label="TIMES PARTICIPANTES">
@@ -1610,5 +1615,199 @@ function VetoModal({
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+// ═══ SWISS STANDINGS VIEW ═══
+function SwissStandingsView({
+  tournament,
+  teamsMap,
+  mapScoresMap: _mapScoresMap,
+}: {
+  tournament: Tournament;
+  teamsMap: TeamsMap;
+  mapScoresMap: MapScoresMap;
+}) {
+  const standings = getSwissStandings(tournament);
+  const currentRound = tournament.swiss_round || 1;
+  const totalRounds = Math.max(currentRound, ...tournament.matches.map((m) => m.round));
+
+  return (
+    <div className="space-y-5">
+      {/* Standings Table */}
+      <HudCard className="p-5" label="CLASSIFICAÇÃO SWISS">
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full font-[family-name:var(--font-jetbrains)] text-xs">
+            <thead>
+              <tr className="text-orbital-text-dim/50 border-b border-orbital-border text-[0.55rem]">
+                <th className="text-left py-2 px-2">#</th>
+                <th className="text-left py-2 px-2">Time</th>
+                <th className="text-center py-2 px-2">Record</th>
+                <th className="text-center py-2 px-2">Buchholz</th>
+                <th className="text-center py-2 px-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {standings.map((s, i) => {
+                const logo = teamsMap[s.team_id]?.logo;
+                return (
+                  <tr
+                    key={s.team_id}
+                    className={`border-b border-orbital-border/30 transition-colors ${
+                      s.status === "advanced"
+                        ? "bg-green-500/5"
+                        : s.status === "eliminated"
+                        ? "bg-red-500/5 opacity-40"
+                        : "hover:bg-white/[0.02]"
+                    }`}
+                  >
+                    <td className="py-2.5 px-2 text-orbital-text-dim">{i + 1}</td>
+                    <td className="py-2.5 px-2">
+                      <Link href={`/times/${s.team_id}`} className="flex items-center gap-2 hover:text-orbital-purple transition-colors">
+                        {logo ? (
+                          <Image src={logo} alt={s.name} width={20} height={20} className="object-contain" unoptimized />
+                        ) : (
+                          <Shield size={14} className="text-orbital-text-dim/30" />
+                        )}
+                        <span className="text-orbital-text">{s.name}</span>
+                        {s.tag && <span className="text-orbital-text-dim/40">[{s.tag}]</span>}
+                      </Link>
+                    </td>
+                    <td className="text-center py-2.5 px-2">
+                      <span className="font-[family-name:var(--font-orbitron)] text-xs">
+                        <span className="text-green-400">{s.wins}</span>
+                        <span className="text-orbital-text-dim/30">-</span>
+                        <span className="text-red-400/70">{s.losses}</span>
+                      </span>
+                    </td>
+                    <td className="text-center py-2.5 px-2 text-orbital-text-dim">{s.buchholz}</td>
+                    <td className="text-center py-2.5 px-2">
+                      <span
+                        className={`font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-wider px-2 py-0.5 border ${
+                          s.status === "advanced"
+                            ? "text-green-400 border-green-400/30 bg-green-400/5"
+                            : s.status === "eliminated"
+                            ? "text-red-400/60 border-red-400/20"
+                            : "text-orbital-text-dim border-orbital-border"
+                        }`}
+                      >
+                        {s.status === "advanced"
+                          ? "AVANÇOU"
+                          : s.status === "eliminated"
+                          ? "ELIMINADO"
+                          : "ATIVO"}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </HudCard>
+
+      {/* Matches by Round */}
+      {Array.from({ length: totalRounds }, (_, i) => i + 1).map((round) => {
+        const roundMatches = tournament.matches.filter(
+          (m) => m.bracket === "swiss" && m.round === round
+        );
+        if (roundMatches.length === 0) return null;
+
+        const allDone = roundMatches.every((m) => m.status === "finished");
+        const hasLive = roundMatches.some((m) => m.status === "live");
+
+        return (
+          <HudCard key={round} className="p-4" label={`ROUND ${round}`}>
+            <div className="flex items-center gap-2 mb-3">
+              {hasLive && (
+                <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-wider text-red-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  AO VIVO
+                </span>
+              )}
+              {allDone && (
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-wider text-green-400/50">
+                  CONCLUÍDO
+                </span>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              {roundMatches.map((m) => {
+                const t1 = getTeamName(tournament, m.team1_id);
+                const t2 = getTeamName(tournament, m.team2_id);
+                const t1Logo = m.team1_id ? teamsMap[m.team1_id]?.logo : null;
+                const t2Logo = m.team2_id ? teamsMap[m.team2_id]?.logo : null;
+                const isLive = m.status === "live";
+                const isDone = m.status === "finished";
+
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex items-center gap-3 px-3 py-2.5 border ${
+                      isLive
+                        ? "border-red-500/30 bg-red-500/5"
+                        : isDone
+                        ? "border-orbital-border/30 bg-orbital-card"
+                        : "border-orbital-border bg-orbital-card"
+                    }`}
+                  >
+                    {/* Team 1 */}
+                    <div className="flex-1 flex items-center gap-2 min-w-0 justify-end">
+                      <span
+                        className={`font-[family-name:var(--font-jetbrains)] text-xs truncate ${
+                          isDone && m.winner_id === m.team1_id ? "text-green-400" : "text-orbital-text"
+                        }`}
+                      >
+                        {t1}
+                      </span>
+                      {t1Logo ? (
+                        <Image src={t1Logo} alt="" width={18} height={18} className="object-contain shrink-0" unoptimized />
+                      ) : (
+                        <Shield size={12} className="text-orbital-text-dim/30 shrink-0" />
+                      )}
+                    </div>
+
+                    {/* Score / VS */}
+                    <div className="font-[family-name:var(--font-orbitron)] text-xs text-orbital-text-dim shrink-0 w-12 text-center">
+                      {isDone ? (
+                        <span>
+                          <span className={m.winner_id === m.team1_id ? "text-green-400" : ""}>{/* map score if available */}</span>
+                          <span className="text-orbital-text-dim/40">VS</span>
+                        </span>
+                      ) : isLive ? (
+                        <span className="text-red-400 text-[0.5rem]">LIVE</span>
+                      ) : (
+                        <span className="text-orbital-text-dim/30 text-[0.5rem]">VS</span>
+                      )}
+                    </div>
+
+                    {/* Team 2 */}
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      {t2Logo ? (
+                        <Image src={t2Logo} alt="" width={18} height={18} className="object-contain shrink-0" unoptimized />
+                      ) : (
+                        <Shield size={12} className="text-orbital-text-dim/30 shrink-0" />
+                      )}
+                      <span
+                        className={`font-[family-name:var(--font-jetbrains)] text-xs truncate ${
+                          isDone && m.winner_id === m.team2_id ? "text-green-400" : "text-orbital-text"
+                        }`}
+                      >
+                        {t2}
+                      </span>
+                    </div>
+
+                    {/* BO indicator */}
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] text-orbital-text-dim/30 shrink-0">
+                      {m.num_maps > 1 ? "BO3" : "BO1"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </HudCard>
+        );
+      })}
+    </div>
   );
 }

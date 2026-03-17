@@ -10,6 +10,7 @@ import {
   Tournament,
   TournamentTeam,
   generateDoubleEliminationBracket,
+  generateSwissInitialRound,
   getDefaultMapPool,
 } from "@/lib/tournament";
 
@@ -31,6 +32,7 @@ export default function AdminCampeonatos() {
   const [description, setDescription] = useState("");
   const [spectatorAuth, setSpectatorAuth] = useState("76561198806637089;ORBITAL ROXA");
   const [mode, setMode] = useState<"presencial" | "online">("presencial");
+  const [format, setFormat] = useState<"double_elimination" | "swiss">("double_elimination");
   const [faceitChampionshipId, setFaceitChampionshipId] = useState("");
   const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
   const [mapPool, setMapPool] = useState<string[]>(getDefaultMapPool());
@@ -55,7 +57,7 @@ export default function AdminCampeonatos() {
 
   const toggleTeam = (teamId: number) => {
     setSelectedTeams(prev =>
-      prev.includes(teamId) ? prev.filter(id => id !== teamId) : prev.length < 8 ? [...prev, teamId] : prev
+      prev.includes(teamId) ? prev.filter(id => id !== teamId) : prev.length < requiredTeams.max ? [...prev, teamId] : prev
     );
   };
 
@@ -65,9 +67,13 @@ export default function AdminCampeonatos() {
     );
   };
 
+  const requiredTeams = format === "swiss" ? { min: 8, max: 16 } : { min: 8, max: 8 };
+
   const canAdvance = (step: number) => {
     if (step === 0) return name.trim().length > 0;
-    if (step === 1) return selectedTeams.length === 8;
+    if (step === 1) {
+      return selectedTeams.length >= requiredTeams.min && selectedTeams.length <= requiredTeams.max && selectedTeams.length % 2 === 0;
+    }
     if (step === 2) return mapPool.length >= 7;
     return true;
   };
@@ -83,14 +89,25 @@ export default function AdminCampeonatos() {
         return { id: team.id, name: team.name, tag: team.tag || "", seed: i + 1 };
       });
 
-      const matches = generateDoubleEliminationBracket(tournamentTeams);
+      const actualFormat = mode === "presencial" ? "double_elimination" as const : format;
+
+      let matches: ReturnType<typeof generateDoubleEliminationBracket>;
+      let swissRecords: Tournament["swiss_records"] = undefined;
+
+      if (actualFormat === "swiss") {
+        const swiss = generateSwissInitialRound(tournamentTeams);
+        matches = swiss.matches;
+        swissRecords = swiss.records;
+      } else {
+        matches = generateDoubleEliminationBracket(tournamentTeams);
+      }
 
       const tournament: Tournament = {
         id: `t-${Date.now()}`,
         name: name.trim(),
         season_id: seasonId ? parseInt(seasonId) : null,
         server_id: null,
-        format: "double_elimination",
+        format: actualFormat,
         mode,
         faceit_championship_id: mode === "online" ? (faceitChampionshipId.trim() || null) : null,
         teams: tournamentTeams,
@@ -100,6 +117,7 @@ export default function AdminCampeonatos() {
         created_at: new Date().toISOString(),
         status: "pending",
         current_match_id: null,
+        ...(swissRecords ? { swiss_records: swissRecords, swiss_round: 1, swiss_advance_wins: 3, swiss_eliminate_losses: 3 } : {}),
         start_date: startDate || null,
         end_date: endDate || null,
         location: mode === "presencial" ? (location || null) : null,
@@ -125,6 +143,7 @@ export default function AdminCampeonatos() {
       setPrizePool("");
       setDescription("");
       setMode("presencial");
+      setFormat("double_elimination");
       setFaceitChampionshipId("");
       await fetchData();
       setTimeout(() => { setShowCreate(false); setWizardStep(0); }, 1500);
@@ -271,6 +290,39 @@ export default function AdminCampeonatos() {
                       />
                     </div>
 
+                    {/* Format selector (only online) */}
+                    {mode === "online" && (
+                      <div>
+                        <label className={labelClass}>FORMATO</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => { setFormat("double_elimination"); setSelectedTeams(st => st.slice(0, 8)); }}
+                            className={`px-4 py-3 border transition-all text-left ${
+                              format === "double_elimination"
+                                ? "bg-[#FF5500]/15 border-[#FF5500]/50 text-[#FF5500]"
+                                : "bg-[#0A0A0A] border-orbital-border text-orbital-text-dim hover:border-[#FF5500]/30"
+                            }`}
+                          >
+                            <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider">DOUBLE ELIMINATION</div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] opacity-60 mt-0.5">8 times — Winner + Lower bracket</div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormat("swiss")}
+                            className={`px-4 py-3 border transition-all text-left ${
+                              format === "swiss"
+                                ? "bg-[#FF5500]/15 border-[#FF5500]/50 text-[#FF5500]"
+                                : "bg-[#0A0A0A] border-orbital-border text-orbital-text-dim hover:border-[#FF5500]/30"
+                            }`}
+                          >
+                            <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider">SWISS</div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.45rem] opacity-60 mt-0.5">8-16 times — Formato Major CS2</div>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Faceit Championship ID (only online) */}
                     {mode === "online" && (
                       <div>
@@ -329,10 +381,21 @@ export default function AdminCampeonatos() {
                         {mode === "online" ? "FORMATO ONLINE" : "FORMATO"}
                       </div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim space-y-1">
-                        <p>Eliminação dupla (Winner + Lower bracket)</p>
-                        <p>8 times — Perdeu 2 = eliminado</p>
-                        <p>Todas as partidas BO1, Grand Final BO3</p>
-                        <p>13 partidas no total</p>
+                        {format === "swiss" && mode === "online" ? (
+                          <>
+                            <p>Swiss System (formato Major CS2)</p>
+                            <p>8-16 times — 3 vitórias = avança, 3 derrotas = eliminado</p>
+                            <p>5 rounds — Times com mesmo record se enfrentam</p>
+                            <p>Partidas decisivas (2-2) são BO3</p>
+                          </>
+                        ) : (
+                          <>
+                            <p>Eliminação dupla (Winner + Lower bracket)</p>
+                            <p>8 times — Perdeu 2 = eliminado</p>
+                            <p>Todas as partidas BO1, Grand Final BO3</p>
+                            <p>13 partidas no total</p>
+                          </>
+                        )}
                         {mode === "online" && (
                           <>
                             <p className="text-[#FF5500]/70 mt-2">Partidas rodam na Faceit (anti-cheat ativo)</p>
@@ -350,10 +413,12 @@ export default function AdminCampeonatos() {
                   <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                     <div>
                       <label className={labelClass}>
-                        SELECIONAR 8 TIMES <span className="text-orbital-purple">({selectedTeams.length}/8)</span>
+                        SELECIONAR TIMES <span className="text-orbital-purple">({selectedTeams.length}/{format === "swiss" ? `${requiredTeams.min}-${requiredTeams.max}` : requiredTeams.min})</span>
                       </label>
                       <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 mb-3">
-                        Selecione os 8 times participantes.
+                        {format === "swiss"
+                          ? `Selecione entre ${requiredTeams.min} e ${requiredTeams.max} times (número par).`
+                          : "Selecione os 8 times participantes."}
                       </p>
 
                       {/* Selected teams with seed order */}
@@ -386,7 +451,7 @@ export default function AdminCampeonatos() {
                             key={team.id}
                             type="button"
                             onClick={() => toggleTeam(team.id)}
-                            disabled={selectedTeams.length >= 8}
+                            disabled={selectedTeams.length >= requiredTeams.max}
                             className="flex items-center gap-3 p-3 border text-left transition-all bg-[#0A0A0A] border-orbital-border hover:border-orbital-purple/30 disabled:opacity-30 disabled:cursor-not-allowed"
                           >
                             <Users size={14} className="text-orbital-text-dim" />
@@ -454,8 +519,8 @@ export default function AdminCampeonatos() {
                             {mode === "online" ? "ONLINE (Faceit)" : "PRESENCIAL (LAN)"}
                           </span>
                         </p>
-                        <p><span className="text-orbital-text">Formato:</span> Eliminação Dupla — 8 times</p>
-                        <p><span className="text-orbital-text">Partidas:</span> 12x BO1 + 1x BO3 (Grand Final)</p>
+                        <p><span className="text-orbital-text">Formato:</span> {format === "swiss" ? `Swiss System — ${selectedTeams.length} times` : "Eliminação Dupla — 8 times"}</p>
+                        <p><span className="text-orbital-text">Partidas:</span> {format === "swiss" ? `~${Math.ceil(selectedTeams.length / 2) * 5} partidas (5 rounds)` : "12x BO1 + 1x BO3 (Grand Final)"}</p>
                         <p><span className="text-orbital-text">Map Pool:</span> {mapPool.map(m => m.replace("de_", "")).join(", ")}</p>
                         {startDate && <p><span className="text-orbital-text">Período:</span> {startDate}{endDate ? ` — ${endDate}` : ""}</p>}
                         {mode === "presencial" && location && <p><span className="text-orbital-text">Local:</span> {location}</p>}
