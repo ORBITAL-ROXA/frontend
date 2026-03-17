@@ -29,6 +29,7 @@ export default function AdminCampeonatos() {
   const [location, setLocation] = useState("");
   const [prizePool, setPrizePool] = useState("");
   const [description, setDescription] = useState("");
+  const [spectatorAuth, setSpectatorAuth] = useState("76561198806637089;ORBITAL ROXA");
   const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
   const [mapPool, setMapPool] = useState<string[]>(getDefaultMapPool());
   const [submitting, setSubmitting] = useState(false);
@@ -100,6 +101,7 @@ export default function AdminCampeonatos() {
         location: location || null,
         prize_pool: prizePool || null,
         description: description || null,
+        spectator_auth: spectatorAuth || null,
       };
 
       await fetch("/api/tournaments", {
@@ -255,6 +257,11 @@ export default function AdminCampeonatos() {
                     <div>
                       <label className={labelClass}>DESCRIÇÃO (opcional)</label>
                       <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição breve do campeonato..." rows={2} className={`${inputClass} placeholder:text-orbital-text-dim/30 resize-none`} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>SPECTATOR AUTH (SteamID64;Nome)</label>
+                      <input type="text" value={spectatorAuth} onChange={e => setSpectatorAuth(e.target.value)} placeholder="76561198806637089;ORBITAL ROXA" className={`${inputClass} placeholder:text-orbital-text-dim/30`} />
+                      <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50 mt-1">SteamID64 da conta que fará a transmissão ao vivo</p>
                     </div>
                     <div className="bg-[#0A0A0A] border border-orbital-border p-4">
                       <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple mb-2">FORMATO</div>

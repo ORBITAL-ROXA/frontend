@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import mysql from "mysql2/promise";
-
-const DATABASE_URL = process.env.DATABASE_URL || "";
+import { dbPool } from "@/lib/tournaments-db";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -11,9 +9,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "teamId é obrigatório" }, { status: 400 });
     }
 
-    const connection = await mysql.createConnection(DATABASE_URL);
-    await connection.execute("UPDATE team SET logo = ? WHERE id = ?", [logoUrl || null, teamId]);
-    await connection.end();
+    await dbPool.execute("UPDATE team SET logo = ? WHERE id = ?", [logoUrl || null, teamId]);
 
     return NextResponse.json({ success: true });
   } catch (err) {

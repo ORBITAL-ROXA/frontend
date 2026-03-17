@@ -39,7 +39,7 @@ export default function AdminDashboard() {
           fetch("/api/teams", { credentials: "include" }).then(r => r.json()).catch(() => ({ teams: [] })),
           fetch("/api/servers", { credentials: "include" }).then(r => r.json()).catch(() => ({ servers: [] })),
           fetch("/api/seasons", { credentials: "include" }).then(r => r.json()).catch(() => ({ seasons: [] })),
-          fetch("/api/leaderboard", { credentials: "include" }).then(r => r.json()).catch(() => ({ leaderboard: [] })),
+          fetch("/api/leaderboard/players", { credentials: "include" }).then(r => r.json()).catch(() => ({ leaderboard: [] })),
           fetch("/api/tournaments").then(r => r.json()).catch(() => ({ tournaments: [] })),
         ]);
         const allTournaments: Tournament[] = tournamentsRes.tournaments || [];

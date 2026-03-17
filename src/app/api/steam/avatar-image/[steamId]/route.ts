@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const STEAM_API_KEY = process.env.STEAM_API_KEY || "B7120E9E2297DA4659901D845619D598";
+const STEAM_API_KEY = process.env.STEAM_API_KEY;
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ steamId: string }> }
 ) {
   const { steamId } = await params;
+
+  if (!STEAM_API_KEY) {
+    return new NextResponse(null, { status: 500 });
+  }
 
   try {
     // Step 1: Get the avatarfull URL from Steam Web API

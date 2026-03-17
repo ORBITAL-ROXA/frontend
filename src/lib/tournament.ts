@@ -52,6 +52,7 @@ export interface Tournament {
   location?: string | null;
   prize_pool?: string | null;
   description?: string | null;
+  spectator_auth?: string | null; // SteamID64;Label for spectator (e.g. "76561198806637089;ORBITAL ROXA")
 }
 
 const CS2_MAPS = [

@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import mysql from "mysql2/promise";
 import { Tournament } from "@/lib/tournament";
-
-const DATABASE_URL = process.env.DATABASE_URL || "";
-
-const pool = mysql.createPool(DATABASE_URL);
+import { dbPool as pool } from "@/lib/tournaments-db";
 
 // Ensure tournaments table exists (run once)
 let tableEnsured = false;
