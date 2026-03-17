@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback, use } from "react";
+import { useEffect, useState, useCallback, use, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Swords, X, Check, ArrowLeft, Loader2, Play, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HudCard } from "@/components/hud-card";
 import { FullBracket } from "@/components/bracket";
+import { BracketExportButton } from "@/components/bracket-export-button";
 import { useAuth } from "@/lib/auth-context";
 import { createMatch, getServers, getTeams, Server } from "@/lib/api";
 import { TeamsMap } from "@/components/bracket";
@@ -35,6 +36,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
   const [matchError, setMatchError] = useState<string | null>(null);
   const [vetoFirstTeam, setVetoFirstTeam] = useState<"team1" | "team2" | null>(null);
   const [teamsMap, setTeamsMap] = useState<TeamsMap>({});
+  const bracketRef = useRef<HTMLDivElement>(null);
 
   const fetchTournament = useCallback(async () => {
     try {
@@ -323,11 +325,16 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
 
       {/* Bracket Visualization */}
       <HudCard className="p-5 overflow-hidden">
-        <FullBracket
-          tournament={tournament}
-          teamsMap={teamsMap}
-          admin={adminActions}
-        />
+        <div ref={bracketRef}>
+          <FullBracket
+            tournament={tournament}
+            teamsMap={teamsMap}
+            admin={adminActions}
+          />
+        </div>
+        <div className="text-center mt-4">
+          <BracketExportButton bracketRef={bracketRef} tournamentName={tournament.name} />
+        </div>
       </HudCard>
 
       {/* Veto Modal */}

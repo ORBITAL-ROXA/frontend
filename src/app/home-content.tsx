@@ -1,11 +1,13 @@
 "use client";
 
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Crosshair, Swords, Users, Activity, ChevronRight, MapPin, Calendar, DollarSign, Shield, Star } from "lucide-react";
 import Link from "next/link";
 import { HudCard, StatBox } from "@/components/hud-card";
 import { MatchCard } from "@/components/match-card";
 import { FullBracket, MapScoresMap } from "@/components/bracket";
+import { BracketExportButton } from "@/components/bracket-export-button";
 import { Match, LeaderboardEntry } from "@/lib/api";
 import { Tournament, getTeamName } from "@/lib/tournament";
 import { MAP_IMAGES } from "@/lib/maps";
@@ -44,6 +46,7 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
   mapScoresMap?: MapScoresMap;
   tournamentMvp?: LeaderboardEntry | null;
 }) {
+  const bracketRef = useRef<HTMLDivElement>(null);
   const finished = t.matches.filter(m => m.status === "finished").length;
   const total = t.matches.length;
   const progress = total > 0 ? Math.round((finished / total) * 100) : 0;
@@ -279,11 +282,14 @@ function TournamentHome({ tournament: t, liveMatches, recentMatches, teamsMap, m
       <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8">
         <SectionHeader icon={Swords} title="BRACKET" href={`/campeonato/${t.id}`} />
         <HudCard className="p-5 overflow-hidden">
-          <FullBracket tournament={t} mapScoresMap={mapScoresMap} teamsMap={teamsMap} />
-          <div className="text-center mt-4">
+          <div ref={bracketRef}>
+            <FullBracket tournament={t} mapScoresMap={mapScoresMap} teamsMap={teamsMap} />
+          </div>
+          <div className="flex items-center justify-center gap-3 mt-4">
             <Link href={`/campeonato/${t.id}`} className="inline-flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple">
               VER BRACKET COMPLETO <ChevronRight size={12} />
             </Link>
+            <BracketExportButton bracketRef={bracketRef} tournamentName={t.name} />
           </div>
         </HudCard>
       </motion.section>
