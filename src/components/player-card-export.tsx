@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import { toPng } from "html-to-image";
-import { Download } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Download, Loader2 } from "lucide-react";
 
 export interface PlayerCardStats {
   kills: number;
@@ -23,18 +22,307 @@ interface PlayerCardExportProps {
   stats: PlayerCardStats;
 }
 
-function getTierBadge(rating: number): { label: string; color: string; bg: string } {
-  if (rating >= 1.30) return { label: "ELITE", color: "#FFD700", bg: "rgba(255,215,0,0.15)" };
-  if (rating >= 1.15) return { label: "PRO", color: "#A855F7", bg: "rgba(168,85,247,0.15)" };
-  if (rating >= 1.00) return { label: "SKILLED", color: "#22C55E", bg: "rgba(34,197,94,0.15)" };
-  if (rating >= 0.85) return { label: "AVERAGE", color: "#F59E0B", bg: "rgba(245,158,11,0.15)" };
-  return { label: "ROOKIE", color: "#EF4444", bg: "rgba(239,68,68,0.15)" };
+function getTierBadge(rating: number) {
+  if (rating >= 1.30) return { label: "ELITE", color: "#FFD700" };
+  if (rating >= 1.15) return { label: "PRO", color: "#A855F7" };
+  if (rating >= 1.00) return { label: "SKILLED", color: "#22C55E" };
+  if (rating >= 0.85) return { label: "AVERAGE", color: "#F59E0B" };
+  return { label: "ROOKIE", color: "#EF4444" };
 }
 
-function getRatingColor(rating: number): string {
+function getRatingColor(rating: number) {
   if (rating >= 1.20) return "#22C55E";
-  if (rating >= 0.80) return "#EDEDED";
+  if (rating >= 0.80) return "#E2E8F0";
   return "#EF4444";
+}
+
+async function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Image load failed"));
+    img.src = src;
+  });
+}
+
+function drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+async function generateCard(
+  displayName: string,
+  steamId: string,
+  stats: PlayerCardStats,
+): Promise<string> {
+  const W = 600;
+  const H = 900;
+  const canvas = document.createElement("canvas");
+  canvas.width = W * 2; // 2x for retina
+  canvas.height = H * 2;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(2, 2);
+
+  const purple = "#A855F7";
+  const bg = "#0A0A0A";
+  const cardBg = "#111111";
+  const textMain = "#E2E8F0";
+  const textDim = "#64748B";
+  const tier = getTierBadge(stats.avgRating);
+  const rc = getRatingColor(stats.avgRating);
+
+  // ── Background ──
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid pattern
+  ctx.strokeStyle = "rgba(168,85,247,0.04)";
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 40) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // Top accent line
+  const grad = ctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, "transparent");
+  grad.addColorStop(0.3, purple);
+  grad.addColorStop(0.7, "#C084FC");
+  grad.addColorStop(1, "transparent");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, 3);
+
+  // Border
+  ctx.strokeStyle = "rgba(168,85,247,0.25)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+  // Corner brackets
+  const cs = 24;
+  ctx.strokeStyle = purple;
+  ctx.lineWidth = 2;
+  // Top-left
+  ctx.beginPath(); ctx.moveTo(0, cs); ctx.lineTo(0, 0); ctx.lineTo(cs, 0); ctx.stroke();
+  // Top-right
+  ctx.beginPath(); ctx.moveTo(W - cs, 0); ctx.lineTo(W, 0); ctx.lineTo(W, cs); ctx.stroke();
+  // Bottom-left
+  ctx.beginPath(); ctx.moveTo(0, H - cs); ctx.lineTo(0, H); ctx.lineTo(cs, H); ctx.stroke();
+  // Bottom-right
+  ctx.beginPath(); ctx.moveTo(W - cs, H); ctx.lineTo(W, H); ctx.lineTo(W, H - cs); ctx.stroke();
+
+  // ── Header bar ──
+  ctx.fillStyle = "rgba(168,85,247,0.04)";
+  ctx.fillRect(0, 3, W, 42);
+  ctx.strokeStyle = "rgba(168,85,247,0.2)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, 45); ctx.lineTo(W, 45); ctx.stroke();
+
+  ctx.font = "800 11px Orbitron, monospace";
+  ctx.fillStyle = purple;
+  ctx.letterSpacing = "3px";
+  ctx.textBaseline = "middle";
+  ctx.fillText("ORBITAL ROXA", 24, 24);
+
+  ctx.font = "400 8px Orbitron, monospace";
+  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  ctx.textAlign = "right";
+  ctx.fillText("PLAYER CARD", W - 24, 24);
+  ctx.textAlign = "left";
+
+  // ── Avatar ──
+  let avatarY = 95;
+  const avatarSize = 120;
+  const avatarCX = W / 2;
+  const avatarCY = avatarY + avatarSize / 2;
+
+  // Glow
+  const glowGrad = ctx.createRadialGradient(avatarCX, avatarCY, avatarSize / 2, avatarCX, avatarCY, avatarSize);
+  glowGrad.addColorStop(0, "rgba(168,85,247,0.2)");
+  glowGrad.addColorStop(1, "transparent");
+  ctx.fillStyle = glowGrad;
+  ctx.fillRect(avatarCX - avatarSize, avatarCY - avatarSize, avatarSize * 2, avatarSize * 2);
+
+  // Purple rings
+  ctx.strokeStyle = "rgba(168,85,247,0.15)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarSize / 2 + 12, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = "rgba(168,85,247,0.6)";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarSize / 2 + 4, 0, Math.PI * 2); ctx.stroke();
+
+  // Avatar image
+  try {
+    const avatarImg = await loadImage(`/api/steam/avatar-image/${steamId}`);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(avatarCX, avatarCY, avatarSize / 2, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(avatarImg, avatarCX - avatarSize / 2, avatarCY - avatarSize / 2, avatarSize, avatarSize);
+    ctx.restore();
+  } catch {
+    // Fallback circle
+    ctx.fillStyle = "#1A1A1A";
+    ctx.beginPath();
+    ctx.arc(avatarCX, avatarCY, avatarSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = "800 36px Orbitron, monospace";
+    ctx.fillStyle = textDim;
+    ctx.textAlign = "center";
+    ctx.fillText(displayName.charAt(0).toUpperCase(), avatarCX, avatarCY + 12);
+    ctx.textAlign = "left";
+  }
+
+  // ── Player name ──
+  let nameY = avatarY + avatarSize + 30;
+  ctx.font = "800 24px Orbitron, monospace";
+  ctx.fillStyle = textMain;
+  ctx.textAlign = "center";
+  ctx.shadowColor = "rgba(168,85,247,0.25)";
+  ctx.shadowBlur = 20;
+  ctx.fillText(displayName.toUpperCase(), W / 2, nameY);
+  ctx.shadowBlur = 0;
+
+  // Sub-label
+  ctx.font = "400 10px 'JetBrains Mono', monospace";
+  ctx.fillStyle = textDim;
+  ctx.fillText("■  CS2 PLAYER  ■", W / 2, nameY + 20);
+
+  // ── Rating ──
+  let ratingY = nameY + 55;
+  ctx.font = "400 9px Orbitron, monospace";
+  ctx.fillStyle = textDim;
+  ctx.fillText("RATING GERAL", W / 2, ratingY);
+
+  ctx.font = "900 72px Orbitron, monospace";
+  ctx.fillStyle = rc;
+  ctx.shadowColor = rc + "55";
+  ctx.shadowBlur = 40;
+  ctx.fillText(stats.avgRating > 0 ? stats.avgRating.toFixed(2) : "—", W / 2, ratingY + 65);
+  ctx.shadowBlur = 0;
+
+  // Tier badge
+  const tierY = ratingY + 85;
+  const tierText = tier.label;
+  ctx.font = "700 9px Orbitron, monospace";
+  const tierW = ctx.measureText(tierText).width + 24;
+  ctx.fillStyle = tier.color + "15";
+  ctx.fillRect(W / 2 - tierW / 2, tierY - 8, tierW, 20);
+  ctx.strokeStyle = tier.color + "55";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(W / 2 - tierW / 2, tierY - 8, tierW, 20);
+  ctx.fillStyle = tier.color;
+  ctx.fillText(tierText, W / 2, tierY + 6);
+
+  // ── Separator ──
+  let sepY = tierY + 30;
+  const sepGrad = ctx.createLinearGradient(40, sepY, W - 40, sepY);
+  sepGrad.addColorStop(0, "transparent");
+  sepGrad.addColorStop(0.5, "rgba(168,85,247,0.3)");
+  sepGrad.addColorStop(1, "transparent");
+  ctx.fillStyle = sepGrad;
+  ctx.fillRect(40, sepY, W - 80, 1);
+
+  ctx.font = "400 8px Orbitron, monospace";
+  ctx.fillStyle = purple;
+  ctx.fillText("ESTATÍSTICAS", W / 2, sepY + 16);
+
+  // ── Stats grid ──
+  ctx.textAlign = "center";
+  const gridY = sepY + 35;
+  const cellW = 240;
+  const cellH = 70;
+  const gap = 12;
+  const gridX = (W - cellW * 2 - gap) / 2;
+
+  const statItems = [
+    { label: "K / D", value: stats.kdr.toFixed(2), color: stats.kdr >= 1.0 ? "#22C55E" : "#EF4444" },
+    { label: "HS %", value: `${Math.round(stats.hsp)}%`, color: purple },
+    { label: "KILLS", value: stats.kills.toLocaleString("pt-BR"), color: textMain },
+    { label: "DEATHS", value: stats.deaths.toLocaleString("pt-BR"), color: "#EF4444" },
+    { label: "VITÓRIAS", value: stats.wins.toString(), color: "#22C55E" },
+    { label: "ADR", value: stats.adr.toString(), color: "#F59E0B" },
+  ];
+
+  for (let i = 0; i < statItems.length; i++) {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const x = gridX + col * (cellW + gap);
+    const y = gridY + row * (cellH + gap);
+    const s = statItems[i];
+
+    // Cell bg
+    ctx.fillStyle = "rgba(255,255,255,0.02)";
+    ctx.fillRect(x, y, cellW, cellH);
+    ctx.strokeStyle = "rgba(168,85,247,0.12)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, cellW, cellH);
+
+    // Top accent micro-line
+    const microGrad = ctx.createLinearGradient(x + cellW * 0.2, y, x + cellW * 0.8, y);
+    microGrad.addColorStop(0, "transparent");
+    microGrad.addColorStop(0.5, "rgba(168,85,247,0.4)");
+    microGrad.addColorStop(1, "transparent");
+    ctx.fillStyle = microGrad;
+    ctx.fillRect(x + cellW * 0.2, y, cellW * 0.6, 1);
+
+    // Label
+    ctx.font = "400 9px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "rgba(237,237,237,0.4)";
+    ctx.fillText(s.label, x + cellW / 2, y + 22);
+
+    // Value
+    ctx.font = "700 26px 'JetBrains Mono', monospace";
+    ctx.fillStyle = s.color;
+    ctx.fillText(s.value, x + cellW / 2, y + 52);
+  }
+
+  // ── Secondary stats ──
+  const secY = gridY + 3 * (cellH + gap) + 10;
+  ctx.strokeStyle = "rgba(168,85,247,0.1)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(32, secY); ctx.lineTo(W - 32, secY); ctx.stroke();
+
+  const secItems = [
+    { label: "ASSISTS", value: stats.assists.toLocaleString("pt-BR") },
+    { label: "MVPs", value: stats.mvp.toString() },
+    { label: "MAPAS", value: stats.total_maps.toString() },
+  ];
+  const secSpacing = W / (secItems.length + 1);
+  for (let i = 0; i < secItems.length; i++) {
+    const x = secSpacing * (i + 1);
+    ctx.font = "700 18px 'JetBrains Mono', monospace";
+    ctx.fillStyle = textMain;
+    ctx.fillText(secItems[i].value, x, secY + 28);
+    ctx.font = "400 7px Orbitron, monospace";
+    ctx.fillStyle = textDim;
+    ctx.fillText(secItems[i].label, x, secY + 42);
+  }
+
+  // ── Footer ──
+  ctx.strokeStyle = "rgba(168,85,247,0.15)";
+  ctx.beginPath(); ctx.moveTo(0, H - 48); ctx.lineTo(W, H - 48); ctx.stroke();
+  ctx.fillStyle = "rgba(168,85,247,0.03)";
+  ctx.fillRect(0, H - 48, W, 48);
+
+  ctx.font = "400 10px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "rgba(168,85,247,0.5)";
+  ctx.fillText("orbitalroxa.com.br", W / 2, H - 22);
+
+  ctx.textAlign = "left";
+
+  return canvas.toDataURL("image/png");
 }
 
 export function PlayerCardExport({ steamId, displayName, stats }: PlayerCardExportProps) {
@@ -45,155 +333,10 @@ export function PlayerCardExport({ steamId, displayName, stats }: PlayerCardExpo
     setExporting(true);
 
     try {
-      const tier = getTierBadge(stats.avgRating);
-      const rc = getRatingColor(stats.avgRating);
-      const avatarUrl = `/api/steam/avatar-image/${steamId}`;
+      const dataUrl = await generateCard(displayName, steamId, stats);
 
-      // Pre-load avatar image
-      const avatarImg = new Image();
-      avatarImg.crossOrigin = "anonymous";
-      await new Promise<void>((resolve) => {
-        avatarImg.onload = () => resolve();
-        avatarImg.onerror = () => resolve();
-        avatarImg.src = avatarUrl;
-        setTimeout(resolve, 3000); // timeout fallback
-      });
-
-      // Build card DOM imperatively
-      const card = document.createElement("div");
-      card.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:900px;background:#0A0A0A;overflow:hidden;z-index:99999;background-image:linear-gradient(rgba(168,85,247,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(168,85,247,0.04) 1px,transparent 1px);background-size:40px 40px;border:1px solid rgba(168,85,247,0.25);`;
-
-      // Top accent
-      const accent = document.createElement("div");
-      accent.style.cssText = "position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#A855F7,#C084FC,transparent)";
-      card.appendChild(accent);
-
-      // Header
-      const header = document.createElement("div");
-      header.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(168,85,247,0.2);background:rgba(168,85,247,0.04)";
-      header.innerHTML = `<span style="font-family:Orbitron,monospace;font-size:11px;font-weight:800;letter-spacing:0.2em;color:#A855F7">ORBITAL ROXA</span><span style="font-family:Orbitron,monospace;font-size:8px;letter-spacing:0.25em;color:rgba(255,255,255,0.25);border:1px solid rgba(168,85,247,0.2);padding:3px 8px">PLAYER CARD</span>`;
-      card.appendChild(header);
-
-      // Avatar section
-      const avatarSection = document.createElement("div");
-      avatarSection.style.cssText = "display:flex;flex-direction:column;align-items:center;padding:32px 24px 16px";
-
-      const avatarWrap = document.createElement("div");
-      avatarWrap.style.cssText = "position:relative;width:128px;height:128px;margin-bottom:18px";
-
-      // Glow rings
-      const ring1 = document.createElement("div");
-      ring1.style.cssText = "position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 2px rgba(168,85,247,0.15),0 0 30px rgba(168,85,247,0.35)";
-      avatarWrap.appendChild(ring1);
-      const ring2 = document.createElement("div");
-      ring2.style.cssText = "position:absolute;inset:-3px;border-radius:50%;border:2px solid rgba(168,85,247,0.6)";
-      avatarWrap.appendChild(ring2);
-
-      // Avatar img
-      const avImg = document.createElement("img");
-      avImg.src = avatarImg.src;
-      avImg.width = 128;
-      avImg.height = 128;
-      avImg.style.cssText = "width:128px;height:128px;border-radius:50%;object-fit:cover;display:block;background:#1A1A1A";
-      avatarWrap.appendChild(avImg);
-      avatarSection.appendChild(avatarWrap);
-
-      // Player name
-      const nameEl = document.createElement("div");
-      nameEl.style.cssText = "font-family:Orbitron,monospace;font-size:22px;font-weight:800;color:#E2E8F0;letter-spacing:0.05em;text-align:center;text-shadow:0 0 20px rgba(168,85,247,0.25)";
-      nameEl.textContent = displayName;
-      avatarSection.appendChild(nameEl);
-
-      // Sub-label
-      const subLabel = document.createElement("div");
-      subLabel.style.cssText = "font-family:'JetBrains Mono',monospace;font-size:10px;color:#64748B;letter-spacing:0.15em;margin-top:6px;display:flex;align-items:center;gap:8px";
-      subLabel.innerHTML = '<span style="color:#A855F7">■</span> CS2 PLAYER <span style="color:#A855F7">■</span>';
-      avatarSection.appendChild(subLabel);
-      card.appendChild(avatarSection);
-
-      // Rating section
-      const ratingSection = document.createElement("div");
-      ratingSection.style.cssText = "text-align:center;padding:8px 24px 16px";
-
-      const ratingLabel = document.createElement("div");
-      ratingLabel.style.cssText = "font-family:Orbitron,monospace;font-size:9px;letter-spacing:0.3em;color:#64748B;margin-bottom:4px";
-      ratingLabel.textContent = "RATING GERAL";
-      ratingSection.appendChild(ratingLabel);
-
-      const ratingVal = document.createElement("div");
-      ratingVal.style.cssText = `font-family:Orbitron,monospace;font-size:72px;font-weight:900;color:${rc};line-height:1;letter-spacing:-0.02em;text-shadow:0 0 40px ${rc}55`;
-      ratingVal.textContent = stats.avgRating > 0 ? stats.avgRating.toFixed(2) : "—";
-      ratingSection.appendChild(ratingVal);
-
-      const tierBadge = document.createElement("div");
-      tierBadge.style.cssText = `display:inline-block;font-family:Orbitron,monospace;font-size:8px;letter-spacing:0.2em;color:${tier.color};border:1px solid ${tier.color}55;padding:3px 12px;margin-top:8px;background:${tier.bg}`;
-      tierBadge.textContent = tier.label;
-      ratingSection.appendChild(tierBadge);
-      card.appendChild(ratingSection);
-
-      // Separator
-      const sep = document.createElement("div");
-      sep.style.cssText = "display:flex;align-items:center;gap:12px;padding:0 24px 16px";
-      sep.innerHTML = '<div style="flex:1;height:1px;background:rgba(168,85,247,0.25)"></div><span style="font-family:Orbitron,monospace;font-size:8px;letter-spacing:0.3em;color:#A855F7">ESTATÍSTICAS</span><div style="flex:1;height:1px;background:rgba(168,85,247,0.25)"></div>';
-      card.appendChild(sep);
-
-      // Stats grid
-      const grid = document.createElement("div");
-      grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 40px";
-
-      const statItems = [
-        { label: "K / D", value: stats.kdr.toFixed(2), color: stats.kdr >= 1.0 ? "#22C55E" : "#EF4444" },
-        { label: "HS %", value: `${Math.round(stats.hsp)}%`, color: "#A855F7" },
-        { label: "KILLS", value: stats.kills.toLocaleString("pt-BR"), color: "#E2E8F0" },
-        { label: "DEATHS", value: stats.deaths.toLocaleString("pt-BR"), color: "#EF4444" },
-        { label: "VITÓRIAS", value: stats.wins.toString(), color: "#22C55E" },
-        { label: "ADR", value: stats.adr.toString(), color: "#F59E0B" },
-      ];
-
-      for (const s of statItems) {
-        const cell = document.createElement("div");
-        cell.style.cssText = "background:rgba(255,255,255,0.03);border:1px solid rgba(168,85,247,0.12);padding:14px 12px;text-align:center";
-        cell.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(237,237,237,0.4);letter-spacing:2px;margin-bottom:6px">${s.label}</div><div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:${s.color};line-height:1">${s.value}</div>`;
-        grid.appendChild(cell);
-      }
-      card.appendChild(grid);
-
-      // Secondary stats
-      const secondary = document.createElement("div");
-      secondary.style.cssText = "display:flex;justify-content:space-around;padding:20px 32px 0;border-top:1px solid rgba(168,85,247,0.1);margin-top:20px";
-      for (const s of [
-        { label: "ASSISTS", value: stats.assists.toLocaleString("pt-BR") },
-        { label: "MVPs", value: stats.mvp.toString() },
-        { label: "MAPAS", value: stats.total_maps.toString() },
-      ]) {
-        const el = document.createElement("div");
-        el.style.cssText = "text-align:center";
-        el.innerHTML = `<div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:#E2E8F0">${s.value}</div><div style="font-family:Orbitron,monospace;font-size:7px;letter-spacing:0.2em;color:#64748B;margin-top:3px">${s.label}</div>`;
-        secondary.appendChild(el);
-      }
-      card.appendChild(secondary);
-
-      // Footer
-      const footer = document.createElement("div");
-      footer.style.cssText = "position:absolute;bottom:0;left:0;right:0;height:48px;border-top:1px solid rgba(168,85,247,0.15);display:flex;align-items:center;justify-content:center;gap:16px;background:rgba(168,85,247,0.03)";
-      footer.innerHTML = '<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:0.12em;color:rgba(168,85,247,0.5)">orbitalroxa.com.br</span>';
-      card.appendChild(footer);
-
-      // Append to body, capture, remove
-      document.body.appendChild(card);
-
-      // Wait a tick for rendering
-      await new Promise(r => setTimeout(r, 200));
-
-      const dataUrl = await toPng(card, {
-        pixelRatio: 2,
-        backgroundColor: "#0A0A0A",
-      });
-
-      document.body.removeChild(card);
-
-      // Download or share
       const fileName = `${displayName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}_orbital_card.png`;
+
       if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
         try {
           const res = await fetch(dataUrl);
@@ -203,6 +346,7 @@ export function PlayerCardExport({ steamId, displayName, stats }: PlayerCardExpo
           return;
         } catch { /* fall through */ }
       }
+
       const link = document.createElement("a");
       link.download = fileName;
       link.href = dataUrl;
@@ -220,7 +364,7 @@ export function PlayerCardExport({ steamId, displayName, stats }: PlayerCardExpo
       disabled={exporting}
       className="inline-flex items-center gap-1.5 px-3 py-1 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      <Download size={11} />
+      {exporting ? <Loader2 size={11} className="animate-spin" /> : <Download size={11} />}
       {exporting ? "GERANDO..." : "EXPORTAR CARD"}
     </button>
   );
