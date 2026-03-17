@@ -4,15 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crosshair, Swords, Trophy, Film, Sparkles, Menu, X, LogIn, LogOut, User, Shield, ChevronDown, BarChart3 } from "lucide-react";
+import { Crosshair, Swords, Trophy, Film, Sparkles, Menu, X, LogIn, LogOut, User, Shield, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 
 const navLinks = [
   { href: "/", label: "HOME", icon: Crosshair },
-  { href: "/campeonatos", label: "CAMPEONATOS", icon: Trophy },
   { href: "/partidas", label: "PARTIDAS", icon: Swords },
-  { href: "/leaderboard", label: "RANKING", icon: BarChart3 },
+  { href: "/leaderboard", label: "RANKING", icon: Trophy },
   { href: "/highlights", label: "HIGHLIGHTS", icon: Sparkles },
   { href: "/demos", label: "DEMOS", icon: Film },
 ];
