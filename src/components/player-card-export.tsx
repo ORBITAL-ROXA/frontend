@@ -60,6 +60,24 @@ function drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.closePath();
 }
 
+function drawSpacedText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, spacing: number) {
+  const align = ctx.textAlign;
+  if (align === "center") {
+    const totalW = Array.from(text).reduce((w, c) => w + ctx.measureText(c).width + spacing, -spacing);
+    x -= totalW / 2;
+  } else if (align === "right") {
+    const totalW = Array.from(text).reduce((w, c) => w + ctx.measureText(c).width + spacing, -spacing);
+    x -= totalW;
+  }
+  const savedAlign = ctx.textAlign;
+  ctx.textAlign = "left";
+  for (const char of text) {
+    ctx.fillText(char, x, y);
+    x += ctx.measureText(char).width + spacing;
+  }
+  ctx.textAlign = savedAlign;
+}
+
 async function generateCard(
   displayName: string,
   steamId: string,
@@ -131,14 +149,14 @@ async function generateCard(
 
   ctx.font = "800 11px Orbitron, monospace";
   ctx.fillStyle = purple;
-  ctx.letterSpacing = "3px";
   ctx.textBaseline = "middle";
-  ctx.fillText("ORBITAL ROXA", 24, 24);
+  ctx.textAlign = "left";
+  drawSpacedText(ctx, "ORBITAL ROXA", 24, 24, 3);
 
   ctx.font = "400 8px Orbitron, monospace";
   ctx.fillStyle = "rgba(255,255,255,0.25)";
   ctx.textAlign = "right";
-  ctx.fillText("PLAYER CARD", W - 24, 24);
+  drawSpacedText(ctx, "PLAYER CARD", W - 24, 24, 2);
   ctx.textAlign = "left";
 
   // ── Avatar ──
@@ -197,13 +215,13 @@ async function generateCard(
   // Sub-label
   ctx.font = "400 10px 'JetBrains Mono', monospace";
   ctx.fillStyle = textDim;
-  ctx.fillText("■  CS2 PLAYER  ■", W / 2, nameY + 20);
+  drawSpacedText(ctx, "CS2 PLAYER", W / 2, nameY + 20, 2);
 
   // ── Rating ──
   let ratingY = nameY + 55;
   ctx.font = "400 9px Orbitron, monospace";
   ctx.fillStyle = textDim;
-  ctx.fillText("RATING GERAL", W / 2, ratingY);
+  drawSpacedText(ctx, "RATING GERAL", W / 2, ratingY, 3);
 
   ctx.font = "900 72px Orbitron, monospace";
   ctx.fillStyle = rc;
@@ -216,14 +234,16 @@ async function generateCard(
   const tierY = ratingY + 85;
   const tierText = tier.label;
   ctx.font = "700 9px Orbitron, monospace";
-  const tierW = ctx.measureText(tierText).width + 24;
+  // Measure with spacing
+  const tierCharW = Array.from(tierText).reduce((w, c) => w + ctx.measureText(c).width + 2, -2);
+  const tierW = tierCharW + 24;
   ctx.fillStyle = tier.color + "15";
   ctx.fillRect(W / 2 - tierW / 2, tierY - 8, tierW, 20);
   ctx.strokeStyle = tier.color + "55";
   ctx.lineWidth = 1;
   ctx.strokeRect(W / 2 - tierW / 2, tierY - 8, tierW, 20);
   ctx.fillStyle = tier.color;
-  ctx.fillText(tierText, W / 2, tierY + 6);
+  drawSpacedText(ctx, tierText, W / 2, tierY + 6, 2);
 
   // ── Separator ──
   let sepY = tierY + 30;
@@ -236,7 +256,7 @@ async function generateCard(
 
   ctx.font = "400 8px Orbitron, monospace";
   ctx.fillStyle = purple;
-  ctx.fillText("ESTATÍSTICAS", W / 2, sepY + 16);
+  drawSpacedText(ctx, "ESTATÍSTICAS", W / 2, sepY + 16, 3);
 
   // ── Stats grid ──
   ctx.textAlign = "center";
@@ -280,7 +300,7 @@ async function generateCard(
     // Label
     ctx.font = "400 9px 'JetBrains Mono', monospace";
     ctx.fillStyle = "rgba(237,237,237,0.4)";
-    ctx.fillText(s.label, x + cellW / 2, y + 22);
+    drawSpacedText(ctx, s.label, x + cellW / 2, y + 22, 2);
 
     // Value
     ctx.font = "700 26px 'JetBrains Mono', monospace";
@@ -307,7 +327,7 @@ async function generateCard(
     ctx.fillText(secItems[i].value, x, secY + 28);
     ctx.font = "400 7px Orbitron, monospace";
     ctx.fillStyle = textDim;
-    ctx.fillText(secItems[i].label, x, secY + 42);
+    drawSpacedText(ctx, secItems[i].label, x, secY + 42, 2);
   }
 
   // ── Footer ──
@@ -318,7 +338,7 @@ async function generateCard(
 
   ctx.font = "400 10px 'JetBrains Mono', monospace";
   ctx.fillStyle = "rgba(168,85,247,0.5)";
-  ctx.fillText("orbitalroxa.com.br", W / 2, H - 22);
+  drawSpacedText(ctx, "orbitalroxa.com.br", W / 2, H - 22, 1);
 
   ctx.textAlign = "left";
 
