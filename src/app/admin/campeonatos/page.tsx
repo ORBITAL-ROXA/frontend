@@ -38,6 +38,8 @@ export default function AdminCampeonatos() {
   const [mapPool, setMapPool] = useState<string[]>(getDefaultMapPool());
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [importingTeams, setImportingTeams] = useState(false);
+  const [importFeedback, setImportFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -420,6 +422,82 @@ export default function AdminCampeonatos() {
                           ? `Selecione entre ${requiredTeams.min} e ${requiredTeams.max} times (número par).`
                           : "Selecione os 8 times participantes."}
                       </p>
+
+                      {/* Import from Faceit */}
+                      {mode === "online" && faceitChampionshipId.trim() && (
+                        <div className="mb-4">
+                          <button
+                            type="button"
+                            disabled={importingTeams}
+                            onClick={async () => {
+                              setImportingTeams(true);
+                              setImportFeedback(null);
+                              try {
+                                // 1. Buscar times da Faceit
+                                const fetchRes = await fetch(`/api/faceit/championship/${faceitChampionshipId.trim()}/teams`);
+                                const fetchData = await fetchRes.json();
+                                if (!fetchRes.ok) throw new Error(fetchData.error || "Erro ao buscar times");
+
+                                if (!fetchData.teams || fetchData.teams.length === 0) {
+                                  setImportFeedback({ type: "error", msg: "Nenhum time inscrito neste championship" });
+                                  setImportingTeams(false);
+                                  return;
+                                }
+
+                                // 2. Cadastrar no G5API
+                                const importRes = await fetch("/api/faceit/import-teams", {
+                                  method: "POST",
+                                  credentials: "include",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    teams: fetchData.teams.map((t: { name: string; tag: string; members: { steam_id: string; nickname: string }[] }) => ({
+                                      name: t.name,
+                                      tag: t.tag,
+                                      members: t.members,
+                                    })),
+                                  }),
+                                });
+                                const importData = await importRes.json();
+                                if (!importRes.ok) throw new Error(importData.error || "Erro ao importar");
+
+                                const s = importData.summary;
+                                setImportFeedback({
+                                  type: "success",
+                                  msg: `${s.created} criados, ${s.existing} já existiam${s.errors > 0 ? `, ${s.errors} erros` : ""}`,
+                                });
+
+                                // 3. Refresh teams list
+                                const teamsRes = await fetch("/api/teams", { credentials: "include" }).then(r => r.json()).catch(() => ({ teams: [] }));
+                                setTeams(teamsRes.teams || []);
+
+                                // 4. Auto-selecionar os times importados
+                                const importedIds = importData.results
+                                  .filter((r: { team_id: number | null }) => r.team_id)
+                                  .map((r: { team_id: number }) => r.team_id);
+                                setSelectedTeams(importedIds.slice(0, requiredTeams.max));
+                              } catch (err) {
+                                setImportFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro" });
+                              }
+                              setImportingTeams(false);
+                            }}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#FF5500]/10 border border-[#FF5500]/30 hover:border-[#FF5500]/60 disabled:opacity-40 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-[#FF5500]"
+                          >
+                            {importingTeams ? <Loader2 size={14} className="animate-spin" /> : <Gamepad2 size={14} />}
+                            {importingTeams ? "IMPORTANDO..." : "IMPORTAR TIMES DA FACEIT"}
+                          </button>
+                          {importFeedback && (
+                            <div className={`mt-2 flex items-center gap-2 text-xs font-[family-name:var(--font-jetbrains)] ${
+                              importFeedback.type === "success" ? "text-green-400" : "text-red-400"
+                            }`}>
+                              {importFeedback.type === "success" ? <Check size={12} /> : <AlertCircle size={12} />}
+                              {importFeedback.msg}
+                            </div>
+                          )}
+                          <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40 mt-1">
+                            Busca os times inscritos na Faceit e cadastra automaticamente com os Steam IDs
+                          </p>
+                        </div>
+                      )}
 
                       {/* Selected teams with seed order */}
                       {selectedTeams.length > 0 && (
