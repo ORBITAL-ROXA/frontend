@@ -1375,7 +1375,6 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                         )}
                       </div>
                       <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text truncate">{team.name}</span>
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim ml-auto shrink-0">#{team.seed}</span>
                     </div>
                   );
                 })}
