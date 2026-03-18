@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Shield, Swords, Users, Server, Calendar, ArrowLeft, Trophy, Home, ChevronRight, Gamepad2, Megaphone } from "lucide-react";
+import { Shield, Swords, Users, Server, Calendar, ArrowLeft, Trophy, Home, ChevronRight, Gamepad2, Megaphone, BarChart3, CalendarDays, CheckSquare, Handshake, FileText } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ReactNode } from "react";
 
@@ -17,6 +17,14 @@ const adminLinks = [
   { href: "/admin/campeonatos", label: "Campeonatos", icon: Trophy },
   { href: "/admin/faceit", label: "Faceit", icon: Gamepad2 },
   { href: "/admin/brand", label: "Brand", icon: Megaphone },
+];
+
+const brandSubLinks = [
+  { href: "/admin/brand", label: "Dashboard", icon: BarChart3, exact: true },
+  { href: "/admin/brand/cronograma", label: "Cronograma", icon: CalendarDays },
+  { href: "/admin/brand/checklist", label: "Checklist", icon: CheckSquare },
+  { href: "/admin/brand/patrocinio", label: "Patrocinios", icon: Handshake },
+  { href: "/admin/brand/proposta", label: "Proposta", icon: FileText },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -86,23 +94,49 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               : pathname.startsWith(link.href) && !(link.exact === undefined && pathname === "/admin" && link.href !== "/admin");
             const Icon = link.icon;
             return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-sm transition-all duration-200 group ${
-                  isActive
-                    ? "bg-orbital-purple/10 border-l-2 border-orbital-purple text-orbital-purple"
-                    : "border-l-2 border-transparent text-orbital-text-dim hover:text-orbital-text hover:bg-white/[0.03]"
-                }`}
-              >
-                <Icon size={15} className={isActive ? "text-orbital-purple" : "text-orbital-text-dim/60 group-hover:text-orbital-text-dim"} />
-                <span className="font-[family-name:var(--font-jetbrains)] text-[0.7rem]">
-                  {link.label}
-                </span>
-                {isActive && (
-                  <ChevronRight size={10} className="text-orbital-purple/50 ml-auto" />
+              <div key={link.href}>
+                <Link
+                  href={link.href}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-sm transition-all duration-200 group ${
+                    isActive
+                      ? "bg-orbital-purple/10 border-l-2 border-orbital-purple text-orbital-purple"
+                      : "border-l-2 border-transparent text-orbital-text-dim hover:text-orbital-text hover:bg-white/[0.03]"
+                  }`}
+                >
+                  <Icon size={15} className={isActive ? "text-orbital-purple" : "text-orbital-text-dim/60 group-hover:text-orbital-text-dim"} />
+                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.7rem]">
+                    {link.label}
+                  </span>
+                  {isActive && (
+                    <ChevronRight size={10} className="text-orbital-purple/50 ml-auto" />
+                  )}
+                </Link>
+                {/* Brand sub-links */}
+                {link.href === "/admin/brand" && pathname.startsWith("/admin/brand") && (
+                  <div className="ml-5 mt-0.5 mb-1 space-y-0.5 border-l border-orbital-purple/20 pl-2">
+                    {brandSubLinks.map((sub) => {
+                      const subActive = sub.exact ? pathname === sub.href : pathname.startsWith(sub.href);
+                      const SubIcon = sub.icon;
+                      return (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          className={`flex items-center gap-2 px-2 py-1.5 rounded-sm transition-all duration-200 ${
+                            subActive
+                              ? "text-orbital-purple"
+                              : "text-orbital-text-dim/60 hover:text-orbital-text-dim hover:bg-white/[0.03]"
+                          }`}
+                        >
+                          <SubIcon size={11} />
+                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem]">
+                            {sub.label}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              </Link>
+              </div>
             );
           })}
         </nav>

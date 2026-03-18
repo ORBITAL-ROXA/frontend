@@ -23,10 +23,10 @@ export async function POST(req: NextRequest) {
 
   try {
     await ensureBrandTables();
-    const { name, type, value, status, notes } = await req.json();
+    const { name, type, contact_name, contact_email, contact_phone, estimated_value, status, notes, package_tier } = await req.json();
     const [result] = await dbPool.execute(
-      "INSERT INTO brand_sponsors (name, type, value, status, notes) VALUES (?, ?, ?, ?, ?)",
-      [name, type || null, value || null, status || "prospect", notes || null]
+      "INSERT INTO brand_sponsors (name, type, contact_name, contact_email, contact_phone, estimated_value, status, notes, package_tier) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [name, type || null, contact_name || null, contact_email || null, contact_phone || null, estimated_value || null, status || "prospect", notes || null, package_tier || null]
     );
     const insertId = (result as { insertId: number }).insertId;
     return NextResponse.json({ id: insertId }, { status: 201 });
@@ -42,11 +42,31 @@ export async function PUT(req: NextRequest) {
 
   try {
     await ensureBrandTables();
-    const { id, name, type, value, status, notes } = await req.json();
-    await dbPool.execute(
-      "UPDATE brand_sponsors SET name = ?, type = ?, value = ?, status = ?, notes = ? WHERE id = ?",
-      [name, type || null, value || null, status, notes || null, id]
-    );
+    const { id, name, type, contact_name, contact_email, contact_phone, estimated_value, actual_value, status, notes, package_tier } = await req.json();
+
+    const fields: string[] = [];
+    const values: (string | number | null)[] = [];
+
+    if (name !== undefined) { fields.push("name = ?"); values.push(name); }
+    if (type !== undefined) { fields.push("type = ?"); values.push(type); }
+    if (contact_name !== undefined) { fields.push("contact_name = ?"); values.push(contact_name || null); }
+    if (contact_email !== undefined) { fields.push("contact_email = ?"); values.push(contact_email || null); }
+    if (contact_phone !== undefined) { fields.push("contact_phone = ?"); values.push(contact_phone || null); }
+    if (estimated_value !== undefined) { fields.push("estimated_value = ?"); values.push(estimated_value || null); }
+    if (actual_value !== undefined) { fields.push("actual_value = ?"); values.push(actual_value); }
+    if (status !== undefined) {
+      fields.push("status = ?"); values.push(status);
+      if (status === "contact") { fields.push("contacted_at = ?"); values.push(new Date().toISOString().slice(0, 19).replace("T", " ")); }
+      if (status === "closed") { fields.push("closed_at = ?"); values.push(new Date().toISOString().slice(0, 19).replace("T", " ")); }
+    }
+    if (notes !== undefined) { fields.push("notes = ?"); values.push(notes || null); }
+    if (package_tier !== undefined) { fields.push("package_tier = ?"); values.push(package_tier || null); }
+
+    if (fields.length > 0) {
+      values.push(id);
+      await dbPool.execute(`UPDATE brand_sponsors SET ${fields.join(", ")} WHERE id = ?`, values);
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[BRAND SPONSORS PUT]", err);

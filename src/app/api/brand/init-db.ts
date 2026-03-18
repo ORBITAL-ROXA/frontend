@@ -9,11 +9,15 @@ export async function ensureBrandTables() {
     await dbPool.execute(`
       CREATE TABLE IF NOT EXISTS brand_tasks (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        category VARCHAR(50) NOT NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT,
+        category ENUM('instagram','conteudo','negocio','tech','campeonato') NOT NULL DEFAULT 'conteudo',
+        priority ENUM('high','med','low') NOT NULL DEFAULT 'med',
+        week INT NOT NULL DEFAULT 1,
+        week_label VARCHAR(255) NOT NULL DEFAULT '',
+        week_date VARCHAR(100) NOT NULL DEFAULT '',
         done BOOLEAN DEFAULT FALSE,
-        due_date DATE,
+        done_at DATETIME,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
@@ -22,10 +26,15 @@ export async function ensureBrandTables() {
     await dbPool.execute(`
       CREATE TABLE IF NOT EXISTS brand_checklist (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        category VARCHAR(100) NOT NULL,
         title VARCHAR(255) NOT NULL,
+        description TEXT,
+        category ENUM('visual','digital','patrocinio','campeonato') NOT NULL DEFAULT 'visual',
+        priority ENUM('high','med','low') NOT NULL DEFAULT 'med',
         done BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        done_at DATETIME,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
 
@@ -34,40 +43,30 @@ export async function ensureBrandTables() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         type VARCHAR(100),
-        value VARCHAR(50),
+        contact_name VARCHAR(255),
+        contact_email VARCHAR(255),
+        contact_phone VARCHAR(100),
+        estimated_value VARCHAR(100),
+        actual_value INT,
         status ENUM('prospect','contact','nego','closed','lost') DEFAULT 'prospect',
         notes TEXT,
+        package_tier VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `);
-
-    await dbPool.execute(`
-      CREATE TABLE IF NOT EXISTS brand_posts (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        caption TEXT,
-        post_type ENUM('feed','story','reel') DEFAULT 'feed',
-        hashtags TEXT,
-        scheduled_for DATETIME,
-        posted BOOLEAN DEFAULT FALSE,
-        posted_at DATETIME,
-        instagram_url VARCHAR(500),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        contacted_at DATETIME,
+        closed_at DATETIME
       )
     `);
 
     await dbPool.execute(`
       CREATE TABLE IF NOT EXISTS brand_notes (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        section VARCHAR(50) NOT NULL,
+        section_key VARCHAR(100) NOT NULL UNIQUE,
         content TEXT,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
 
-    // Seed default data if tables are empty
     await seedDefaults();
   } catch (err) {
     console.error("[BRAND INIT]", err);
@@ -81,37 +80,41 @@ async function seedDefaults() {
   const [taskRows] = await dbPool.execute("SELECT COUNT(*) as cnt FROM brand_tasks");
   const taskCount = (taskRows as { cnt: number }[])[0].cnt;
   if (taskCount === 0) {
-    const defaultTasks = [
-      // Semana 1
-      { category: "semana1", title: "Definir data e formato da Cup #2", description: "BO1 groups + BO3 playoffs" },
-      { category: "semana1", title: "Criar arte de anúncio da Cup #2", description: "Post feed + story" },
-      { category: "semana1", title: "Publicar anúncio nas redes sociais", description: "Instagram, Twitter, Discord" },
-      { category: "semana1", title: "Abrir inscrições no site", description: "Formulário + pagamento" },
-      // Semana 2
-      { category: "semana2", title: "Contatar potenciais patrocinadores", description: "Enviar proposta comercial" },
-      { category: "semana2", title: "Criar conteúdo de bastidores", description: "Stories mostrando preparação" },
-      { category: "semana2", title: "Definir premiação e regulamento", description: "Documento oficial" },
-      // Semana 3
-      { category: "semana3", title: "Fechar parcerias de mídia", description: "Streamers e casters" },
-      { category: "semana3", title: "Criar grade de conteúdo semanal", description: "3 posts/semana mínimo" },
-      { category: "semana3", title: "Testar servidores e configurações", description: "MatchZy configs" },
-      // Semana 4
-      { category: "semana4", title: "Divulgação final das inscrições", description: "Countdown + urgência" },
-      { category: "semana4", title: "Sortear grupos", description: "Live no Discord/Twitch" },
-      { category: "semana4", title: "Publicar chaves e calendário", description: "No site e redes" },
-      // Semana 5
-      { category: "semana5", title: "Início das partidas - Fase de grupos", description: "Transmissão ao vivo" },
-      { category: "semana5", title: "Postar highlights diários", description: "Reels com melhores jogadas" },
-      { category: "semana5", title: "Engajar comunidade no Discord", description: "Polls, predictions" },
-      // Semana 6
-      { category: "semana6", title: "Playoffs e Grande Final", description: "Produção especial" },
-      { category: "semana6", title: "Compilar estatísticas finais", description: "MVP, top fraggers, etc" },
-      { category: "semana6", title: "Post-mortem e planejamento Cup #3", description: "Análise do que funcionou" },
+    const tasks = [
+      // SEMANA 1
+      { title: "Criar conta @orbitalroxa no Instagram", category: "instagram", priority: "high", week: 1, week_label: "Semana 1 — Presença Digital", week_date: "18-24 MAR 2026" },
+      { title: "Configurar bio com link do site", category: "instagram", priority: "high", week: 1, week_label: "Semana 1 — Presença Digital", week_date: "18-24 MAR 2026" },
+      { title: "Postar card de resultado CHOPPADAS Cup #1", category: "conteudo", priority: "high", week: 1, week_label: "Semana 1 — Presença Digital", week_date: "18-24 MAR 2026" },
+      { title: "Postar card Top 5 Jogadores", category: "conteudo", priority: "high", week: 1, week_label: "Semana 1 — Presença Digital", week_date: "18-24 MAR 2026" },
+      { title: "Postar highlight Play of the Tournament (Lcszik444- ACE)", category: "conteudo", priority: "high", week: 1, week_label: "Semana 1 — Presença Digital", week_date: "18-24 MAR 2026" },
+      { title: "Marcar todos os jogadores nas publicações", category: "instagram", priority: "med", week: 1, week_label: "Semana 1 — Presença Digital", week_date: "18-24 MAR 2026" },
+      { title: "Definir orçamento alvo e data aproximada do Cup #2", category: "negocio", priority: "high", week: 1, week_label: "Semana 1 — Presença Digital", week_date: "18-24 MAR 2026" },
+      // SEMANA 2
+      { title: "Postar Reels com highlights em vídeo", category: "conteudo", priority: "high", week: 2, week_label: "Semana 2 — Conteúdo + 1ª Abordagem Patrocínio", week_date: "25-31 MAR 2026" },
+      { title: "Story: bastidores do Cup #1", category: "instagram", priority: "med", week: 2, week_label: "Semana 2 — Conteúdo + 1ª Abordagem Patrocínio", week_date: "25-31 MAR 2026" },
+      { title: "Post: stats curiosas do campeonato", category: "conteudo", priority: "med", week: 2, week_label: "Semana 2 — Conteúdo + 1ª Abordagem Patrocínio", week_date: "25-31 MAR 2026" },
+      { title: "Listar 5 potenciais patrocinadores locais com contato", category: "negocio", priority: "high", week: 2, week_label: "Semana 2 — Conteúdo + 1ª Abordagem Patrocínio", week_date: "25-31 MAR 2026" },
+      { title: "Fazer contato com 1º patrocinador com proposta", category: "negocio", priority: "high", week: 2, week_label: "Semana 2 — Conteúdo + 1ª Abordagem Patrocínio", week_date: "25-31 MAR 2026" },
+      { title: "Negociar data e preço do local para Cup #2", category: "campeonato", priority: "high", week: 2, week_label: "Semana 2 — Conteúdo + 1ª Abordagem Patrocínio", week_date: "25-31 MAR 2026" },
+      // SEMANA 3-4
+      { title: "Publicar anúncio oficial Cup #2 com data e prize pool", category: "campeonato", priority: "high", week: 3, week_label: "Semana 3-4 — Hype + Inscrições", week_date: "1-15 ABR 2026" },
+      { title: "Divulgar em grupos WhatsApp/Discord de CS2 da região", category: "campeonato", priority: "high", week: 3, week_label: "Semana 3-4 — Hype + Inscrições", week_date: "1-15 ABR 2026" },
+      { title: "Abrir inscrições (formulário com Steam IDs, logo, contato)", category: "tech", priority: "high", week: 3, week_label: "Semana 3-4 — Hype + Inscrições", week_date: "1-15 ABR 2026" },
+      { title: "Fechar negociação com pelo menos 1 patrocinador", category: "negocio", priority: "high", week: 3, week_label: "Semana 3-4 — Hype + Inscrições", week_date: "1-15 ABR 2026" },
+      { title: "Postar apresentação dos times confirmados", category: "conteudo", priority: "med", week: 3, week_label: "Semana 3-4 — Hype + Inscrições", week_date: "1-15 ABR 2026" },
+      { title: "Conteúdo de 'revanche' — rivalidades do Cup #1", category: "conteudo", priority: "med", week: 3, week_label: "Semana 3-4 — Hype + Inscrições", week_date: "1-15 ABR 2026" },
+      // SEMANA 5-6
+      { title: "Confirmar todos os times inscritos", category: "campeonato", priority: "high", week: 5, week_label: "Semana 5-6 — Produção + Countdown", week_date: "16-30 ABR 2026" },
+      { title: "Testar servidor dedicado e stack completa", category: "tech", priority: "high", week: 5, week_label: "Semana 5-6 — Produção + Countdown", week_date: "16-30 ABR 2026" },
+      { title: "Definir caster/comentarista para a live", category: "campeonato", priority: "med", week: 5, week_label: "Semana 5-6 — Produção + Countdown", week_date: "16-30 ABR 2026" },
+      { title: "Planejar logística: lanche, bebida, crachás, banners", category: "campeonato", priority: "med", week: 5, week_label: "Semana 5-6 — Produção + Countdown", week_date: "16-30 ABR 2026" },
+      { title: "Stories diários de countdown (5 dias antes)", category: "instagram", priority: "med", week: 5, week_label: "Semana 5-6 — Produção + Countdown", week_date: "16-30 ABR 2026" },
+      { title: "Preparar banners com logo dos patrocinadores para o servidor", category: "negocio", priority: "med", week: 5, week_label: "Semana 5-6 — Produção + Countdown", week_date: "16-30 ABR 2026" },
     ];
-    for (const t of defaultTasks) {
+    for (const t of tasks) {
       await dbPool.execute(
-        "INSERT INTO brand_tasks (category, title, description) VALUES (?, ?, ?)",
-        [t.category, t.title, t.description]
+        "INSERT INTO brand_tasks (title, category, priority, week, week_label, week_date) VALUES (?, ?, ?, ?, ?, ?)",
+        [t.title, t.category, t.priority, t.week, t.week_label, t.week_date]
       );
     }
   }
@@ -120,33 +123,35 @@ async function seedDefaults() {
   const [checkRows] = await dbPool.execute("SELECT COUNT(*) as cnt FROM brand_checklist");
   const checkCount = (checkRows as { cnt: number }[])[0].cnt;
   if (checkCount === 0) {
-    const defaultChecklist = [
-      // Identidade Visual
-      { category: "identidade_visual", title: "Logo principal finalizada" },
-      { category: "identidade_visual", title: "Paleta de cores definida (Purple #A855F7, Black #0A0A0A)" },
-      { category: "identidade_visual", title: "Tipografia definida (Orbitron + JetBrains Mono + Inter)" },
-      { category: "identidade_visual", title: "Templates de post para Instagram" },
-      { category: "identidade_visual", title: "Overlay para transmissão" },
-      { category: "identidade_visual", title: "Banner do Discord" },
-      { category: "identidade_visual", title: "Thumbnail padrão para VODs" },
-      // Presença Digital
-      { category: "presenca_digital", title: "Instagram @orbitalroxa configurado" },
-      { category: "presenca_digital", title: "Twitter/X @orbitalroxa configurado" },
-      { category: "presenca_digital", title: "Discord servidor criado e configurado" },
-      { category: "presenca_digital", title: "Canal Twitch configurado" },
-      { category: "presenca_digital", title: "Site orbitalroxa.com.br no ar" },
-      { category: "presenca_digital", title: "Google Analytics configurado" },
-      // Patrocínio
-      { category: "patrocinio", title: "Mídia kit / proposta comercial pronta" },
-      { category: "patrocinio", title: "Lista de potenciais patrocinadores" },
-      { category: "patrocinio", title: "Template de email para contato" },
-      { category: "patrocinio", title: "Pacotes de patrocínio definidos (Bronze/Prata/Ouro)" },
-      { category: "patrocinio", title: "Contrato modelo de patrocínio" },
+    const items = [
+      // IDENTIDADE VISUAL
+      { title: "Logo da Orbital Roxa definida", category: "visual", priority: "high", done: true, sort_order: 1 },
+      { title: "Cores e fonte definidas (purple #A855F7, Orbitron, JetBrains Mono)", category: "visual", priority: "high", done: true, sort_order: 2 },
+      { title: "Templates de post Instagram criados", category: "visual", priority: "high", done: false, sort_order: 3 },
+      { title: "Foto de capa do Instagram (1080x1080 com logo)", category: "visual", priority: "high", done: false, sort_order: 4 },
+      // PRESENÇA DIGITAL
+      { title: "Criar @orbitalroxa no Instagram", category: "digital", priority: "high", done: false, sort_order: 5 },
+      { title: "Configurar bio com localização, link do site e descrição", category: "digital", priority: "high", done: false, sort_order: 6 },
+      { title: "Site orbitalroxa.com.br no ar e funcionando", category: "digital", priority: "high", done: true, sort_order: 7 },
+      { title: "Criar grupo WhatsApp 'Orbital Roxa CS2' para comunicados", category: "digital", priority: "med", done: false, sort_order: 8 },
+      { title: "Criar servidor Discord Orbital Roxa", category: "digital", priority: "low", done: false, sort_order: 9 },
+      // CAPTAÇÃO DE PATROCÍNIO
+      { title: "Listar 10 potenciais patrocinadores locais com contato", category: "patrocinio", priority: "high", done: false, sort_order: 10 },
+      { title: "Proposta de patrocínio personalizada pronta", category: "patrocinio", priority: "high", done: false, sort_order: 11 },
+      { title: "1º contato feito com patrocinador prioritário", category: "patrocinio", priority: "high", done: false, sort_order: 12 },
+      { title: "Pelo menos 1 patrocinador fechado antes do Cup #2", category: "patrocinio", priority: "high", done: false, sort_order: 13 },
+      // ORGANIZAÇÃO CUP #2
+      { title: "Definir data e local com confirmação formal", category: "campeonato", priority: "high", done: false, sort_order: 14 },
+      { title: "Definir formato (16 times? grupos + playoffs?)", category: "campeonato", priority: "high", done: false, sort_order: 15 },
+      { title: "Definir valor de inscrição e estrutura de premiação", category: "campeonato", priority: "high", done: false, sort_order: 16 },
+      { title: "Criar formulário de inscrição online", category: "campeonato", priority: "med", done: false, sort_order: 17 },
+      { title: "Definir caster/comentarista para a live", category: "campeonato", priority: "med", done: false, sort_order: 18 },
+      { title: "Planejar venda de lanche/bebida no evento", category: "campeonato", priority: "low", done: false, sort_order: 19 },
     ];
-    for (const c of defaultChecklist) {
+    for (const c of items) {
       await dbPool.execute(
-        "INSERT INTO brand_checklist (category, title) VALUES (?, ?)",
-        [c.category, c.title]
+        "INSERT INTO brand_checklist (title, category, priority, done, done_at, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+        [c.title, c.category, c.priority, c.done, c.done ? new Date() : null, c.sort_order]
       );
     }
   }
@@ -155,15 +160,15 @@ async function seedDefaults() {
   const [sponsorRows] = await dbPool.execute("SELECT COUNT(*) as cnt FROM brand_sponsors");
   const sponsorCount = (sponsorRows as { cnt: number }[])[0].cnt;
   if (sponsorCount === 0) {
-    const defaultSponsors = [
-      { name: "HyperX", type: "Periférico", value: "R$1k-3k", status: "prospect" },
-      { name: "Red Bull", type: "Energético", value: "R$2k-5k", status: "prospect" },
-      { name: "Pichau", type: "Hardware", value: "R$500-1k", status: "prospect" },
+    const sponsors = [
+      { name: "Loja de Periférico Local", type: "periferico", estimated_value: "R$500-1k", status: "prospect" },
+      { name: "Distribuidora Monster/Red Bull", type: "energetico", estimated_value: "R$500-2k", status: "prospect" },
+      { name: "Loja de Informática", type: "hardware", estimated_value: "R$300-800", status: "prospect" },
     ];
-    for (const s of defaultSponsors) {
+    for (const s of sponsors) {
       await dbPool.execute(
-        "INSERT INTO brand_sponsors (name, type, value, status) VALUES (?, ?, ?, ?)",
-        [s.name, s.type, s.value, s.status]
+        "INSERT INTO brand_sponsors (name, type, estimated_value, status) VALUES (?, ?, ?, ?)",
+        [s.name, s.type, s.estimated_value, s.status]
       );
     }
   }
@@ -173,12 +178,25 @@ async function seedDefaults() {
   const noteCount = (noteRows as { cnt: number }[])[0].cnt;
   if (noteCount === 0) {
     await dbPool.execute(
-      "INSERT INTO brand_notes (section, content) VALUES (?, ?)",
+      "INSERT INTO brand_notes (section_key, content) VALUES (?, ?)",
       ["global", "Bem-vindo ao Command Center da ORBITAL ROXA! Use esta área para gerenciar toda a estratégia de marca."]
     );
     await dbPool.execute(
-      "INSERT INTO brand_notes (section, content) VALUES (?, ?)",
+      "INSERT INTO brand_notes (section_key, content) VALUES (?, ?)",
       ["patrocinio", "Focar em marcas que atendem o público gamer. Periféricos, energéticos e hardware são os segmentos principais."]
+    );
+    await dbPool.execute(
+      "INSERT INTO brand_notes (section_key, content) VALUES (?, ?)",
+      ["cup2_date", "2026-05-15"]
+    );
+    await dbPool.execute(
+      "INSERT INTO brand_notes (section_key, content) VALUES (?, ?)",
+      ["desbloqueadores", JSON.stringify([
+        { id: "instagram", label: "Instagram ativo", done: false },
+        { id: "patrocinador", label: "1 patrocinador fechado", done: false },
+        { id: "local", label: "Local negociado", done: false },
+        { id: "divulgacao", label: "Divulgação regional", done: false },
+      ])]
     );
   }
 }

@@ -10,13 +10,12 @@ export async function GET(req: NextRequest) {
   try {
     await ensureBrandTables();
 
-    const [tasks] = await dbPool.execute("SELECT * FROM brand_tasks ORDER BY category, id");
-    const [checklist] = await dbPool.execute("SELECT * FROM brand_checklist ORDER BY category, id");
+    const [tasks] = await dbPool.execute("SELECT * FROM brand_tasks ORDER BY week, id");
+    const [checklist] = await dbPool.execute("SELECT * FROM brand_checklist ORDER BY sort_order, id");
     const [sponsors] = await dbPool.execute("SELECT * FROM brand_sponsors ORDER BY created_at DESC");
-    const [posts] = await dbPool.execute("SELECT * FROM brand_posts ORDER BY scheduled_for DESC");
-    const [notes] = await dbPool.execute("SELECT * FROM brand_notes ORDER BY section");
+    const [notes] = await dbPool.execute("SELECT * FROM brand_notes ORDER BY section_key");
 
-    return NextResponse.json({ tasks, checklist, sponsors, posts, notes });
+    return NextResponse.json({ tasks, checklist, sponsors, notes });
   } catch (err) {
     console.error("[BRAND GET]", err);
     return NextResponse.json({ error: "Erro ao carregar dados" }, { status: 500 });

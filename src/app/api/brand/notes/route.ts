@@ -9,7 +9,18 @@ export async function GET(req: NextRequest) {
 
   try {
     await ensureBrandTables();
-    const [rows] = await dbPool.execute("SELECT * FROM brand_notes ORDER BY section");
+    const section_key = req.nextUrl.searchParams.get("section_key");
+
+    if (section_key) {
+      const [rows] = await dbPool.execute(
+        "SELECT * FROM brand_notes WHERE section_key = ?",
+        [section_key]
+      );
+      const arr = rows as { id: number; section_key: string; content: string | null }[];
+      return NextResponse.json({ note: arr[0] || null });
+    }
+
+    const [rows] = await dbPool.execute("SELECT * FROM brand_notes ORDER BY section_key");
     return NextResponse.json({ notes: rows });
   } catch (err) {
     console.error("[BRAND NOTES GET]", err);
@@ -23,24 +34,23 @@ export async function PUT(req: NextRequest) {
 
   try {
     await ensureBrandTables();
-    const { section, content } = await req.json();
+    const { section_key, content } = await req.json();
 
-    // Upsert: update if exists, insert if not
     const [existing] = await dbPool.execute(
-      "SELECT id FROM brand_notes WHERE section = ?",
-      [section]
+      "SELECT id FROM brand_notes WHERE section_key = ?",
+      [section_key]
     );
     const rows = existing as { id: number }[];
 
     if (rows.length > 0) {
       await dbPool.execute(
-        "UPDATE brand_notes SET content = ? WHERE section = ?",
-        [content, section]
+        "UPDATE brand_notes SET content = ? WHERE section_key = ?",
+        [content, section_key]
       );
     } else {
       await dbPool.execute(
-        "INSERT INTO brand_notes (section, content) VALUES (?, ?)",
-        [section, content]
+        "INSERT INTO brand_notes (section_key, content) VALUES (?, ?)",
+        [section_key, content]
       );
     }
 
