@@ -78,15 +78,6 @@ async function callAI(prompt: string): Promise<string> {
   return block.type === "text" ? block.text : "";
 }
 
-function extractJSON(text: string): string {
-  // Try to extract JSON from code blocks or raw text
-  const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeBlock) return codeBlock[1].trim();
-  // Find first { or [
-  const start = text.search(/[{\[]/);
-  if (start >= 0) return text.substring(start);
-  return text;
-}
 
 export async function POST(req: NextRequest) {
   const authError = await checkAdmin(req);
@@ -98,130 +89,210 @@ export async function POST(req: NextRequest) {
 
   try {
     await ensureBrandTables();
-    const { action, config } = await req.json();
-
-    const brandInfo = config
-      ? `Marca: Instagram ${config.instagram}, Site: ${config.site}, Região: ${config.region}, Nicho: ${config.niche}. ${config.description}`
-      : "ORBITAL ROXA — crew de CS2 em Ribeirão Preto/SP.";
+    const { action, context } = await req.json();
 
     switch (action) {
-      // ═══ STEP 2: ANÁLISE (4 sub-steps) ═══
-      case "analise-perfil": {
-        const raw = await callAI(`${brandInfo}
+      // ═══ INSTAGRAM: Caption, Prompt Imagem, Hashtags ═══
+      case "gerar-caption": {
+        const raw = await callAI(`Crie uma caption para Instagram pro seguinte post da ORBITAL ROXA:
+Título: ${context?.title || "Post"}
+Tipo: ${context?.post_type || "feed"}
 
-Analise o perfil desta marca como analista de marketing. Avalie:
-- Presença digital (Instagram, site)
-- Identidade visual e tom de comunicação
-- Público-alvo aparente
-- Primeiras impressões
+A caption deve ser:
+- Informal, usar gírias de CS2 (clutch, ace, GG, bora)
+- Ter emojis mas sem exagero
+- Ter CTA no final (seguir, acessar site, marcar amigo)
+- Mencionar @orbitalroxa.gg
+- Máximo 2200 caracteres
+- Usar dados reais do Cup #1 quando relevante
 
-Retorne um texto de 3-5 parágrafos com a análise. Texto puro, sem JSON.`);
+Retorne APENAS a caption, sem explicação.`);
         return NextResponse.json({ result: raw });
       }
 
-      case "analise-site": {
-        const raw = await callAI(`${brandInfo}
+      case "gerar-prompt-imagem": {
+        const raw = await callAI(`Crie um prompt detalhado para gerar uma imagem no Midjourney/DALL-E para o seguinte post de Instagram da ORBITAL ROXA:
+Título: ${context?.title || "Post"}
+Tipo: ${context?.post_type || "feed"}
+Caption: ${context?.caption || ""}
 
-Analise o site/plataforma desta marca (${config?.site || "orbitalroxa.com.br"}). Avalie:
-- Proposta de valor comunicada
-- Funcionalidades que diferenciam (stats ao vivo, highlights, leaderboard)
-- UX e experiência do visitante
-- Pontos fortes e fracos do site como ferramenta de marketing
+A imagem deve seguir a identidade visual:
+- Tema: cyberpunk/gamer HUD, sci-fi
+- Cores: roxo #A855F7 como destaque, fundo preto/escuro
+- Estilo: moderno, gaming, esports
+- Formato: 1080x1080 (feed) ou 1080x1920 (story/reel)
 
-Retorne um texto de 3-5 parágrafos com a análise. Texto puro, sem JSON.`);
+Retorne APENAS o prompt em inglês, otimizado pra geração de imagem. Sem explicação.`);
+        return NextResponse.json({ result: raw });
+      }
+
+      case "gerar-hashtags": {
+        const raw = await callAI(`Gere hashtags para o seguinte post de Instagram da ORBITAL ROXA:
+Título: ${context?.title || "Post"}
+Tipo: ${context?.post_type || "feed"}
+Caption: ${context?.caption || ""}
+
+Regras:
+- Máximo 15 hashtags
+- Mix de: CS2/gaming (alto alcance), local (Ribeirão Preto), nicho (esports amador), próprias (#ORBITALROXA #ORBITALCUP)
+- Sem hashtags muito genéricas (#love, #instagood)
+
+Retorne APENAS as hashtags separadas por espaço, sem explicação.`);
+        return NextResponse.json({ result: raw });
+      }
+
+      // ═══ PATROCÍNIO: Buscar, Abordagem, Proposta ═══
+      case "buscar-patrocinadores": {
+        const raw = await callAI(`Sugira 8 patrocinadores potenciais REAIS para a ORBITAL ROXA em Ribeirão Preto/SP.
+
+Foque em:
+- Comércios locais de games/informática em RP
+- Marcas de energético que patrocinam esports no Brasil
+- Marcas de periféricos com programa de patrocínio acessível
+- Comércios locais (pizzaria, barbearia, academia) que atendem público jovem
+
+Para cada um, inclua:
+- Nome real da empresa/marca
+- Tipo (energetico/periferico/local/hardware)
+- Valor estimado que pediríamos (R$300 a R$3.000)
+- Por que faz sentido abordar
+
+Retorne como texto organizado com ## para cada sponsor. Texto puro.`);
+        return NextResponse.json({ result: raw });
+      }
+
+      case "gerar-abordagem": {
+        const raw = await callAI(`Crie uma mensagem de abordagem (DM ou email curto) para o seguinte patrocinador potencial da ORBITAL ROXA:
+Nome: ${context?.name || "Empresa"}
+Tipo: ${context?.type || "local"}
+Valor estimado: ${context?.estimated_value || "R$600"}
+
+A mensagem deve:
+- Ser informal mas profissional
+- Mencionar o Cup #1 (70 jogadores, 120 viewers, 14 partidas)
+- Mencionar a plataforma própria (orbitalroxa.com.br)
+- Ser direta sobre o que queremos (patrocínio)
+- Ser curta (máx 150 palavras)
+- Ter CTA claro (pode mandar a proposta?)
+
+Retorne APENAS a mensagem pronta pra copiar e enviar.`);
+        return NextResponse.json({ result: raw });
+      }
+
+      case "gerar-proposta": {
+        const raw = await callAI(`Crie uma proposta de patrocínio curta e objetiva para:
+Nome: ${context?.name || "Empresa"}
+Tipo: ${context?.type || "local"}
+Pacote: ${context?.package_tier || "bronze"}
+
+Pacotes disponíveis:
+- Bronze (R$600): Logo site + 2 menções live + 1 post IG
+- Prata (R$1.500): Bronze + banner mapa CS2 + banner presencial + 3 posts + venda no local
+- Ouro (R$3.000): Naming rights + exclusividade + tudo
+
+Inclua:
+- O que é a ORBITAL ROXA (breve)
+- Números do Cup #1
+- O que o patrocinador recebe (detalhado pro pacote escolhido)
+- Valor e forma de pagamento (PIX)
+- Possibilidade de permuta com produtos
+
+Retorne a proposta formatada e pronta pra enviar. Texto puro com headers.`);
+        return NextResponse.json({ result: raw });
+      }
+
+      // ═══ ASSISTENTE: Análises gerais ═══
+      case "analise-marca": {
+        const raw = await callAI(`Analise o posicionamento atual da ORBITAL ROXA no mercado. Considere:
+- Presença digital (Instagram 0 posts, site orbitalroxa.com.br ativo)
+- Cup #1 realizado com sucesso (70 presenciais, 120 viewers)
+- Plataforma própria como diferencial
+- Marca de roupa streetwear
+- Comunidade WhatsApp ativa
+- Zero patrocinadores
+- Informal, sem CNPJ
+
+Faça uma análise honesta com pontos fortes, fracos e recomendações imediatas. Texto organizado com headers.`);
         return NextResponse.json({ result: raw });
       }
 
       case "analise-concorrentes": {
-        const raw = await callAI(`${brandInfo}
+        const raw = await callAI(`Identifique e analise os concorrentes/referências da ORBITAL ROXA:
+- Cena CS2 amadora de Ribeirão Preto e interior SP
+- Organizadores de campeonatos LAN no Brasil
+- Referências: Santos Games, Alcans Games, ESL Brazil
 
-Identifique os 5 principais concorrentes/referências desta marca no mercado de ${config?.niche || "CS2/Esports"} na região de ${config?.region || "Ribeirão Preto"} e no Brasil. Para cada um, cite:
-- Nome e o que faz
-- Presença digital (Instagram, site)
-- Ponto forte
-- Ponto fraco
+Para cada concorrente/referência:
+- O que fazem
+- Tamanho e alcance
+- O que fazem melhor que a Orbital
+- O que a Orbital faz melhor que eles
+- O que podemos aprender
 
-Retorne um texto organizado. Texto puro, sem JSON.`);
+Texto organizado com headers.`);
         return NextResponse.json({ result: raw });
       }
 
-      case "analise-mercado": {
-        const raw = await callAI(`${brandInfo}
+      case "buscar-leads": {
+        const raw = await callAI(`Sugira leads concretos para a ORBITAL ROXA captar para o Cup #2:
 
-Analise o posicionamento desta marca no mercado de ${config?.niche || "esports"} em ${config?.region || "Ribeirão Preto"}:
-- Onde a marca se encaixa (local vs nacional, casual vs competitivo)
-- Tamanho do mercado na região
-- Tendências do setor
-- Oportunidades inexploradas
-- Barreiras de entrada
+1. TIMES: onde encontrar times de CS2 na região de Ribeirão Preto/interior SP
+2. JOGADORES: comunidades, grupos, discords onde divulgar
+3. ESPECTADORES: como atrair mais viewers pra live
+4. COMUNIDADES: grupos de CS2 brasileiros pra se conectar
 
-Retorne um texto de 3-5 parágrafos. Texto puro, sem JSON.`);
+Para cada lead, dê:
+- Onde encontrar (link/plataforma)
+- Como abordar
+- Expectativa de conversão
+
+Foque em ações gratuitas e realistas. Texto organizado.`);
         return NextResponse.json({ result: raw });
       }
 
-      // ═══ STEP 3: DIAGNÓSTICO ═══
-      case "diagnostico-completo": {
-        const raw = await callAI(`${brandInfo}
+      case "proximos-passos": {
+        const raw = await callAI(`Baseado na situação atual da ORBITAL ROXA (19 de março 2026):
+- Cup #1 finalizado com sucesso
+- Instagram @orbitalroxa.gg com 0 posts
+- Cup #2 planejado pra maio 2026
+- R$500 de orçamento
+- 0 patrocinadores
 
-Crie um diagnóstico SWOT completo desta marca. Retorne APENAS um JSON válido neste formato exato:
-{
-  "posicionamento": "frase descrevendo o posicionamento atual da marca",
-  "nota": 7,
-  "forcas": ["força 1", "força 2", "força 3", "força 4"],
-  "fraquezas": ["fraqueza 1", "fraqueza 2", "fraqueza 3"],
-  "oportunidades": ["oportunidade 1", "oportunidade 2", "oportunidade 3"],
-  "ameacas": ["ameaça 1", "ameaça 2", "ameaça 3"],
-  "concorrentes": [
-    {"nome": "Nome 1", "pontoForte": "o que fazem bem", "oportunidade": "o que podemos explorar"},
-    {"nome": "Nome 2", "pontoForte": "o que fazem bem", "oportunidade": "o que podemos explorar"},
-    {"nome": "Nome 3", "pontoForte": "o que fazem bem", "oportunidade": "o que podemos explorar"}
-  ],
-  "resumo": "uma frase resumindo o diagnóstico geral"
-}`);
-        const parsed = JSON.parse(extractJSON(raw));
-        return NextResponse.json({ result: JSON.stringify(parsed) });
+Liste os 10 próximos passos mais importantes em ordem de prioridade. Para cada:
+- O que fazer (específico)
+- Quem da crew faz (nastyy, Vancim, z1k4mem0, loko)
+- Prazo (esta semana, próxima semana, este mês)
+- Custo (R$0, R$X)
+
+Seja prático e realista. Texto organizado.`);
+        return NextResponse.json({ result: raw });
       }
 
-      // ═══ STEP 4: PLANO ═══
-      case "gerar-plano": {
-        const raw = await callAI(`${brandInfo}
+      case "gerar-cronograma": {
+        const raw = await callAI(`Crie o cronograma detalhado da PRÓXIMA SEMANA para a ORBITAL ROXA.
+Hoje é ${new Date().toLocaleDateString("pt-BR")}.
 
-Crie um plano estratégico de marketing. Retorne APENAS um JSON válido neste formato exato:
-{
-  "posicionamento": "frase de posicionamento da marca no mercado",
-  "tomDeVoz": "descrição do tom de voz ideal para comunicação",
-  "pilares": ["pilar 1", "pilar 2", "pilar 3", "pilar 4", "pilar 5"],
-  "cronograma": [
-    {"semana": 1, "titulo": "Título da semana", "tarefas": ["tarefa 1", "tarefa 2", "tarefa 3", "tarefa 4", "tarefa 5"]},
-    {"semana": 2, "titulo": "Título", "tarefas": ["tarefa 1", "tarefa 2", "tarefa 3", "tarefa 4"]},
-    {"semana": 3, "titulo": "Título", "tarefas": ["tarefa 1", "tarefa 2", "tarefa 3", "tarefa 4"]},
-    {"semana": 4, "titulo": "Título", "tarefas": ["tarefa 1", "tarefa 2", "tarefa 3", "tarefa 4"]},
-    {"semana": 5, "titulo": "Título", "tarefas": ["tarefa 1", "tarefa 2", "tarefa 3"]},
-    {"semana": 6, "titulo": "Título", "tarefas": ["tarefa 1", "tarefa 2", "tarefa 3"]}
-  ]
-}
-Use 6 semanas. Cada semana com 3-5 tarefas específicas e acionáveis.`);
-        const parsed = JSON.parse(extractJSON(raw));
-        return NextResponse.json({ result: JSON.stringify(parsed) });
-      }
+Distribua tarefas entre os 4 membros:
+- nastyy (idealizador, visão)
+- Vancim (dev web, marketing)
+- z1k4mem0 (investidor, organizador)
+- loko (operacional)
 
-      // ═══ STEP 5: CONTEÚDO ═══
-      case "gerar-conteudo": {
-        const raw = await callAI(`${brandInfo}
+Inclua:
+- Posts pra Instagram (título, tipo, horário)
+- Tarefas de patrocínio
+- Tarefas de organização Cup #2
+- Tarefas de comunidade
 
-Crie 10 posts prontos para Instagram. Retorne APENAS um JSON array neste formato exato:
-[
-  {"title": "Título do post", "type": "feed", "day": "Segunda", "time": "19:30", "caption": "Caption completa com emojis e CTA", "hashtags": "#hashtag1 #hashtag2 #hashtag3"},
-  {"title": "Outro post", "type": "reel", "day": "Sábado", "time": "14:00", "caption": "Caption...", "hashtags": "#tags..."}
-]
+Formato:
+## Segunda
+- [ ] Tarefa (Responsável) — Horário/Prazo
 
-Tipos: feed (máx 1/dia), story, reel.
-Horários: Feed 19:30 (Ter/Qua/Sex), Reel 14:00 (Sáb), Story (outros dias).
-Use dados reais quando possível. Captions completas prontas pra copiar e colar.
-Inclua CTA em cada post. Máximo 15 hashtags por post.
-Gere exatamente 10 posts variados.`);
-        const parsed = JSON.parse(extractJSON(raw));
-        return NextResponse.json({ result: JSON.stringify(parsed) });
+## Terça
+...
+
+Seja realista — cada pessoa tem no máximo 1-2h por dia pra dedicar.`);
+        return NextResponse.json({ result: raw });
       }
 
       default:
