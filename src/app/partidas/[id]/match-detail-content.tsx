@@ -180,12 +180,12 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
     if (activeTab !== "all") return playerStats.filter(s => s.map_id === activeTab);
     if (mapStats.length <= 1) return playerStats;
     // Aggregate: group by steam_id + team_id, sum numeric fields
-    const grouped: Record<string, PlayerStats> = {};
+    const grouped: Record<string, PlayerStats & { _mapCount: number; _ratingSum: number }> = {};
     for (const s of playerStats) {
       const key = `${s.steam_id}_${s.team_id}`;
       const existing = grouped[key];
       if (!existing) {
-        grouped[key] = { ...s };
+        grouped[key] = { ...s, _mapCount: 1, _ratingSum: s.rating || 0 };
       } else {
         existing.kills += s.kills;
         existing.deaths += s.deaths;
@@ -205,9 +205,19 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         existing.firstdeath_ct += s.firstdeath_ct;
         existing.mvp += s.mvp;
         existing.contribution_score += s.contribution_score;
+        existing._mapCount += 1;
+        existing._ratingSum += s.rating || 0;
       }
     }
-    return Object.values(grouped);
+    // Recalculate average_rating as weighted mean across maps
+    const result = Object.values(grouped);
+    for (const s of result) {
+      const g = s as PlayerStats & { _mapCount: number; _ratingSum: number };
+      if (g._mapCount > 1) {
+        s.rating = parseFloat((g._ratingSum / g._mapCount).toFixed(2));
+      }
+    }
+    return result;
   })();
   const team1Stats = filteredStats.filter((s) => s.team_id === match.team1_id);
   const team2Stats = filteredStats.filter((s) => s.team_id === match.team2_id);

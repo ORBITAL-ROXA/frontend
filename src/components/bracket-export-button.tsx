@@ -64,27 +64,28 @@ export function BracketExportButton({ bracketRef, tournamentName }: BracketExpor
       el.appendChild(footer);
 
       // Capturar
-      const dataUrl = await toPng(el, {
-        pixelRatio: 2,
-        backgroundColor: "#0A0A0A",
-        style: {
-          overflow: "visible",
-        },
-      });
-
-      // Remover header/footer temporários
-      el.removeChild(header);
-      el.removeChild(footer);
-
-      // Restaurar estado original
-      el.style.overflow = originalOverflow;
-      el.style.overflowX = originalOverflowX;
-      el.style.padding = originalPadding;
-      el.style.background = originalBg;
-      overflowChildren.forEach(({ el: child, overflow, overflowX }) => {
-        child.style.overflow = overflow;
-        child.style.overflowX = overflowX;
-      });
+      let dataUrl: string;
+      try {
+        dataUrl = await toPng(el, {
+          pixelRatio: 2,
+          backgroundColor: "#0A0A0A",
+          style: {
+            overflow: "visible",
+          },
+        });
+      } finally {
+        // Sempre remover header/footer temporários e restaurar estilos
+        if (header.parentNode) el.removeChild(header);
+        if (footer.parentNode) el.removeChild(footer);
+        el.style.overflow = originalOverflow;
+        el.style.overflowX = originalOverflowX;
+        el.style.padding = originalPadding;
+        el.style.background = originalBg;
+        overflowChildren.forEach(({ el: child, overflow, overflowX }) => {
+          child.style.overflow = overflow;
+          child.style.overflowX = overflowX;
+        });
+      }
 
       // Download ou Share
       const fileName = `${tournamentName.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}_bracket.png`;
@@ -103,11 +104,6 @@ export function BracketExportButton({ bracketRef, tournamentName }: BracketExpor
       }
     } catch (err) {
       console.error("Erro ao exportar bracket:", err);
-      // Restaurar em caso de erro
-      el.style.overflow = originalOverflow;
-      el.style.overflowX = originalOverflowX;
-      el.style.padding = originalPadding;
-      el.style.background = originalBg;
     } finally {
       setLoading(false);
     }

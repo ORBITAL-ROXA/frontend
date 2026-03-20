@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTournamentsFromDB } from "@/lib/tournaments-db";
-import { getLeaderboard, getMatch, getMapStats, getPlayerStats, parseMapStats } from "@/lib/api";
-import type { Match, MapStats, PlayerStats, LeaderboardEntry, HighlightClip } from "@/lib/api";
+import { getLeaderboard, getMatch, getMapStats, getPlayerStats, getTeams, parseMapStats } from "@/lib/api";
+import type { Match, MapStats, PlayerStats, LeaderboardEntry, HighlightClip, Team } from "@/lib/api";
 import type { Tournament, BracketMatch } from "@/lib/tournament";
 import { RecapContent } from "./recap-content";
 
@@ -73,9 +73,16 @@ export default async function RecapPage({ params }: { params: Promise<{ id: stri
 
   const matchesData: MatchData[] = await Promise.all(matchDataPromises);
 
-  // Fetch highlights for all tournament matches
+  // Fetch highlights + teams (for logos)
   const matchIds = bracketMatchesWithId.map((m: BracketMatch) => m.match_id!);
-  const highlights = await fetchHighlightsForMatches(matchIds);
+  const [highlights, teamsData] = await Promise.all([
+    fetchHighlightsForMatches(matchIds),
+    getTeams().then(r => (r.teams || []) as Team[]).catch(() => [] as Team[]),
+  ]);
+  const teamsMap: Record<number, { name: string; logo?: string }> = {};
+  for (const t of teamsData) {
+    teamsMap[t.id] = { name: t.name, logo: t.logo ?? undefined };
+  }
 
   return (
     <RecapContent
@@ -83,6 +90,7 @@ export default async function RecapPage({ params }: { params: Promise<{ id: stri
       leaderboard={leaderboard}
       matchesData={matchesData}
       highlights={highlights}
+      teamsMap={teamsMap}
     />
   );
 }

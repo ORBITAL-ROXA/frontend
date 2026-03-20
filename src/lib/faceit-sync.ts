@@ -182,7 +182,9 @@ export async function syncFaceitMatchToG5API(
                 firstkill_ct: Math.ceil(ps.first_kills / 2),
                 firstdeath_t: 0,
                 firstdeath_ct: 0,
-                kast: 0, // Faceit não fornece
+                kast: roundsPlayed > 0
+                  ? Math.min(100, Math.round(((ps.kills + ps.assists + Math.max(0, roundsPlayed - ps.deaths)) / roundsPlayed) * 100))
+                  : 0, // Estimativa: (K+A+Survived)/Rounds — Faceit não fornece KAST real
                 contribution_score: ps.mvps * 5 + ps.kills,
                 mvp: ps.mvps,
                 k1: ps.kills - ps.double_kills * 2 - ps.triple_kills * 3 - ps.quadro_kills * 4 - ps.penta_kills * 5,

@@ -19,6 +19,7 @@ interface RecapContentProps {
   leaderboard: LeaderboardEntry[];
   matchesData: MatchData[];
   highlights: HighlightClip[];
+  teamsMap?: Record<number, { name: string; logo?: string }>;
 }
 
 function TeamLogo({ logo, size = 32, className = "" }: { logo: string | null | undefined; size?: number; className?: string }) {
@@ -51,7 +52,7 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: 
   );
 }
 
-export function RecapContent({ tournament, leaderboard, matchesData, highlights }: RecapContentProps) {
+export function RecapContent({ tournament, leaderboard, matchesData, highlights, teamsMap = {} }: RecapContentProps) {
   const t = tournament;
   const gf = t.matches.find(m => m.id === "GF");
   const champion = gf?.winner_id ? t.teams.find(tm => tm.id === gf.winner_id) : null;
@@ -190,7 +191,7 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights 
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 border border-yellow-500/30 flex items-center justify-center bg-[#0A0A0A]">
-                      <TeamLogo logo={null} size={48} className="w-12 h-12 sm:w-14 sm:h-14" />
+                      <TeamLogo logo={champion ? teamsMap[champion.id]?.logo : undefined} size={48} className="w-12 h-12 sm:w-14 sm:h-14" />
                     </div>
                     <div>
                       <h3

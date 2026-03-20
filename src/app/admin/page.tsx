@@ -39,15 +39,19 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function load() {
       try {
+        // Test API connectivity first with a single request
+        const healthCheck = await fetch("/api/matches?limit=1", { credentials: "include" });
+        if (!healthCheck.ok) throw new Error("API offline");
+        setApiStatus("online");
+
         const [matchesRes, teamsRes, serversRes, seasonsRes, lbRes, tourRes] = await Promise.all([
-          fetch("/api/matches", { credentials: "include" }).then(r => r.json()).catch(() => ({ matches: [] })),
+          healthCheck.json(),
           fetch("/api/teams", { credentials: "include" }).then(r => r.json()).catch(() => ({ teams: [] })),
           fetch("/api/servers", { credentials: "include" }).then(r => r.json()).catch(() => ({ servers: [] })),
           fetch("/api/seasons", { credentials: "include" }).then(r => r.json()).catch(() => ({ seasons: [] })),
           fetch("/api/leaderboard/players", { credentials: "include" }).then(r => r.json()).catch(() => ({ leaderboard: [] })),
           fetch("/api/tournaments").then(r => r.json()).catch(() => ({ tournaments: [] })),
         ]);
-        setApiStatus("online");
         setMatches(matchesRes.matches || []);
         setTeams(teamsRes.teams || []);
         setServers(serversRes.servers || []);
