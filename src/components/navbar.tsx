@@ -52,21 +52,19 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-0">
             {navLinks.map((link) => {
               const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
-              const Icon = link.icon;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative flex items-center gap-2 px-4 py-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] transition-colors ${
+                  className={`relative flex items-center px-3 py-2 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.12em] transition-colors ${
                     isActive
                       ? "text-orbital-purple"
                       : "text-orbital-text-dim hover:text-orbital-text"
                   }`}
                 >
-                  <Icon size={14} />
                   {link.label}
                   {isActive && (
                     <motion.div
@@ -84,13 +82,13 @@ export function Navbar() {
             {isAdmin && (
               <Link
                 href="/admin"
-                className={`relative flex items-center gap-2 px-4 py-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] transition-colors ${
+                className={`relative flex items-center gap-1.5 px-3 py-2 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.12em] transition-colors ${
                   pathname.startsWith("/admin")
                     ? "text-orbital-purple"
                     : "text-orbital-text-dim hover:text-orbital-text"
                 }`}
               >
-                <Shield size={14} />
+                <Shield size={12} />
                 ADMIN
                 {pathname.startsWith("/admin") && (
                   <motion.div
@@ -187,11 +185,11 @@ export function Navbar() {
             ) : (
               <button
                 onClick={login}
-                className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple"
+                className="flex items-center gap-1.5 px-3 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-purple whitespace-nowrap"
               >
-                <LogIn size={14} />
-                <span className="hidden sm:inline">ENTRAR VIA STEAM</span>
-                <span className="sm:hidden">LOGIN</span>
+                <LogIn size={12} />
+                <span className="hidden xl:inline">ENTRAR VIA STEAM</span>
+                <span className="xl:hidden">LOGIN</span>
               </button>
             )}
 
