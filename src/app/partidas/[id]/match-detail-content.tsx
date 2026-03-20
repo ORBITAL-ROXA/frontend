@@ -10,6 +10,7 @@ import { BracketMatch } from "@/lib/tournament";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { MAP_IMAGES } from "@/lib/maps";
+import { MatchCardExport } from "@/components/match-card-export";
 
 function TeamLogo({ logo, size = 48, className = "" }: { logo: string | null | undefined; size?: number; className?: string }) {
   if (!logo) return <Shield size={size * 0.5} className="text-orbital-text-dim" />;
@@ -416,9 +417,9 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
               </div>
             )}
 
-            {/* Demo download (BO1 integrated) */}
-            {isBO1 && currentMap?.demoFile && currentMap.end_time && (
-              <div className="text-center mt-3">
+            {/* Demo download + Share card */}
+            <div className="flex items-center justify-center gap-3 mt-3 flex-wrap">
+              {isBO1 && currentMap?.demoFile && currentMap.end_time && (
                 <a
                   href={`/api/demo/${currentMap.demoFile}`}
                   download
@@ -426,8 +427,17 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                 >
                   <Download size={10} /> DOWNLOAD DEMO
                 </a>
-              </div>
-            )}
+              )}
+              {isFinished && playerStats.length > 0 && (
+                <MatchCardExport
+                  match={match}
+                  playerStats={playerStats}
+                  mapStats={mapStats}
+                  team1={team1}
+                  team2={team2}
+                />
+              )}
+            </div>
           </div>
         </div>
       </motion.section>
