@@ -6,6 +6,7 @@ import Link from "next/link";
 import { HudCard, StatBox } from "@/components/hud-card";
 import { Tournament, getTeamName, BracketMatch } from "@/lib/tournament";
 import type { Match, MapStats, PlayerStats, LeaderboardEntry, HighlightClip } from "@/lib/api";
+import { calculateAwards } from "@/lib/awards";
 
 interface MatchData {
   bracketMatch: BracketMatch;
@@ -61,6 +62,8 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
   const allPlayerStats = matchesData.flatMap(md => md.playerStats);
   const allMapStats = matchesData.flatMap(md => md.mapStats);
   const finishedMatches = matchesData.filter(md => md.match);
+
+  const awards = calculateAwards(allPlayerStats);
 
   const totalKills = allPlayerStats.reduce((sum, p) => sum + p.kills, 0);
   const totalHeadshots = allPlayerStats.reduce((sum, p) => sum + p.headshot_kills, 0);
@@ -248,6 +251,42 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
           </div>
         </section>
       </RevealSection>
+
+      {/* ═══ AWARDS ═══ */}
+      {awards.length > 0 && (
+        <RevealSection className="mb-16">
+          <SectionHeader icon={Star} title="DESTAQUES DO CAMPEONATO" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {awards.map((award, idx) => (
+              <motion.div
+                key={award.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+              >
+                <Link
+                  href={`/perfil/${award.steamId}`}
+                  className="block bg-[#0A0A0A] border border-orbital-border hover:border-orbital-purple/40 p-4 text-center transition-colors group h-full"
+                >
+                  <div className="text-3xl mb-2">{award.emoji}</div>
+                  <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-purple mb-2">
+                    {award.title}
+                  </div>
+                  <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text group-hover:text-orbital-purple transition-colors truncate">
+                    {award.playerName}
+                  </div>
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim mt-1">
+                    {award.value}
+                  </div>
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50 mt-0.5">
+                    {award.description}
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </RevealSection>
+      )}
 
       {/* ═══ STATS GRID ═══ */}
       <RevealSection className="mb-16">

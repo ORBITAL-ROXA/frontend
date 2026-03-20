@@ -15,7 +15,8 @@ import { VideoPlayer } from "@/components/video-player";
 import { FullBracket, MapScoresMap } from "@/components/bracket";
 import { BracketExportButton } from "@/components/bracket-export-button";
 import { useAuth } from "@/lib/auth-context";
-import { createMatch, getServers, getTeams, getMapStats, getMatches, getLeaderboard, parseMapStats, Server, Match, LeaderboardEntry, HighlightClip } from "@/lib/api";
+import { createMatch, getServers, getTeams, getMapStats, getMatches, getLeaderboard, getPlayerStats, parseMapStats, Server, Match, LeaderboardEntry, HighlightClip, PlayerStats } from "@/lib/api";
+import { calculateAwards, Award } from "@/lib/awards";
 import { TeamsMap } from "@/components/bracket";
 import { MAP_IMAGES } from "@/lib/maps";
 import {
@@ -78,6 +79,9 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
   // Highlights tab state
   const [highlights, setHighlights] = useState<HighlightClip[]>([]);
   const [highlightsLoading, setHighlightsLoading] = useState(false);
+
+  // Awards
+  const [awards, setAwards] = useState<Award[]>([]);
 
   const fetchTournament = useCallback(async () => {
     try {
@@ -198,6 +202,21 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
       }));
     }).catch(() => {}).finally(() => setMatchesLoading(false));
   }, [activeTab, tournament?.season_id]);
+
+  // Fetch awards for finished tournament
+  useEffect(() => {
+    if (!tournament || tournament.status !== "finished") return;
+    const matchIds = tournament.matches.filter(m => m.match_id && m.status === "finished").map(m => m.match_id!);
+    if (matchIds.length === 0) return;
+
+    Promise.all(matchIds.map(mid => getPlayerStats(mid).then(r => {
+      const raw = r as unknown as Record<string, unknown>;
+      return ((raw.playerstats || raw.playerStats || []) as PlayerStats[]);
+    }).catch(() => [] as PlayerStats[]))).then(results => {
+      const allStats = results.flat();
+      if (allStats.length > 0) setAwards(calculateAwards(allStats));
+    });
+  }, [tournament]);
 
   // Fetch ranking when RANKING tab is activated
   useEffect(() => {
@@ -803,6 +822,32 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                       </div>
                       <div className="text-center mt-4">
                         <BracketExportButton bracketRef={bracketRef} tournamentName={tournament.name} />
+                      </div>
+                    </HudCard>
+                  )}
+
+                  {/* Awards */}
+                  {awards.length > 0 && (
+                    <HudCard className="p-5" label="AWARDS">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                        {awards.map((award) => (
+                          <Link
+                            key={award.id}
+                            href={`/perfil/${award.steamId}`}
+                            className="bg-[#0A0A0A] border border-orbital-border hover:border-orbital-purple/40 p-3 text-center transition-colors group"
+                          >
+                            <div className="text-2xl mb-1">{award.emoji}</div>
+                            <div className="font-[family-name:var(--font-orbitron)] text-[0.45rem] tracking-[0.15em] text-orbital-purple mb-1">
+                              {award.title}
+                            </div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text group-hover:text-orbital-purple transition-colors truncate">
+                              {award.playerName}
+                            </div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-0.5">
+                              {award.value}
+                            </div>
+                          </Link>
+                        ))}
                       </div>
                     </HudCard>
                   )}
