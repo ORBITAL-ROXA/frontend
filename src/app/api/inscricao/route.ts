@@ -73,8 +73,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
     }
 
-    if (!Array.isArray(players) || players.length < 5) {
-      return NextResponse.json({ error: "Mínimo 5 jogadores" }, { status: 400 });
+    if (!Array.isArray(players) || players.length < 5 || players.length > 7) {
+      return NextResponse.json({ error: "Mínimo 5, máximo 7 jogadores" }, { status: 400 });
+    }
+
+    // Verificar vagas no servidor (máximo 8 times)
+    if (tournament_id) {
+      const [slotRows] = await pool.query(
+        "SELECT COUNT(*) as c FROM inscricoes WHERE tournament_id = ? AND status IN ('pendente','aprovado','pago')",
+        [tournament_id]
+      ) as [{ c: number }[], unknown];
+      if (slotRows[0].c >= 8) {
+        return NextResponse.json({ error: "Vagas esgotadas para este campeonato" }, { status: 409 });
+      }
     }
 
     // Validar Steam IDs

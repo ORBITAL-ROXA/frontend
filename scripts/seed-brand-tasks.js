@@ -1,7 +1,7 @@
 const mysql = require('mysql2/promise');
 
 async function seed() {
-  const conn = await mysql.createConnection('mysql://root:zeZFNxJOVxihnMXrLfvEqpRWmUaijZRx@hopper.proxy.rlwy.net:37565/railway');
+  const conn = await mysql.createConnection(process.env.DATABASE_URL);
 
   await conn.query('DELETE FROM brand_tasks');
   console.log('Tasks antigas limpas');

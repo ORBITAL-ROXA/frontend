@@ -1,14 +1,17 @@
 // Calcula awards automáticos baseado nos player stats do campeonato
 import type { PlayerStats } from "./api";
 
-// Calcula rating HLTV 1.0 simplificado quando o campo rating não vem da API
-function calcRating(s: { kills: number; deaths: number; assists: number; roundsplayed: number; damage: number; k3: number; k4: number; k5: number; firstkill_t: number; firstkill_ct: number }): number {
+// HLTV Rating 1.0 — mesma fórmula usada em profile-content.tsx
+function calcRating(s: { kills: number; deaths: number; roundsplayed: number; k1: number; k2: number; k3: number; k4: number; k5: number }): number {
   const r = s.roundsplayed || 1;
-  const killRating = s.kills / r / 0.679;
-  const survivalRating = (r - s.deaths) / r / 0.317;
-  const multiKillBonus = (s.k3 * 0.5 + s.k4 * 1 + s.k5 * 2) / r;
-  const impactRating = ((s.firstkill_t + s.firstkill_ct) * 0.15 + s.damage / r * 0.003 + multiKillBonus) * 1.2;
-  return (killRating + 0.7 * survivalRating + impactRating) / 2.7;
+  const AverageKPR = 0.679;
+  const AverageSPR = 0.317;
+  const AverageRMK = 1.277;
+  const KillRating = (s.kills / r) / AverageKPR;
+  const SurvivalRating = ((r - s.deaths) / r) / AverageSPR;
+  const killcount = s.k1 + 4 * s.k2 + 9 * s.k3 + 16 * s.k4 + 25 * s.k5;
+  const RoundsWithMultipleKillsRating = (killcount / r) / AverageRMK;
+  return (KillRating + 0.7 * SurvivalRating + RoundsWithMultipleKillsRating) / 2.7;
 }
 
 export interface Award {

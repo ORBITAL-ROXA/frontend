@@ -16,7 +16,7 @@ const BUCKET = 'orbitalroxa';
 const VIDEO_DIR = path.join(__dirname, 'highlights/final_videos');
 
 async function upload() {
-  const conn = await mysql.createConnection('mysql://root:zeZFNxJOVxihnMXrLfvEqpRWmUaijZRx@hopper.proxy.rlwy.net:37565/railway');
+  const conn = await mysql.createConnection(process.env.DATABASE_URL);
   const [clips] = await conn.query('SELECT id, match_id, map_number, `rank`, player_name, video_file FROM highlight_clips WHERE status="ready" ORDER BY match_id, map_number, `rank`');
 
   console.log(`Total clips in DB: ${clips.length}`);

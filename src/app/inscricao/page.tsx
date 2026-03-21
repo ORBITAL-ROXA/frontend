@@ -79,7 +79,8 @@ export default function InscricaoPage() {
     captainSteamId.trim() &&
     captainWhatsapp.trim() &&
     players.filter(p => p.name.trim() && p.steam_id.trim()).length >= 5 &&
-    slotsUsed < maxSlots;
+    slotsUsed < maxSlots &&
+    (tournaments.length <= 1 || selectedTournament);
 
   const handleSubmit = async () => {
     if (!canSubmit) return;

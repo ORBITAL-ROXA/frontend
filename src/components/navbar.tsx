@@ -214,7 +214,7 @@ export function Navbar() {
           className="lg:hidden bg-[#0A0A0A] border-b border-[#1A1A1A] px-4 pb-4"
         >
           {navLinks.map((link) => {
-            const isActive = pathname.startsWith(link.href);
+            const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
             const Icon = link.icon;
             return (
               <Link

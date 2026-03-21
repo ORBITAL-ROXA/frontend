@@ -7,7 +7,7 @@
 
 const mysql = require('mysql2/promise');
 
-const DB_URL = 'mysql://root:zeZFNxJOVxihnMXrLfvEqpRWmUaijZRx@hopper.proxy.rlwy.net:37565/railway';
+const DB_URL = process.env.DATABASE_URL;
 
 // Times existentes: 1 = ORBITAL ROXA, 2 = FIRE GAMES
 // Jogadores existentes em team_auth_names:
