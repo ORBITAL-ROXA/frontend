@@ -22,11 +22,9 @@ const adminLinks = [
 ];
 
 const brandSubLinks = [
-  { href: "/admin/brand", label: "Dashboard", icon: Home, exact: true },
-  { href: "/admin/brand/cronograma", label: "Cronograma", icon: Calendar },
-  { href: "/admin/brand/instagram", label: "Instagram", icon: Megaphone },
-  { href: "/admin/brand/patrocinio", label: "Patrocínios", icon: Trophy },
-  { href: "/admin/brand/assistente", label: "Assistente IA", icon: Bot },
+  { href: "/admin/brand", label: "Instagram", icon: Home, exact: true },
+  { href: "/admin/brand/conteudo", label: "Conteúdo", icon: Megaphone },
+  { href: "/admin/brand/analytics", label: "Analytics", icon: Bot },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
