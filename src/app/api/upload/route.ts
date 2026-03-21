@@ -17,9 +17,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate file type
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"];
+    // SVG removed: can contain <script> tags (Stored XSS)
+    const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: "Tipo de arquivo não permitido. Use PNG, JPG, WebP, GIF ou SVG." }, { status: 400 });
+      return NextResponse.json({ error: "Tipo de arquivo não permitido. Use PNG, JPG, WebP ou GIF." }, { status: 400 });
     }
 
     // Validate file size (max 2MB)
@@ -27,7 +28,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Arquivo muito grande. Máximo 2MB." }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop() || "png";
+    const MIME_TO_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" };
+    const ext = MIME_TO_EXT[file.type] || "png";
     const filename = `logos/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
     const blob = await put(filename, file, {

@@ -46,8 +46,8 @@ export async function GET(req: NextRequest) {
   }
 
   // Admin: listar todas
-  const admin = await checkAdmin(req);
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const authError = await checkAdmin(req);
+  if (authError) return authError;
 
   let query = "SELECT * FROM inscricoes ORDER BY created_at DESC";
   const params: string[] = [];
@@ -109,8 +109,8 @@ export async function POST(req: NextRequest) {
 
 // PUT — atualizar status (admin)
 export async function PUT(req: NextRequest) {
-  const admin = await checkAdmin(req);
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const authError = await checkAdmin(req);
+  if (authError) return authError;
 
   await ensureTable();
   const pool = dbPool;
@@ -139,8 +139,8 @@ export async function PUT(req: NextRequest) {
 
 // DELETE — remover inscrição (admin)
 export async function DELETE(req: NextRequest) {
-  const admin = await checkAdmin(req);
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const authError = await checkAdmin(req);
+  if (authError) return authError;
 
   await ensureTable();
   const pool = dbPool;

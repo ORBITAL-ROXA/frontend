@@ -47,8 +47,8 @@ export async function GET(req: NextRequest) {
   const type = req.nextUrl.searchParams.get("type");
 
   if (type === "pedidos") {
-    const admin = await checkAdmin(req);
-    if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const authError = await checkAdmin(req);
+    if (authError) return authError;
     const [rows] = await pool.query("SELECT * FROM loja_pedidos ORDER BY created_at DESC");
     return NextResponse.json({ pedidos: rows });
   }
@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Criar produto (admin)
-  const admin = await checkAdmin(req);
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const authError = await checkAdmin(req);
+  if (authError) return authError;
 
   const { name, description, price, image_url, sizes, stock } = body;
   if (!name || !price) return NextResponse.json({ error: "name e price obrigatórios" }, { status: 400 });
@@ -93,8 +93,8 @@ export async function POST(req: NextRequest) {
 
 // PUT — atualizar produto ou pedido (admin)
 export async function PUT(req: NextRequest) {
-  const admin = await checkAdmin(req);
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const authError = await checkAdmin(req);
+  if (authError) return authError;
 
   await ensureTable();
   const pool = dbPool;
@@ -133,8 +133,8 @@ export async function PUT(req: NextRequest) {
 
 // DELETE (admin)
 export async function DELETE(req: NextRequest) {
-  const admin = await checkAdmin(req);
-  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const authError = await checkAdmin(req);
+  if (authError) return authError;
   await ensureTable();
   const pool = dbPool;
   const id = req.nextUrl.searchParams.get("id");

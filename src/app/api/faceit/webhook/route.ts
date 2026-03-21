@@ -10,17 +10,20 @@ import {
   autoAdvanceTournamentBracket,
 } from "@/lib/faceit-sync";
 
-const WEBHOOK_SECRET = process.env.FACEIT_WEBHOOK_SECRET || "";
+const WEBHOOK_SECRET = process.env.FACEIT_WEBHOOK_SECRET;
 
 export async function POST(req: NextRequest) {
-  // Verificar secret se configurado
-  if (WEBHOOK_SECRET) {
-    const headerSecret = req.headers.get("x-webhook-secret") || req.headers.get("authorization");
-    const urlSecret = req.nextUrl.searchParams.get("secret");
-    if (headerSecret !== WEBHOOK_SECRET && urlSecret !== WEBHOOK_SECRET) {
-      console.warn("[FACEIT WEBHOOK] Invalid secret");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Webhook secret is REQUIRED
+  if (!WEBHOOK_SECRET) {
+    console.error("[FACEIT WEBHOOK] FACEIT_WEBHOOK_SECRET not configured");
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
+
+  const headerSecret = req.headers.get("x-webhook-secret") || req.headers.get("authorization");
+  const urlSecret = req.nextUrl.searchParams.get("secret");
+  if (headerSecret !== WEBHOOK_SECRET && urlSecret !== WEBHOOK_SECRET) {
+    console.warn("[FACEIT WEBHOOK] Invalid secret");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
