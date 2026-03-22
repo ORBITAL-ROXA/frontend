@@ -315,20 +315,16 @@ async function getBrandContext() {
   try {
     await ensureBrandTables();
     const [tasks] = await dbPool.execute("SELECT title, category, done, week FROM brand_tasks ORDER BY week");
-    const [checks] = await dbPool.execute("SELECT title, category, done FROM brand_checklist ORDER BY sort_order");
-    const [sponsors] = await dbPool.execute("SELECT name, type, estimated_value, status FROM brand_sponsors");
     const [posts] = await dbPool.execute("SELECT title, post_type, scheduled_date, status FROM instagram_posts ORDER BY scheduled_date");
 
     const taskList = tasks as { title: string; category: string; done: boolean; week: number }[];
-    const checkList = checks as { title: string; category: string; done: boolean }[];
-    const sponsorList = sponsors as { name: string; type: string; estimated_value: string; status: string }[];
-    const postList = posts as { title: string; post_type: string; scheduled_date: string; published: boolean }[];
+    const postList = posts as { title: string; post_type: string; scheduled_date: string; status: string }[];
+
+    const published = postList.filter(p => p.status === "published").length;
 
     return `\n\nESTADO ATUAL:
 - Tarefas: ${taskList.filter(t => t.done).length}/${taskList.length} concluídas
-- Checklist: ${checkList.filter(c => c.done).length}/${checkList.length}
-- Posts: ${postList.length} planejados (${postList.filter(p => p.published).length} publicados)
-- Sponsors: ${sponsorList.map(s => `${s.name} (${s.status})`).join(", ") || "nenhum"}
+- Posts Instagram: ${postList.length} planejados (${published} publicados)
 - Tasks pendentes: ${taskList.filter(t => !t.done).slice(0, 5).map(t => t.title).join("; ")}`;
   } catch {
     return "";
