@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { HudCard, StatBox } from "@/components/hud-card";
 import { PlayerCardExport } from "@/components/player-card-export";
-import { Match, getStatusText, getStatusType, parseMapStats } from "@/lib/api";
+import { Match, getStatusText, getStatusType } from "@/lib/api";
 import { VideoPlayer } from "@/components/video-player";
 import { useEffect, useState } from "react";
 
@@ -241,19 +241,23 @@ export function ProfileContent({ steamId }: { steamId: string }) {
         const mapCount: Record<string, number> = {};
         const mapPerf: Record<string, { wins: number; total: number; totalRating: number; kills: number; deaths: number }> = {};
 
-        // Fetch mapstats for each match in parallel
-        const mapStatsResults = await Promise.all(
-          psMatchIds.map(async (mid) => {
-            try {
-              const r = await fetch(`/api/mapstats/${mid}`);
-              if (!r.ok) return [];
-              const d = await r.json();
-              const stats = (d.mapstats || d.mapStats || d || []);
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              return (Array.isArray(stats) ? stats : []).map((ms: any) => ({ ...ms, _matchId: mid }));
-            } catch { return []; }
-          })
-        );
+        // Fetch mapstats in single batch request (instead of N individual requests)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let mapStatsResults: any[][] = [];
+        if (psMatchIds.length > 0) {
+          try {
+            const batchRes = await fetch(`/api/mapstats-batch?ids=${psMatchIds.join(",")}`);
+            if (batchRes.ok) {
+              const batchData = await batchRes.json();
+              const batchMap = batchData.mapStats || {};
+              mapStatsResults = psMatchIds.map(mid => {
+                const stats = batchMap[mid] || [];
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return stats.map((ms: any) => ({ ...ms, _matchId: mid }));
+              });
+            }
+          } catch { /* fallback: empty results */ }
+        }
 
         for (const mapStatsList of mapStatsResults) {
           for (const ms of mapStatsList) {
@@ -309,34 +313,31 @@ export function ProfileContent({ steamId }: { steamId: string }) {
         }
         const recentMatchIds = [...new Set(statsArr.map(s => s.match_id))].sort((a, b) => b - a).slice(0, 5);
 
+        // Batch fetch: matches + mapstats for recent matches
+        const batchMapRes = await fetch(`/api/mapstats-batch?ids=${recentMatchIds.join(",")}`).then(r => r.ok ? r.json() : { mapStats: {} }).catch(() => ({ mapStats: {} }));
+        const batchMapData = batchMapRes.mapStats || {};
+
         const matchPromises = recentMatchIds.map(async (id) => {
           try {
-            const [matchRes, mapRes] = await Promise.all([
-              fetch(`/api/matches/${id}`),
-              fetch(`/api/mapstats/${id}`),
-            ]);
+            const matchRes = await fetch(`/api/matches/${id}`);
             if (matchRes.ok) {
               const d = await matchRes.json();
               const m = d.match as Match;
-              // Attach player's team_id to determine win/loss
               const pTeamId = playerTeamMap[id];
               type MatchExt = Match & { round_score?: string; map_name?: string; player_team_id?: number };
               const ext = m as MatchExt;
               ext.player_team_id = pTeamId;
-              if (mapRes.ok) {
-                const mapData = await mapRes.json();
-                const maps = parseMapStats(mapData);
-                if (maps.length > 0) {
-                  let t1Rounds = 0, t2Rounds = 0;
-                  const mapNames: string[] = [];
-                  for (const ms of maps) {
-                    t1Rounds += ms.team1_score || 0;
-                    t2Rounds += ms.team2_score || 0;
-                    if (ms.map_name) mapNames.push(ms.map_name.replace("de_", ""));
-                  }
-                  ext.round_score = `${t1Rounds} - ${t2Rounds}`;
-                  ext.map_name = mapNames.join(", ");
+              const maps = batchMapData[id] || [];
+              if (maps.length > 0) {
+                let t1Rounds = 0, t2Rounds = 0;
+                const mapNames: string[] = [];
+                for (const ms of maps) {
+                  t1Rounds += ms.team1_score || 0;
+                  t2Rounds += ms.team2_score || 0;
+                  if (ms.map_name) mapNames.push(ms.map_name.replace("de_", ""));
                 }
+                ext.round_score = `${t1Rounds} - ${t2Rounds}`;
+                ext.map_name = mapNames.join(", ");
               }
               return m;
             }
