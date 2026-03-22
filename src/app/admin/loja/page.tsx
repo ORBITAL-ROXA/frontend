@@ -78,7 +78,7 @@ export default function AdminLojaPage() {
         description: pDesc || null,
         price: parseInt(pPrice),
         image_url: pImage || null,
-        sizes: JSON.stringify(pSizes.split(",").map(s => s.trim()).filter(Boolean)),
+        sizes: pSizes.split(",").map(s => s.trim()).filter(Boolean),
         stock: parseInt(pStock) || 0,
       }),
     });
