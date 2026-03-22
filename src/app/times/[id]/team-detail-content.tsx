@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Users, Swords, Tag, Trophy, BarChart3, Shield, TrendingUp, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { HudCard } from "@/components/hud-card";
-import { Team, Match, PlayerStats, MapStats, LeaderboardEntry, getStatusType } from "@/lib/api";
+import { Team, Match, PlayerStats, MapStats, getStatusType } from "@/lib/api";
 
 type Tab = "info" | "roster" | "matches" | "stats";
 
@@ -15,7 +15,6 @@ interface Props {
   playerStats: PlayerStats[];
   mapStats: MapStats[];
   teamsMap: Record<number, { name: string; logo: string | null }>;
-  leaderboard: LeaderboardEntry[];
 }
 
 export function TeamDetailContent({ team, matches, playerStats, mapStats, teamsMap }: Props) {

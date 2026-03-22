@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { getTeam, getTeams, getMatches, getPlayerStats, getMapStats, getLeaderboard, parseMapStats, Team, Match, PlayerStats, MapStats, LeaderboardEntry } from "@/lib/api";
+import { getTeam, getTeams, getMatches, getPlayerStats, getMapStats, parseMapStats, Team, Match, PlayerStats, MapStats } from "@/lib/api";
 import { TeamDetailContent } from "./team-detail-content";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -26,17 +26,15 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
   const teamId = parseInt(id);
 
   try {
-    const [teamRes, matchesRes, teamsRes, leaderboardRes] = await Promise.all([
+    const [teamRes, matchesRes, teamsRes] = await Promise.all([
       getTeam(teamId),
       getMatches().catch(() => ({ matches: [] })),
       getTeams().catch(() => ({ teams: [] })),
-      getLeaderboard().catch(() => ({ leaderboard: [] as LeaderboardEntry[] })),
     ]);
 
     const team = teamRes.team;
     const allMatches = matchesRes.matches || [];
     const allTeams = teamsRes.teams || [];
-    const leaderboard = leaderboardRes.leaderboard || [];
 
     // Filter matches involving this team
     const teamMatches = allMatches
@@ -91,7 +89,6 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
         playerStats={playerStats}
         mapStats={mapStats}
         teamsMap={teamsMap}
-        leaderboard={leaderboard}
       />
     );
   } catch {
