@@ -174,7 +174,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* ═══ MOBILE HEADER (shown on small screens) ═══ */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#080808] border-b border-orbital-border">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#080808] border-b border-orbital-border">
         <div className="flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-2">
             <Shield size={14} className="text-orbital-purple" />
@@ -210,7 +210,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* ═══ MAIN CONTENT ═══ */}
       <main className="flex-1 min-w-0">
-        <div className="lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-[88px] lg:pt-6 pb-20">
+        <div className="lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-[88px] lg:pt-6 pb-20 -mt-20">
           {children}
         </div>
       </main>

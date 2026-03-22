@@ -37,6 +37,9 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Hide navbar on admin pages (admin has its own sidebar/header)
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-[#1A1A1A]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
