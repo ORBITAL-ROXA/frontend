@@ -98,11 +98,13 @@ export function MissionControlContent({ initialTournament }: { initialTournament
 
   const saveTournament = async (t: Tournament) => {
     setTournament(t);
-    await fetch("/api/tournaments", {
+    const res = await fetch("/api/tournaments", {
       method: "PUT",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(t),
     });
+    if (!res.ok) console.error("[SAVE] Failed to save tournament:", res.status);
   };
 
   // Current live match

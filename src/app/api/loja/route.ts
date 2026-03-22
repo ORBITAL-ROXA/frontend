@@ -83,7 +83,8 @@ export async function POST(req: NextRequest) {
       const priceMap = new Map(products.map(p => [p.id, p.price]));
       for (const item of items) {
         const unitPrice = priceMap.get(item.product_id) || 0;
-        serverTotal += unitPrice * (item.quantity || 1);
+        const qty = Math.max(1, Math.floor(Number(item.qty || item.quantity || 1)));
+        serverTotal += unitPrice * qty;
       }
     }
 

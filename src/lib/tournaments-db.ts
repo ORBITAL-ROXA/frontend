@@ -50,8 +50,8 @@ export async function saveTournamentToDB(tournament: Tournament): Promise<boolea
   try {
     await ensureTable();
     await dbPool.execute(
-      "UPDATE tournament SET name = ?, data = ? WHERE id = ?",
-      [tournament.name, JSON.stringify(tournament), tournament.id]
+      "INSERT INTO tournament (id, name, data) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name), data = VALUES(data)",
+      [tournament.id, tournament.name, JSON.stringify(tournament)]
     );
     return true;
   } catch (err) {

@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   let kills = 0, deaths = 0, assists = 0, rating = 0, wins = 0, maps = 0, hsp = 0;
 
   try {
+    // Fetch player stats for K/D/A/HS
     const res = await fetch(`${G5API_URL}/playerstats/${steamId}`, { next: { revalidate: 300 } });
     if (res.ok) {
       const data = await res.json();
@@ -24,16 +25,22 @@ export async function GET(req: NextRequest) {
           kills += s.kills || 0;
           deaths += s.deaths || 0;
           assists += s.assists || 0;
-          wins += (s.winner === 1) ? 1 : 0;
           maps += 1;
         }
-        const totalRounds = stats.reduce((sum: number, s: { roundsplayed: number }) => sum + (s.roundsplayed || 0), 0);
-        const totalDmg = stats.reduce((sum: number, s: { damage: number }) => sum + (s.damage || 0), 0);
         const totalHS = stats.reduce((sum: number, s: { headshot_kills: number }) => sum + (s.headshot_kills || 0), 0);
         rating = stats.reduce((sum: number, s: { rating: number }) => sum + (s.rating || 0), 0) / stats.length;
         hsp = kills > 0 ? Math.round((totalHS / kills) * 100) : 0;
-        void totalRounds;
-        void totalDmg;
+      }
+    }
+    // Fetch wins from leaderboard (player_stats.winner is always 0 in G5API)
+    const lbRes = await fetch(`${G5API_URL}/leaderboard/players`, { next: { revalidate: 300 } });
+    if (lbRes.ok) {
+      const lbData = await lbRes.json();
+      const lb = lbData.leaderboard || lbData || [];
+      const entry = (Array.isArray(lb) ? lb : []).find((e: { steamId?: string; steam_id?: string }) => (e.steamId || e.steam_id) === steamId);
+      if (entry) {
+        wins = entry.wins || 0;
+        if (!name || name === steamId) name = entry.name || steamId;
       }
     }
   } catch { /* fallback to defaults */ }
