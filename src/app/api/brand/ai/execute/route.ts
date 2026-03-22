@@ -5,7 +5,7 @@ import { checkAdmin } from "../../auth";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "" });
 
-const SYSTEM = `Você é um agente de inteligência de marketing da ORBITAL ROXA. Responda SEMPRE em português brasileiro. Retorne APENAS JSON válido quando solicitado, sem texto extra, sem markdown code blocks.
+const SYSTEM = `Você é um agente de inteligência de marketing da ORBITAL ROXA. Responda SEMPRE em português brasileiro. Retorne texto puro e direto — sem code blocks, sem JSON a menos que explicitamente pedido.
 
 BRIEFING COMPLETO DA MARCA:
 
@@ -346,11 +346,11 @@ ${driveFiles.length > 0 ? driveFiles.join("\n") : "Nenhum arquivo encontrado no 
 Também temos 45 highlight clips de vídeo no site (partidas gravadas com HUD animado).
 
 Com base no título do post, sugira:
-1. Quais 2-3 arquivos do Drive seriam os melhores pra esse post (pelo nome/tipo)
+1. Quais 2-3 arquivos do Drive seriam os melhores pra esse post (com o nome do arquivo e link)
 2. Se algum highlight do site seria melhor (qual partida/jogador)
 3. Dica de como usar a mídia (carrossel? vídeo com caption? foto única?)
 
-Seja direto e objetivo.`);
+IMPORTANTE: Retorne em TEXTO PURO legível, NÃO em JSON. Use markdown simples (## para títulos, - para listas). Seja direto e objetivo.`);
         return NextResponse.json({ result: raw, driveFiles: driveFiles.slice(0, 10) });
       }
 
