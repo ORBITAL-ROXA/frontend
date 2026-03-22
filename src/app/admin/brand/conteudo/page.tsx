@@ -369,10 +369,23 @@ export default function ConteudoPage() {
                   </span>
                 )}
 
-                {/* Status */}
-                <span className={`font-[family-name:var(--font-jetbrains)] text-[0.5rem] px-1.5 py-0.5 shrink-0 ${sc.color}`}>
+                {/* Status — click to toggle */}
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const newStatus = post.status === "published" ? "draft" : "published";
+                    await fetch("/api/instagram/posts", {
+                      method: "PUT",
+                      credentials: "include",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ id: post.id, status: newStatus }),
+                    });
+                    setPosts(prev => prev.map(p => p.id === post.id ? { ...p, status: newStatus } : p));
+                  }}
+                  className={`font-[family-name:var(--font-jetbrains)] text-[0.5rem] px-1.5 py-0.5 shrink-0 hover:opacity-80 transition-opacity cursor-pointer ${sc.color}`}
+                >
                   {sc.label}
-                </span>
+                </button>
 
                 <ChevronDown size={12} className={`text-orbital-text-dim shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`} />
               </button>
