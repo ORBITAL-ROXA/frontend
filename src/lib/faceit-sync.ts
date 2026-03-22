@@ -187,7 +187,7 @@ export async function syncFaceitMatchToG5API(
                   : 0, // Estimativa: (K+A+Survived)/Rounds — Faceit não fornece KAST real
                 contribution_score: ps.mvps * 5 + ps.kills,
                 mvp: ps.mvps,
-                k1: ps.kills - ps.double_kills * 2 - ps.triple_kills * 3 - ps.quadro_kills * 4 - ps.penta_kills * 5,
+                k1: Math.max(0, ps.kills - ps.double_kills * 2 - ps.triple_kills * 3 - ps.quadro_kills * 4 - ps.penta_kills * 5),
                 k2: ps.double_kills,
                 k3: ps.triple_kills,
                 k4: ps.quadro_kills,

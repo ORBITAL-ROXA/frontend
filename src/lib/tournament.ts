@@ -585,11 +585,40 @@ export function generateSwissNextRound(tournament: Tournament): Tournament {
     return al - bl;
   });
 
+  // Balance odd-sized groups: move last team from odd group to next group
+  // This prevents a team from being left without an opponent
+  for (let i = 0; i < sortedKeys.length; i++) {
+    const group = groups.get(sortedKeys[i])!;
+    if (group.length % 2 !== 0 && i + 1 < sortedKeys.length) {
+      // Move the lowest-ranked team (worst buchholz) to the next group
+      const sorted = [...group].sort((a, b) => a.buchholz - b.buchholz);
+      const teamToMove = sorted[0];
+      const fromGroup = groups.get(sortedKeys[i])!;
+      const toGroup = groups.get(sortedKeys[i + 1])!;
+      fromGroup.splice(fromGroup.indexOf(teamToMove), 1);
+      toGroup.push(teamToMove);
+    }
+  }
+
+  // If the last group is still odd (no next group to move to), handle BYE
+  // The last team gets a free win (BYE)
+  const lastKey = sortedKeys[sortedKeys.length - 1];
+  const lastGroup = groups.get(lastKey)!;
+  if (lastGroup.length % 2 !== 0) {
+    // Give BYE (free win) to the worst-ranked team in the last group
+    const byeTeam = lastGroup.sort((a, b) => a.buchholz - b.buchholz)[0];
+    lastGroup.splice(lastGroup.indexOf(byeTeam), 1);
+    // Advance the BYE team by giving it a win
+    const rec = updated.swiss_records!.find(r => r.team_id === byeTeam.team_id);
+    if (rec) rec.wins++;
+  }
+
   let matchIdx = 0;
   const newMatches: BracketMatch[] = [];
 
   for (const key of sortedKeys) {
     const group = groups.get(key)!;
+    if (group.length === 0) continue; // skip emptied groups
     // Sort by buchholz (tiebreaker), then by seed
     group.sort((a, b) => {
       if (b.buchholz !== a.buchholz) return b.buchholz - a.buchholz;
