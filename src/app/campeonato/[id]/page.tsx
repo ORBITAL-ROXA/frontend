@@ -819,7 +819,8 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                     <SwissStandingsView tournament={tournament} teamsMap={teamsMap} mapScoresMap={mapScoresMap} />
                   ) : (
                     <HudCard className="p-5 overflow-hidden" label="BRACKET">
-                      <div ref={bracketRef}>
+                      <p className="lg:hidden font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim mb-2">← Arraste pra navegar →</p>
+                      <div ref={bracketRef} className="overflow-x-auto">
                         <FullBracket
                           tournament={tournament}
                           teamsMap={teamsMap}

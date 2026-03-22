@@ -228,7 +228,7 @@ export default function InscricaoPage() {
               <Shield size={14} className="text-orbital-purple" />
               <span className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-purple">DADOS DO TIME</span>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="teamName" className={labelClass}>NOME DO TIME *</label>
                 <input id="teamName" type="text" value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="Ex: CHOPPADAS" className={inputClass} />

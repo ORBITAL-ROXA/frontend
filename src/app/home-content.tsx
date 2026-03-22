@@ -163,7 +163,7 @@ export function HomeContent({
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="space-y-4 order-2 lg:order-1"
+          className="space-y-4 order-2 lg:order-1 pt-6 lg:pt-0 border-t border-orbital-border/30 lg:border-t-0"
         >
           {/* Top 5 Ranking */}
           <SidebarSection icon={BarChart3} title="TOP RANKING">
@@ -330,7 +330,7 @@ export function HomeContent({
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="space-y-4 order-3"
+          className="space-y-4 order-3 pt-6 lg:pt-0 border-t border-orbital-border/30 lg:border-t-0"
         >
           {/* Upcoming / Live Matches */}
           <SidebarSection icon={Activity} title={liveMatches.length > 0 ? "PARTIDAS" : "PRÓXIMAS"} accent={liveMatches.length > 0 ? "live" : undefined}>

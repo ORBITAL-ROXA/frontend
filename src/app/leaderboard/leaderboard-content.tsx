@@ -169,7 +169,7 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
             <div className={`grid gap-4 mb-8 ${
               sorted.length === 1 ? "grid-cols-1 max-w-xs mx-auto" :
               sorted.length === 2 ? "grid-cols-2 max-w-lg mx-auto" :
-              "grid-cols-3"
+              "grid-cols-1 sm:grid-cols-3 max-w-3xl mx-auto"
             }`}>
               {/* 2nd */}
               {sorted.length >= 2 && <PodiumCard player={sorted[1]} rank={2} delay={0.2} />}

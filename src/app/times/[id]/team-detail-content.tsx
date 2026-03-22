@@ -347,7 +347,7 @@ export function TeamDetailContent({ team, matches, playerStats, mapStats, teamsM
           {/* Roster with Stats */}
           {playerAggregated.length > 0 ? (
             <HudCard label="JOGADORES">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto relative"><div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none lg:hidden z-10" />
                 <table className="data-table">
                   <thead>
                     <tr>
@@ -403,7 +403,7 @@ export function TeamDetailContent({ team, matches, playerStats, mapStats, teamsM
           ) : (
             <HudCard label="JOGADORES">
               {players.length > 0 ? (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto relative"><div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none lg:hidden z-10" />
                   <table className="data-table">
                     <thead>
                       <tr>
@@ -665,7 +665,7 @@ export function TeamDetailContent({ team, matches, playerStats, mapStats, teamsM
           {/* Team Totals */}
           {playerAggregated.length > 0 && (
             <HudCard label="STATS DOS JOGADORES">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto relative"><div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none lg:hidden z-10" />
                 <table className="data-table">
                   <thead>
                     <tr>
