@@ -374,7 +374,7 @@ export default function ConteudoPage() {
                   onClick={async (e) => {
                     e.stopPropagation();
                     const newStatus = post.status === "published" ? "draft" : "published";
-                    await fetch("/api/instagram/posts", {
+                    await fetch("/api/instagram", {
                       method: "PUT",
                       credentials: "include",
                       headers: { "Content-Type": "application/json" },
