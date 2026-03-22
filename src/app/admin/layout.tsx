@@ -67,8 +67,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex">
+      {/* Spacer for fixed sidebar */}
+      <div className="hidden lg:block w-56 shrink-0" />
       {/* ═══ SIDEBAR ═══ */}
-      <aside className="hidden lg:flex flex-col w-56 shrink-0 border-r border-orbital-border bg-[#080808] sticky top-0 h-screen">
+      <aside className="hidden lg:flex flex-col w-56 border-r border-orbital-border bg-[#080808] fixed top-0 left-0 h-screen z-40">
         {/* Logo area */}
         <div className="p-4 border-b border-orbital-border">
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -210,7 +212,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       {/* ═══ MAIN CONTENT ═══ */}
       <main className="flex-1 min-w-0">
-        <div className="lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-[88px] lg:pt-6 pb-20 -mt-20">
+        <div className="lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-[88px] lg:pt-6 pb-20 -mt-20 lg:-mt-0">
           {children}
         </div>
       </main>
