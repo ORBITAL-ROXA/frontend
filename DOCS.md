@@ -828,3 +828,99 @@ python postprocess.py 38 0 --all
 # 5. Upload para R2
 node ../scripts/upload-to-r2.js
 ```
+
+---
+
+## Instagram Integration
+
+### Conexão
+- Meta Graph API via Page Access Token (não expira)
+- Instagram Business Account vinculado à página Facebook "Orbitalroxa.gg"
+- Env vars: `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_BUSINESS_ID`
+
+### Funcionalidades
+- **Conteúdo** (`/admin/brand/conteudo`): calendário de posts, criar/editar, upload de mídia pro R2, publicar direto no Instagram
+- **Analytics** (`/admin/brand/analytics`): seguidores, posts, impressões, alcance, curtidas, comentários, salvos, compartilhamentos
+- **IA integrada**: gerar captions (tom gamer adulto), hashtags, prompts de imagem, sugestão de mídia do Google Drive (análise visual)
+
+### Google Drive
+- OAuth2 com refresh automático via `GDRIVE_REFRESH_TOKEN`
+- Pasta do Cup #1: 40 fotos + 10 vídeos
+- IA baixa thumbnails e analisa visualmente antes de sugerir
+
+### Fluxo de publicação
+```
+Admin cria post → upload mídia pro R2 → IA gera caption/hashtags
+→ "PUBLICAR AGORA" → POST /api/instagram (publish)
+→ Meta Graph API: create container → poll status → publish
+→ instagram_posts.status = "published", ig_permalink salvo
+```
+
+---
+
+## Inscrições Online
+
+### Fluxo
+```
+Visitante acessa /inscricao → preenche formulário (time, capitão, 5 jogadores)
+→ POST /api/inscricao → salva com status "pendente"
+→ Admin vê em /admin/inscricoes → "APROVAR + CADASTRAR"
+→ Cria time no G5API via /write-proxy/teams → status "aprovado"
+→ Admin marca "PAGO" após confirmar PIX
+```
+
+### Validações server-side
+- Vagas limitadas (verifica count antes de inserir)
+- Duplicata por Steam ID do capitão
+- Mínimo 5, máximo 7 jogadores
+
+---
+
+## Loja Online
+
+### Fluxo
+```
+Admin cadastra produto em /admin/loja (nome, preço, imagem, tamanhos, estoque)
+→ Visitante acessa /loja → seleciona tamanho → adiciona ao carrinho
+→ Checkout: nome + WhatsApp → POST /api/loja (action: "pedido")
+→ Total recalculado no servidor (nunca confiar no client)
+→ Stock decrementado atomicamente (race-condition safe)
+→ Admin vê pedido em /admin/loja → muda status: pendente → pago → enviado → entregue
+```
+
+### Segurança
+- Total recalculado server-side com preços do banco
+- Quantity validada como inteiro 1-99
+- Stock verificado E decrementado atomicamente (`UPDATE WHERE stock >= ?`)
+
+---
+
+## Awards Automáticos
+
+Calculados em `src/lib/awards.ts` com base nos player_stats do campeonato:
+
+| Award | Critério |
+|-------|----------|
+| MVP | Maior rating HLTV 1.0 |
+| Entry King | Mais first kills (firstkill_t + firstkill_ct) |
+| Headshot Machine | Maior HS% |
+| Kill Machine | Mais kills totais |
+| Multi-Kill King | Mais 4k + 5k |
+| Utility Master | Mais enemies_flashed + util_damage |
+
+Exibidos em `/campeonato/[id]` (aba Overview) e `/campeonato/[id]/recap`.
+
+---
+
+## Scripts de Manutenção
+
+```bash
+# Migração de banco (índices, cleanup)
+DATABASE_URL=... node scripts/migrate-db.js
+
+# Seed de tasks do plano 90 dias
+DATABASE_URL=... node scripts/seed-brand-tasks.js
+
+# Seed de posts do Instagram
+DATABASE_URL=... node scripts/seed-brand-posts.js
+```

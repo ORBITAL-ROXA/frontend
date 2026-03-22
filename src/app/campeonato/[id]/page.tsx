@@ -397,8 +397,19 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
   // ── Loading State ──
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-orbital-purple border-t-transparent rounded-full animate-spin" />
+      <div className="max-w-7xl mx-auto px-4 py-12 space-y-6">
+        <div className="h-8 w-64 bg-orbital-border/30 rounded animate-pulse" />
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-8 w-24 bg-orbital-border/30 rounded animate-pulse" />
+          ))}
+        </div>
+        <div className="h-96 bg-orbital-card border border-orbital-border rounded animate-pulse" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+            <div key={i} className="h-16 bg-orbital-card border border-orbital-border rounded animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }

@@ -38,8 +38,19 @@ export default function CampeonatosPage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-orbital-purple border-t-transparent rounded-full animate-spin" />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-6 w-48 bg-orbital-border/30 rounded animate-pulse" />
+          <div className="flex gap-2">
+            <div className="h-8 w-20 bg-orbital-border/30 rounded animate-pulse" />
+            <div className="h-8 w-20 bg-orbital-border/30 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="grid gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-48 bg-orbital-card border border-orbital-border rounded animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
