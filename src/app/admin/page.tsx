@@ -143,7 +143,7 @@ export default function AdminDashboard() {
             >
               <s.icon size={12} className={`${s.color} mx-auto mb-1.5 opacity-60`} />
               <div className={`font-[family-name:var(--font-jetbrains)] text-xl font-bold ${s.color}`}>{s.value}</div>
-              <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim/50 mt-0.5">{s.label}</div>
+              <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim/50 mt-0.5">{s.label}</div>
             </motion.div>
           ))}
         </div>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
               {alert.href && (
-                <Link href={alert.href} className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple hover:text-orbital-text transition-colors">
+                <Link href={alert.href} className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple hover:text-orbital-text transition-colors">
                   {alert.action} →
                 </Link>
               )}
@@ -200,12 +200,12 @@ export default function AdminDashboard() {
                         <span className={m.team2_score > m.team1_score ? "font-bold" : ""}>{m.team2_string || "Time 2"}</span>
                       </div>
                       {m.title && !m.title.includes("{") && (
-                        <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-0.5">{m.title}</div>
+                        <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim mt-0.5">{m.title}</div>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-red-500">#{m.id}</span>
+                    <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-red-500">#{m.id}</span>
                     <ChevronRight size={14} className="text-orbital-text-dim group-hover:text-red-500 transition-colors" />
                   </div>
                 </Link>
@@ -249,10 +249,10 @@ export default function AdminDashboard() {
                     >
                       <Zap size={14} className="text-red-500 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-red-500 tracking-wider">AO VIVO</div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-red-500 tracking-wider">AO VIVO</div>
                         <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text truncate">{liveMatch.label}</div>
                       </div>
-                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-red-500/60">MISSION CONTROL →</span>
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-red-500/60">MISSION CONTROL →</span>
                     </Link>
                   )}
 
@@ -264,12 +264,12 @@ export default function AdminDashboard() {
                     >
                       <PlayCircle size={14} className="text-orbital-purple shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple tracking-wider">PRÓXIMA</div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple tracking-wider">PRÓXIMA</div>
                         <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text truncate">
                           {nextMatch.label}: {getTeamName(t, nextMatch.team1_id)} vs {getTeamName(t, nextMatch.team2_id)}
                         </div>
                       </div>
-                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple/60">INICIAR VETO →</span>
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple/60">INICIAR VETO →</span>
                     </Link>
                   )}
 
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
             >
               <Plus size={12} className="text-orbital-purple shrink-0" />
               <item.icon size={14} className="text-orbital-text-dim group-hover:text-orbital-purple transition-colors shrink-0" />
-              <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-text-dim group-hover:text-orbital-text transition-colors">
+              <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim group-hover:text-orbital-text transition-colors">
                 {item.label}
               </span>
             </Link>
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
                   className="flex items-center justify-between py-2 px-1 hover:bg-white/[0.02] transition-colors border-b border-orbital-border/30 last:border-b-0 group"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/40 w-5 text-right shrink-0">#{m.id}</span>
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 w-5 text-right shrink-0">#{m.id}</span>
                     <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] truncate max-w-[100px] ${m.winner === m.team1_id ? "text-orbital-text font-bold" : "text-orbital-text-dim"}`}>
                       {m.team1_string || "?"}
                     </span>
@@ -338,7 +338,7 @@ export default function AdminDashboard() {
                       {m.team2_string || "?"}
                     </span>
                   </div>
-                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40 shrink-0">
+                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 shrink-0">
                     {m.end_time ? timeAgo(m.end_time) : ""}
                   </span>
                 </Link>
@@ -361,16 +361,16 @@ export default function AdminDashboard() {
               href={item.href}
               className="flex items-center gap-3 p-3 border border-orbital-border hover:border-orbital-purple/30 transition-colors group"
             >
-              <item.icon size={16} className="text-orbital-text-dim/40 group-hover:text-orbital-purple transition-colors shrink-0" />
+              <item.icon size={16} className="text-orbital-text-dim/60 group-hover:text-orbital-purple transition-colors shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-text-dim group-hover:text-orbital-text transition-colors">
+                <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim group-hover:text-orbital-text transition-colors">
                   {item.label}
                 </div>
-                <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50">
+                <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50">
                   {item.count} cadastrados
                 </div>
               </div>
-              <ArrowRight size={12} className="text-orbital-text-dim/30 group-hover:text-orbital-purple transition-colors shrink-0" />
+              <ArrowRight size={12} className="text-orbital-text-dim/50 group-hover:text-orbital-purple transition-colors shrink-0" />
             </Link>
           ))}
         </div>
@@ -380,8 +380,8 @@ export default function AdminDashboard() {
       {finishedTournaments.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
           <div className="flex items-center gap-2 mb-2">
-            <Trophy size={12} className="text-orbital-text-dim/40" />
-            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim/60">CAMPEONATOS FINALIZADOS</span>
+            <Trophy size={12} className="text-orbital-text-dim/60" />
+            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-text-dim/60">CAMPEONATOS FINALIZADOS</span>
           </div>
           <div className="space-y-1">
             {finishedTournaments.map(t => {
@@ -399,9 +399,9 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     {winnerName && (
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-amber-500/60">{winnerName}</span>
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-amber-500/60">{winnerName}</span>
                     )}
-                    <Eye size={12} className="text-orbital-text-dim/30" />
+                    <Eye size={12} className="text-orbital-text-dim/50" />
                   </div>
                 </Link>
               );

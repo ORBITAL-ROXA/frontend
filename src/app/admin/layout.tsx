@@ -81,7 +81,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <div className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-purple group-hover:text-orbital-text transition-colors">
                 ORBITAL ROXA
               </div>
-              <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50">
+              <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50">
                 ADMIN PANEL
               </div>
             </div>
@@ -160,14 +160,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text truncate">
                 {user?.name}
               </div>
-              <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50">
+              <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50">
                 Admin
               </div>
             </div>
           </div>
           <Link
             href="/"
-            className="flex items-center gap-1.5 mt-2.5 px-2 py-1.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim hover:text-orbital-purple transition-colors rounded-sm hover:bg-white/[0.03]"
+            className="flex items-center gap-1.5 mt-2.5 px-2 py-1.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim hover:text-orbital-purple transition-colors rounded-sm hover:bg-white/[0.03]"
           >
             <ArrowLeft size={10} />
             Voltar ao site
@@ -180,11 +180,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-2">
             <Shield size={14} className="text-orbital-purple" />
-            <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.15em] text-orbital-purple">
+            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-purple">
               ADMIN
             </span>
           </div>
-          <Link href="/" className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+          <Link href="/" className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
             ← Site
           </Link>
         </div>
@@ -198,7 +198,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] whitespace-nowrap transition-colors ${
                   isActive ? "text-orbital-purple" : "text-orbital-text-dim"
                 }`}
               >

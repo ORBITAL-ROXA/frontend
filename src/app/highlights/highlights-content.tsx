@@ -75,13 +75,13 @@ export function HighlightsContent() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar jogador..."
-            className="bg-[#111] border border-orbital-border px-3 py-1.5 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/30 focus:outline-none focus:border-orbital-purple/50 w-40"
+            className="bg-[#111] border border-orbital-border px-3 py-1.5 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/50 focus:outline-none focus:border-orbital-purple/50 w-40"
           />
           {(["all", "3k", "4k", "ace"] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilterKills(f)}
-              className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider border transition-colors ${
+              className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider border transition-colors ${
                 filterKills === f
                   ? "bg-orbital-purple/10 border-orbital-purple/50 text-orbital-purple"
                   : "bg-[#0A0A0A] border-orbital-border text-orbital-text-dim hover:text-orbital-text"
@@ -146,7 +146,7 @@ export function HighlightsContent() {
               <div className="p-2.5">
                 {/* Player + kills */}
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple shrink-0">
+                  <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple shrink-0">
                     #{clip.rank}
                   </span>
                   {clip.steam_id ? (
@@ -162,12 +162,12 @@ export function HighlightsContent() {
                     </span>
                   )}
                   {clip.kills_count >= 2 && (
-                    <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
+                    <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
                       {clip.kills_count >= 5 ? "ACE" : `${clip.kills_count}K`}
                     </span>
                   )}
                   {clip.round_number && (
-                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim shrink-0 ml-auto">
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim shrink-0 ml-auto">
                       R{clip.round_number}
                     </span>
                   )}
@@ -179,7 +179,7 @@ export function HighlightsContent() {
                   className="flex items-center gap-1.5 group/match"
                 >
                   <Swords size={9} className="text-orbital-text-dim group-hover/match:text-orbital-purple transition-colors shrink-0" />
-                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim group-hover/match:text-orbital-purple transition-colors truncate">
+                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim group-hover/match:text-orbital-purple transition-colors truncate">
                     {clip.team1_string || "Time 1"} vs {clip.team2_string || "Time 2"}
                   </span>
                 </Link>

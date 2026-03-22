@@ -127,7 +127,7 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
             {statusLabels[match.status]}
           </span>
         </div>
-        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-[#FF5500]/60">
+        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-[#FF5500]/60">
           FACEIT
         </span>
         {match.faceit_url && (
@@ -153,7 +153,7 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
               </div>
               <div className="flex items-center justify-end gap-1.5 mt-1">
                 {match.players.team1.map((p, i) => (
-                  <span key={i} className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50">
+                  <span key={i} className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50">
                     {p.nickname}
                   </span>
                 ))}
@@ -166,12 +166,12 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
                 <span className={match.winner === "team1" ? "text-green-400" : "text-orbital-text"}>
                   {match.team1_score}
                 </span>
-                <span className="text-orbital-text-dim/30 mx-2">:</span>
+                <span className="text-orbital-text-dim/50 mx-2">:</span>
                 <span className={match.winner === "team2" ? "text-green-400" : "text-orbital-text"}>
                   {match.team2_score}
                 </span>
               </div>
-              <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40 mt-1">
+              <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 mt-1">
                 BO{match.num_maps}
               </div>
             </div>
@@ -183,7 +183,7 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
               </div>
               <div className="flex items-center gap-1.5 mt-1">
                 {match.players.team2.map((p, i) => (
-                  <span key={i} className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50">
+                  <span key={i} className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50">
                     {p.nickname}
                   </span>
                 ))}
@@ -196,14 +196,14 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
             <div className="flex items-center justify-center gap-3 mt-5 pt-4 border-t border-orbital-border/30">
               {match.maps.map((m, i) => (
                 <div key={i} className="text-center">
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50 mb-0.5">
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mb-0.5">
                     {m.map_name.replace("de_", "")}
                   </div>
                   <div className="font-[family-name:var(--font-orbitron)] text-xs">
                     <span className={m.winner === "team1" ? "text-green-400" : "text-orbital-text-dim"}>
                       {m.team1_score}
                     </span>
-                    <span className="text-orbital-text-dim/30">:</span>
+                    <span className="text-orbital-text-dim/50">:</span>
                     <span className={m.winner === "team2" ? "text-green-400" : "text-orbital-text-dim"}>
                       {m.team2_score}
                     </span>
@@ -215,8 +215,8 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
 
           {/* Date */}
           <div className="flex items-center justify-center gap-3 mt-3">
-            <Clock size={10} className="text-orbital-text-dim/30" />
-            <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/40">
+            <Clock size={10} className="text-orbital-text-dim/50" />
+            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60">
               {match.start_time && new Date(match.start_time).toLocaleString("pt-BR", {
                 day: "2-digit", month: "2-digit", year: "numeric",
                 hour: "2-digit", minute: "2-digit",
@@ -233,7 +233,7 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
             {match.maps.length > 1 && (
               <button
                 onClick={() => setActiveMap(-1)}
-                className={`px-4 py-2 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider transition-colors border-b-2 ${
+                className={`px-4 py-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider transition-colors border-b-2 ${
                   activeMap === -1
                     ? "border-orbital-purple text-orbital-purple"
                     : "border-transparent text-orbital-text-dim hover:text-orbital-text"
@@ -246,14 +246,14 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
               <button
                 key={i}
                 onClick={() => setActiveMap(i)}
-                className={`px-4 py-2 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider transition-colors border-b-2 ${
+                className={`px-4 py-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider transition-colors border-b-2 ${
                   activeMap === i
                     ? "border-orbital-purple text-orbital-purple"
                     : "border-transparent text-orbital-text-dim hover:text-orbital-text"
                 }`}
               >
                 {m.map_name.replace("de_", "").toUpperCase()}
-                <span className="ml-1.5 text-[0.5rem] opacity-50">{m.team1_score}:{m.team2_score}</span>
+                <span className="ml-1.5 text-[0.65rem] opacity-50">{m.team1_score}:{m.team2_score}</span>
               </button>
             ))}
           </div>
@@ -287,21 +287,21 @@ export function FaceitMatchContent({ matchId }: { matchId: string }) {
                       <img src={p.avatar} alt={p.nickname} className="w-7 h-7 rounded-full border border-orbital-border" />
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-orbital-card border border-orbital-border flex items-center justify-center">
-                        <Users size={10} className="text-orbital-text-dim/30" />
+                        <Users size={10} className="text-orbital-text-dim/50" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text truncate">
                         {p.nickname}
                       </div>
-                      <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40">
+                      <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60">
                         Level {p.skill_level}
                       </div>
                     </div>
                     {p.steam_id && (
                       <Link
                         href={`/perfil/${p.steam_id}`}
-                        className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple/50 hover:text-orbital-purple transition-colors"
+                        className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple/50 hover:text-orbital-purple transition-colors"
                       >
                         Perfil
                       </Link>
@@ -370,7 +370,7 @@ function StatsTable({
   };
 
   const headerCells = (
-    <tr className="text-[0.55rem] font-[family-name:var(--font-jetbrains)] text-orbital-text-dim/50 border-b border-orbital-border/30">
+    <tr className="text-[0.65rem] font-[family-name:var(--font-jetbrains)] text-orbital-text-dim/50 border-b border-orbital-border/30">
       <th className="text-left py-2 pr-3">Player</th>
       <th className="text-center px-2">K</th>
       <th className="text-center px-2">D</th>
@@ -392,7 +392,7 @@ function StatsTable({
       {/* Team 1 */}
       <HudCard>
         <div className="p-4">
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-text-dim mb-2">
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim mb-2">
             {team1Name}
           </div>
           <div className="overflow-x-auto">
@@ -407,7 +407,7 @@ function StatsTable({
       {/* Team 2 */}
       <HudCard>
         <div className="p-4">
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-text-dim mb-2">
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim mb-2">
             {team2Name}
           </div>
           <div className="overflow-x-auto">

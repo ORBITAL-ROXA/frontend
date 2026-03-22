@@ -138,7 +138,7 @@ export function LeaderboardContent({ initialLeaderboard, initialSeasons }: Leade
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar jogador..."
-                className="pl-7 pr-2 py-1.5 w-32 sm:w-40 bg-transparent border border-orbital-border focus:border-orbital-purple/50 font-[family-name:var(--font-jetbrains)] text-[0.6rem] sm:text-xs text-orbital-text placeholder:text-orbital-text-dim/30 outline-none transition-colors"
+                className="pl-7 pr-2 py-1.5 w-32 sm:w-40 bg-transparent border border-orbital-border focus:border-orbital-purple/50 font-[family-name:var(--font-jetbrains)] text-[0.6rem] sm:text-xs text-orbital-text placeholder:text-orbital-text-dim/50 outline-none transition-colors"
               />
             </div>
             {/* CSV Export */}
@@ -279,7 +279,7 @@ function SortableTh({
       {icon && <>{icon}{" "}</>}
       {label}
       {active && (
-        <span className="ml-1 text-[0.55rem]">{dir === "asc" ? "▲" : "▼"}</span>
+        <span className="ml-1 text-[0.65rem]">{dir === "asc" ? "▲" : "▼"}</span>
       )}
     </th>
   );
@@ -310,7 +310,7 @@ function PodiumCard({ player, rank, delay }: { player: LeaderboardEntry; rank: n
             "text-amber-600 mx-auto mb-2"
           }
         />
-        <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple mb-1">
+        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-1">
           #{rank}
         </div>
         <div className={`font-[family-name:var(--font-orbitron)] ${isFirst ? "text-sm" : "text-xs"} font-bold tracking-wider text-orbital-text mb-2`}>

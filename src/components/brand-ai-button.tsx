@@ -51,13 +51,13 @@ export function BrandAIButton({ action, label, onComplete, confirmMessage, varia
         <button
           onClick={execute}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/25 text-orbital-purple font-[family-name:var(--font-jetbrains)] text-[0.55rem] tracking-wider hover:bg-orbital-purple/20 hover:border-orbital-purple/40 disabled:opacity-40 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/25 text-orbital-purple font-[family-name:var(--font-jetbrains)] text-[0.65rem] tracking-wider hover:bg-orbital-purple/20 hover:border-orbital-purple/40 disabled:opacity-40 transition-all"
         >
           {loading ? <Loader2 size={11} className="animate-spin" /> : <Brain size={11} />}
           {loading ? "GERANDO..." : label}
         </button>
         {result && (
-          <span className={`flex items-center gap-1 font-[family-name:var(--font-jetbrains)] text-[0.5rem] ${result.ok ? "text-green-400" : "text-red-400"}`}>
+          <span className={`flex items-center gap-1 font-[family-name:var(--font-jetbrains)] text-[0.65rem] ${result.ok ? "text-green-400" : "text-red-400"}`}>
             {result.ok ? <Check size={10} /> : <AlertCircle size={10} />}
             {result.message}
           </span>
@@ -72,21 +72,21 @@ export function BrandAIButton({ action, label, onComplete, confirmMessage, varia
         <div className="flex items-center gap-2">
           <Brain size={16} className="text-orbital-purple" />
           <div>
-            <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-purple">{label}</div>
-            <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-white/25 mt-0.5">Powered by Claude AI</div>
+            <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-purple">{label}</div>
+            <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-white/25 mt-0.5">Powered by Claude AI</div>
           </div>
         </div>
         <button
           onClick={execute}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/15 border border-orbital-purple/30 text-orbital-purple font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] hover:bg-orbital-purple/25 hover:border-orbital-purple/50 disabled:opacity-40 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/15 border border-orbital-purple/30 text-orbital-purple font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] hover:bg-orbital-purple/25 hover:border-orbital-purple/50 disabled:opacity-40 transition-all"
         >
           {loading ? <Loader2 size={12} className="animate-spin" /> : <Brain size={12} />}
           {loading ? "GERANDO..." : "EXECUTAR"}
         </button>
       </div>
       {result && (
-        <div className={`mt-3 flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] ${result.ok ? "text-green-400" : "text-red-400"}`}>
+        <div className={`mt-3 flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] ${result.ok ? "text-green-400" : "text-red-400"}`}>
           {result.ok ? <Check size={12} /> : <AlertCircle size={12} />}
           {result.message}
         </div>

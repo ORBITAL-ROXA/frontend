@@ -230,7 +230,7 @@ export default function AdminCampeonatos() {
                         }`}
                       >
                         {isDone ? <Check size={14} /> : <span className="font-[family-name:var(--font-jetbrains)] text-xs">{step.num}</span>}
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] hidden sm:inline">
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] hidden sm:inline">
                           {step.label}
                         </span>
                       </button>
@@ -262,7 +262,7 @@ export default function AdminCampeonatos() {
                           <Monitor size={16} />
                           <div className="text-left">
                             <div className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider">PRESENCIAL</div>
-                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] opacity-60">Servidor local + MatchZy</div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] opacity-60">Servidor local + MatchZy</div>
                           </div>
                         </button>
                         <button
@@ -277,7 +277,7 @@ export default function AdminCampeonatos() {
                           <Gamepad2 size={16} />
                           <div className="text-left">
                             <div className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider">ONLINE</div>
-                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] opacity-60">Faceit + Anti-cheat</div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] opacity-60">Faceit + Anti-cheat</div>
                           </div>
                         </button>
                       </div>
@@ -288,7 +288,7 @@ export default function AdminCampeonatos() {
                       <input
                         type="text" value={name} onChange={e => setName(e.target.value)}
                         placeholder="Ex: ORBITAL CUP #1"
-                        className={`${inputClass} placeholder:text-orbital-text-dim/30`}
+                        className={`${inputClass} placeholder:text-orbital-text-dim/50`}
                       />
                     </div>
 
@@ -306,8 +306,8 @@ export default function AdminCampeonatos() {
                                 : "bg-[#0A0A0A] border-orbital-border text-orbital-text-dim hover:border-[#FF5500]/30"
                             }`}
                           >
-                            <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider">DOUBLE ELIMINATION</div>
-                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] opacity-60 mt-0.5">8 times — Winner + Lower bracket</div>
+                            <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider">DOUBLE ELIMINATION</div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] opacity-60 mt-0.5">8 times — Winner + Lower bracket</div>
                           </button>
                           <button
                             type="button"
@@ -318,8 +318,8 @@ export default function AdminCampeonatos() {
                                 : "bg-[#0A0A0A] border-orbital-border text-orbital-text-dim hover:border-[#FF5500]/30"
                             }`}
                           >
-                            <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider">SWISS</div>
-                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] opacity-60 mt-0.5">8-16 times — Formato Major CS2</div>
+                            <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider">SWISS</div>
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] opacity-60 mt-0.5">8-16 times — Formato Major CS2</div>
                           </button>
                         </div>
                       </div>
@@ -332,9 +332,9 @@ export default function AdminCampeonatos() {
                         <input
                           type="text" value={faceitChampionshipId} onChange={e => setFaceitChampionshipId(e.target.value)}
                           placeholder="ID do championship na Faceit"
-                          className={`${inputClass} placeholder:text-orbital-text-dim/30`}
+                          className={`${inputClass} placeholder:text-orbital-text-dim/50`}
                         />
-                        <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50 mt-1">
+                        <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mt-1">
                           Crie o championship na Faceit e cole o ID aqui. Os webhooks vincularão as partidas automaticamente.
                         </p>
                       </div>
@@ -360,26 +360,26 @@ export default function AdminCampeonatos() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className={labelClass}>LOCALIZAÇÃO (opcional)</label>
-                        <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Ex: São Paulo, BR" className={`${inputClass} placeholder:text-orbital-text-dim/30`} />
+                        <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="Ex: São Paulo, BR" className={`${inputClass} placeholder:text-orbital-text-dim/50`} />
                       </div>
                       <div>
                         <label className={labelClass}>PREMIAÇÃO (opcional)</label>
-                        <input type="text" value={prizePool} onChange={e => setPrizePool(e.target.value)} placeholder="Ex: R$ 5.000" className={`${inputClass} placeholder:text-orbital-text-dim/30`} />
+                        <input type="text" value={prizePool} onChange={e => setPrizePool(e.target.value)} placeholder="Ex: R$ 5.000" className={`${inputClass} placeholder:text-orbital-text-dim/50`} />
                       </div>
                     </div>
                     <div>
                       <label className={labelClass}>DESCRIÇÃO (opcional)</label>
-                      <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição breve do campeonato..." rows={2} className={`${inputClass} placeholder:text-orbital-text-dim/30 resize-none`} />
+                      <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição breve do campeonato..." rows={2} className={`${inputClass} placeholder:text-orbital-text-dim/50 resize-none`} />
                     </div>
                     {mode === "presencial" && (
                       <div>
                         <label className={labelClass}>SPECTATOR AUTH (SteamID64;Nome)</label>
-                        <input type="text" value={spectatorAuth} onChange={e => setSpectatorAuth(e.target.value)} placeholder="76561198806637089;ORBITAL ROXA" className={`${inputClass} placeholder:text-orbital-text-dim/30`} />
-                        <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50 mt-1">SteamID64 da conta que fará a transmissão ao vivo</p>
+                        <input type="text" value={spectatorAuth} onChange={e => setSpectatorAuth(e.target.value)} placeholder="76561198806637089;ORBITAL ROXA" className={`${inputClass} placeholder:text-orbital-text-dim/50`} />
+                        <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mt-1">SteamID64 da conta que fará a transmissão ao vivo</p>
                       </div>
                     )}
                     <div className={`bg-[#0A0A0A] border p-4 ${mode === "online" ? "border-[#FF5500]/20" : "border-orbital-border"}`}>
-                      <div className={`font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] mb-2 ${mode === "online" ? "text-[#FF5500]" : "text-orbital-purple"}`}>
+                      <div className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] mb-2 ${mode === "online" ? "text-[#FF5500]" : "text-orbital-purple"}`}>
                         {mode === "online" ? "FORMATO ONLINE" : "FORMATO"}
                       </div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim space-y-1">
@@ -493,7 +493,7 @@ export default function AdminCampeonatos() {
                               {importFeedback.msg}
                             </div>
                           )}
-                          <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40 mt-1">
+                          <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 mt-1">
                             Busca os times inscritos na Faceit e cadastra automaticamente com os Steam IDs
                           </p>
                         </div>
@@ -502,7 +502,7 @@ export default function AdminCampeonatos() {
                       {/* Selected teams with seed order */}
                       {selectedTeams.length > 0 && (
                         <div className="mb-4 space-y-1">
-                          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple mb-2">
+                          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-2">
                             TIMES SELECIONADOS
                           </div>
                           {selectedTeams.map((teamId) => {
@@ -538,7 +538,7 @@ export default function AdminCampeonatos() {
                                 {team.name}
                               </div>
                               {team.tag && (
-                                <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">[{team.tag}]</span>
+                                <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">[{team.tag}]</span>
                               )}
                             </div>
                             <Plus size={12} className="ml-auto text-orbital-text-dim" />
@@ -587,7 +587,7 @@ export default function AdminCampeonatos() {
                 {wizardStep === 3 && (
                   <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                     <div className="bg-[#0A0A0A] border border-orbital-border p-5 space-y-4">
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple">RESUMO DO CAMPEONATO</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">RESUMO DO CAMPEONATO</div>
 
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim space-y-2">
                         <p><span className="text-orbital-text">Nome:</span> {name}</p>
@@ -607,7 +607,7 @@ export default function AdminCampeonatos() {
                       </div>
 
                       <div className="border-t border-orbital-border pt-3">
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim mb-2">CHAVEAMENTO</div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-text-dim mb-2">CHAVEAMENTO</div>
                         <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                           Os confrontos das quartas de final serão sorteados aleatoriamente ao criar o campeonato.
                         </p>
@@ -697,11 +697,11 @@ export default function AdminCampeonatos() {
                         {t.name}
                       </Link>
                       {t.mode === "online" && (
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-[#FF5500]/60 border border-[#FF5500]/20 px-1.5 py-0.5">
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-[#FF5500]/60 border border-[#FF5500]/20 px-1.5 py-0.5">
                           FACEIT
                         </span>
                       )}
-                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider ${
+                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider ${
                         t.status === "active" ? "text-orbital-live" : t.status === "finished" ? "text-orbital-success" : "text-orbital-warning"
                       }`}>
                         {t.status === "active" && <span className="inline-block w-1.5 h-1.5 rounded-full bg-orbital-live animate-pulse mr-1" />}

@@ -173,7 +173,7 @@ export default function AdminSeasons() {
               <form onSubmit={handleSubmit} className="space-y-4 py-2">
                 <div>
                   <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">NOME</label>
-                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Season 1" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/30" />
+                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Season 1" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -233,7 +233,7 @@ export default function AdminSeasons() {
                     {season.name}
                   </h3>
                   {isActive(season) && (
-                    <span className="px-2 py-0.5 bg-orbital-success/10 border border-orbital-success/30 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-success">
+                    <span className="px-2 py-0.5 bg-orbital-success/10 border border-orbital-success/30 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-success">
                       ATIVA
                     </span>
                   )}

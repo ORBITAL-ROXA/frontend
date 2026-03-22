@@ -49,7 +49,7 @@ export function HudCard({ children, className = "", label, glow = false, delay =
 export function StatBox({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
     <div className="text-center">
-      <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple mb-1 uppercase">
+      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-1 uppercase">
         {label}
       </div>
       <div className="font-[family-name:var(--font-jetbrains)] text-2xl font-bold text-orbital-text">

@@ -74,18 +74,18 @@ export function HomeContent({
                     {t.status === "active" && (
                       <span className="flex items-center gap-1.5 px-2 py-0.5 bg-orbital-live/10 border border-orbital-live/30">
                         <span className="w-1.5 h-1.5 rounded-full bg-orbital-live animate-pulse" />
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-live">AO VIVO</span>
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-live">AO VIVO</span>
                       </span>
                     )}
                     {t.status === "finished" && (
                       <span className="flex items-center gap-1.5 px-2 py-0.5 bg-orbital-success/10 border border-orbital-success/30">
                         <Trophy size={10} className="text-orbital-success" />
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-success">FINALIZADO</span>
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-success">FINALIZADO</span>
                       </span>
                     )}
                     {t.status === "pending" && (
                       <span className="px-2 py-0.5 bg-orbital-warning/10 border border-orbital-warning/30">
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-warning">EM BREVE</span>
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-warning">EM BREVE</span>
                       </span>
                     )}
                   </div>
@@ -120,7 +120,7 @@ export function HomeContent({
                         <span className="font-[family-name:var(--font-orbitron)] text-xs text-yellow-400 tracking-wider">{champion.name}</span>
                       </div>
                       {teamsMap?.[champion.id]?.players && (
-                        <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-yellow-400/50 mt-1 ml-6">
+                        <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-yellow-400/50 mt-1 ml-6">
                           {teamsMap[champion.id].players!.map(p => p.name).join(" • ")}
                         </div>
                       )}
@@ -130,7 +130,7 @@ export function HomeContent({
 
                 {/* Right: CTA */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-purple group-hover:text-orbital-text transition-colors">
+                  <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple group-hover:text-orbital-text transition-colors">
                     VER CAMPEONATO
                   </span>
                   <ChevronRight size={14} className="text-orbital-purple" />
@@ -303,7 +303,7 @@ export function HomeContent({
                             <span className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text group-hover:text-orbital-purple transition-colors truncate">
                               {tour.name}
                             </span>
-                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim shrink-0">
+                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim shrink-0">
                               {tour.teams.length} times
                             </span>
                           </div>
@@ -360,11 +360,11 @@ export function HomeContent({
                 <div className="font-[family-name:var(--font-orbitron)] text-sm font-bold text-yellow-400 tracking-wider mb-1">
                   {champion.name}
                 </div>
-                <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+                <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                   {t.name}
                 </div>
                 {teamsMap?.[champion.id]?.players && (
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-yellow-400/40 mt-1">
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-yellow-400/40 mt-1">
                     {teamsMap[champion.id].players!.map(p => p.name).join(" • ")}
                   </div>
                 )}
@@ -379,7 +379,7 @@ export function HomeContent({
               <p className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim mb-2">
                 Melhores jogadas do campeonato
               </p>
-              <Link href="/highlights" className="inline-flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple hover:text-orbital-text transition-colors">
+              <Link href="/highlights" className="inline-flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple hover:text-orbital-text transition-colors">
                 VER HIGHLIGHTS <ChevronRight size={10} />
               </Link>
             </div>
@@ -393,7 +393,7 @@ export function HomeContent({
                 <p className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim mb-2">
                   Reviva o {t.name}
                 </p>
-                <span className="inline-flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple">
+                <span className="inline-flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple">
                   VER RECAP <ChevronRight size={10} />
                 </span>
               </Link>
@@ -423,7 +423,7 @@ function SectionHeader({ icon: Icon, title, href, accent }: {
       </div>
       {href && (
         <Link href={href} className="flex items-center gap-1 text-orbital-text-dim hover:text-orbital-purple transition-colors">
-          <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem]">Ver mais</span>
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem]">Ver mais</span>
           <ChevronRight size={10} />
         </Link>
       )}
@@ -445,7 +445,7 @@ function SidebarSection({ icon: Icon, title, children, accent }: {
         <div className={`absolute top-0 left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent ${accentBg} to-transparent`} />
         <div className="flex items-center gap-2">
           <Icon size={11} className={accentColor} />
-          <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] ${accentColor}`}>
+          <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] ${accentColor}`}>
             {title}
           </span>
         </div>
@@ -460,7 +460,7 @@ function MiniStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="bg-orbital-card p-2.5 text-center">
       <div className="font-[family-name:var(--font-jetbrains)] text-base font-bold text-orbital-text">{value}</div>
-      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] text-orbital-text-dim mt-0.5">{label}</div>
+      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] text-orbital-text-dim mt-0.5">{label}</div>
     </div>
   );
 }
@@ -495,12 +495,12 @@ function MatchRow({ match, teamsMap, isLive }: {
             {isLive ? (
               <span className="flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-orbital-live animate-pulse" />
-                <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold text-orbital-live">
+                <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] font-bold text-orbital-live">
                   {match.team1_score}:{match.team2_score}
                 </span>
               </span>
             ) : (
-              <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">vs</span>
+              <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">vs</span>
             )}
           </div>
           <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
@@ -511,7 +511,7 @@ function MatchRow({ match, teamsMap, isLive }: {
           </div>
         </div>
         {match.title && !match.title.includes("{") && (
-          <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/60 mt-0.5 text-center">
+          <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 mt-0.5 text-center">
             {match.title}
           </div>
         )}

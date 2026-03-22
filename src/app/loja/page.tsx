@@ -108,7 +108,7 @@ export default function LojaPage() {
     setSubmitting(false);
   };
 
-  const inputClass = "w-full bg-[#111] border border-orbital-border px-3 py-2.5 text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm placeholder:text-orbital-text-dim/30 focus:outline-none focus:border-orbital-purple/50";
+  const inputClass = "w-full bg-[#111] border border-orbital-border px-3 py-2.5 text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm placeholder:text-orbital-text-dim/50 focus:outline-none focus:border-orbital-purple/50";
 
   if (loading) {
     return (
@@ -143,7 +143,7 @@ export default function LojaPage() {
           >
             <ShoppingBag size={14} />
             CARRINHO
-            <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-orbital-purple text-white text-[0.5rem] flex items-center justify-center font-bold">
+            <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-orbital-purple text-white text-[0.65rem] flex items-center justify-center font-bold">
               {cartCount}
             </span>
           </button>
@@ -202,7 +202,7 @@ export default function LojaPage() {
                 <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3 p-3 bg-[#111] border border-orbital-border">
                   <div className="flex-1">
                     <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{item.product.name}</div>
-                    <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">Tamanho: {item.size}</div>
+                    <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">Tamanho: {item.size}</div>
                     <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-purple mt-0.5">{formatPrice(item.product.price)}</div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -246,7 +246,7 @@ export default function LojaPage() {
                     {submitting ? <Loader2 size={16} className="animate-spin" /> : <ShoppingBag size={16} />}
                     {submitting ? "ENVIANDO..." : `PEDIR — ${formatPrice(cartTotal)}`}
                   </button>
-                  <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40 text-center">
+                  <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 text-center">
                     Pagamento via PIX — entraremos em contato pelo WhatsApp
                   </p>
                 </div>
@@ -318,7 +318,7 @@ function ProductCard({ product, onAdd, delay }: { product: Product; onAdd: (p: P
               <button
                 key={size}
                 onClick={() => setSelectedSize(size)}
-                className={`px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[0.55rem] border transition-colors ${
+                className={`px-2.5 py-1 font-[family-name:var(--font-jetbrains)] text-[0.65rem] border transition-colors ${
                   selectedSize === size
                     ? "bg-orbital-purple/20 border-orbital-purple/60 text-orbital-purple"
                     : "bg-[#111] border-orbital-border text-orbital-text-dim hover:border-orbital-purple/30"

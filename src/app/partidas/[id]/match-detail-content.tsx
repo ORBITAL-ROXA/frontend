@@ -245,7 +245,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
         </Link>
         <div className="flex items-center gap-3">
           {isLive && (
-            <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
               {lastUpdate.toLocaleTimeString("pt-BR")}
             </span>
           )}
@@ -319,7 +319,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                   {match.team1_string || team1?.name || `Time ${match.team1_id}`}
                 </h2>
                 {match.winner === match.team1_id && (
-                  <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-success">
+                  <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-success">
                     <Trophy size={10} /> VENCEDOR
                   </span>
                 )}
@@ -332,18 +332,18 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                   {isLive ? (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-orbital-live/15 border border-orbital-live/30">
                       <Radio size={10} className="text-orbital-live animate-pulse-live" />
-                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-live">AO VIVO</span>
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-live">AO VIVO</span>
                     </span>
                   ) : (
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 border ${
                       isFinished ? "bg-orbital-text-dim/5 border-orbital-border" : "bg-orbital-warning/10 border-orbital-warning/30"
                     }`}>
-                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] ${
+                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] ${
                         isFinished ? "text-orbital-text-dim" : "text-orbital-warning"
                       }`}>
                         {statusText}
                       </span>
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                         BO{match.max_maps || match.num_maps || 1}
                       </span>
                     </span>
@@ -355,7 +355,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                   }`}>
                     {overallScore1}
                   </span>
-                  <span className="font-[family-name:var(--font-jetbrains)] text-2xl text-orbital-text-dim/30">:</span>
+                  <span className="font-[family-name:var(--font-jetbrains)] text-2xl text-orbital-text-dim/50">:</span>
                   <span className={`font-[family-name:var(--font-jetbrains)] text-5xl sm:text-6xl font-black ${
                     match.winner === match.team2_id ? "text-orbital-success" : "text-orbital-text"
                   }`}>
@@ -383,7 +383,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                   {match.team2_string || team2?.name || `Time ${match.team2_id}`}
                 </h2>
                 {match.winner === match.team2_id && (
-                  <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-success">
+                  <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-success">
                     <Trophy size={10} /> VENCEDOR
                   </span>
                 )}
@@ -427,7 +427,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                 <a
                   href={`/api/demo/${currentMap.demoFile}`}
                   download
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple"
                 >
                   <Download size={10} /> DOWNLOAD DEMO
                 </a>
@@ -597,10 +597,10 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                       {isCurrentMap && (
                         <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 bg-orbital-live/20 border border-orbital-live/40">
                           <span className="w-1.5 h-1.5 rounded-full bg-orbital-live animate-pulse" />
-                          <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-live">LIVE</span>
+                          <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-live">LIVE</span>
                         </div>
                       )}
-                      <div className="absolute bottom-2 left-3 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim">
+                      <div className="absolute bottom-2 left-3 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim">
                         MAPA {ms.map_number + 1}
                       </div>
                     </div>
@@ -647,7 +647,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                         <a
                           href={`/api/demo/${ms.demoFile}`}
                           download
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple"
                         >
                           <Download size={10} /> DEMO
                         </a>
@@ -721,14 +721,14 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                       <ClipPlayer src={`/api/highlights-proxy/${clip.video_file}`} clipId={clip.id} />
                       <div className="p-2.5 flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] text-orbital-purple font-bold shrink-0">
+                          <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple font-bold shrink-0">
                             #{clip.rank}
                           </span>
                           <Link href={`/perfil/${clip.steam_id}`} className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text hover:text-orbital-purple transition-colors truncate">
                             {clip.player_name || "Highlight"}
                           </Link>
                           {clip.kills_count >= 2 && (
-                            <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] px-1.5 py-0.5 shrink-0 ${
+                            <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] px-1.5 py-0.5 shrink-0 ${
                               clip.kills_count >= 5
                                 ? "text-yellow-400 bg-yellow-400/10 border border-yellow-400/20"
                                 : "text-orbital-purple bg-orbital-purple/10"
@@ -738,7 +738,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                           )}
                         </div>
                         {clip.round_number && (
-                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim shrink-0">
+                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim shrink-0">
                             R{clip.round_number}
                           </span>
                         )}
@@ -766,7 +766,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                             {statusLabels[clip.status] || "Processando..."}
                           </span>
                           {clip.player_name && (
-                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-purple truncate block">
+                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple truncate block">
                               #{clip.rank} {clip.player_name}
                             </span>
                           )}
@@ -851,7 +851,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                         <div key={v.id} className={`flex items-center gap-3 py-1.5 ${isCurrentMap ? "py-2 px-2 -mx-2 bg-orbital-success/5 border border-orbital-success/20" : ""}`}>
                           <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim w-4 text-right">{i + 1}.</span>
                           <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text min-w-[80px]">{v.team_name}</span>
-                          <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 border ${
+                          <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] px-2 py-0.5 border ${
                             v.action === "ban"
                               ? "text-orbital-danger bg-orbital-danger/5 border-orbital-danger/20"
                               : "text-orbital-success bg-orbital-success/5 border-orbital-success/20"
@@ -862,7 +862,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                             {v.map.replace("de_", "").toUpperCase()}
                           </span>
                           {isCurrentMap && (
-                            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 text-orbital-success bg-orbital-success/10 border border-orbital-success/20 ml-auto">
+                            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] px-2 py-0.5 text-orbital-success bg-orbital-success/10 border border-orbital-success/20 ml-auto">
                               AO VIVO
                             </span>
                           )}
@@ -877,11 +877,11 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                           <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider font-bold ${isCurrentMap ? "text-orbital-success" : "text-orbital-text-dim"}`}>
                             {mapName.replace("de_", "").toUpperCase()}
                           </span>
-                          <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 ${isCurrentMap ? "text-orbital-success bg-orbital-success/10 border border-orbital-success/20" : "text-orbital-text-dim bg-orbital-card border border-orbital-border"}`}>
+                          <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] px-2 py-0.5 ${isCurrentMap ? "text-orbital-success bg-orbital-success/10 border border-orbital-success/20" : "text-orbital-text-dim bg-orbital-card border border-orbital-border"}`}>
                             {isBO1 ? "JOGADO" : "DECIDER"}
                           </span>
                           {isCurrentMap && (
-                            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 text-orbital-success bg-orbital-success/10 border border-orbital-success/20 ml-auto">
+                            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] px-2 py-0.5 text-orbital-success bg-orbital-success/10 border border-orbital-success/20 ml-auto">
                               AO VIVO
                             </span>
                           )}
@@ -894,7 +894,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                         <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-success font-bold">
                           {leftoverMap.replace("de_", "").toUpperCase()}
                         </span>
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 text-orbital-success bg-orbital-success/10 border border-orbital-success/20">
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] px-2 py-0.5 text-orbital-success bg-orbital-success/10 border border-orbital-success/20">
                           JOGADO
                         </span>
                       </div>
@@ -952,7 +952,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
             <div className="flex items-center gap-1 mb-4">
               <button
                 onClick={() => setActiveTab("all")}
-                className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider border transition-all ${
+                className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider border transition-all ${
                   activeTab === "all"
                     ? "border-orbital-purple/50 bg-orbital-purple/10 text-orbital-purple"
                     : "border-orbital-border text-orbital-text-dim hover:text-orbital-text hover:border-orbital-border/80"
@@ -964,7 +964,7 @@ export function MatchDetailContent({ match: initialMatch, playerStats: initialSt
                 <button
                   key={ms.id}
                   onClick={() => setActiveTab(ms.id)}
-                  className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider border transition-all ${
+                  className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider border transition-all ${
                     activeTab === ms.id
                       ? "border-orbital-purple/50 bg-orbital-purple/10 text-orbital-purple"
                       : "border-orbital-border text-orbital-text-dim hover:text-orbital-text hover:border-orbital-border/80"
@@ -1126,7 +1126,7 @@ function GameLog({
         <div className="h-[1px] flex-1 bg-gradient-to-r from-orbital-purple/30 to-transparent" />
         <button
           onClick={onToggle}
-          className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim hover:text-orbital-purple transition-colors flex items-center gap-1"
+          className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim hover:text-orbital-purple transition-colors flex items-center gap-1"
         >
           <ChevronDown size={12} className={`transition-transform ${expanded ? "" : "-rotate-90"}`} />
           {expanded ? "Recolher" : "Expandir"}
@@ -1140,7 +1140,7 @@ function GameLog({
             <div className="flex items-center gap-1 p-2 border-b border-orbital-border/50">
               <button
                 onClick={() => onMapFilterChange("all")}
-                className={`px-2.5 py-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider border transition-all ${
+                className={`px-2.5 py-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider border transition-all ${
                   mapFilter === "all"
                     ? "border-orbital-purple/50 bg-orbital-purple/10 text-orbital-purple"
                     : "border-orbital-border text-orbital-text-dim hover:text-orbital-text"
@@ -1152,7 +1152,7 @@ function GameLog({
                 <button
                   key={ms.id}
                   onClick={() => onMapFilterChange(ms.id)}
-                  className={`px-2.5 py-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider border transition-all ${
+                  className={`px-2.5 py-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider border transition-all ${
                     mapFilter === ms.id
                       ? "border-orbital-purple/50 bg-orbital-purple/10 text-orbital-purple"
                       : "border-orbital-border text-orbital-text-dim hover:text-orbital-text"
@@ -1182,11 +1182,11 @@ function GameLog({
                     {/* Round header */}
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0d0d0d]">
                       <Flag size={10} className="text-orbital-purple/60" />
-                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-purple/80">
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-purple/80">
                         ROUND {roundNum}
                       </span>
                       {mapStats.length > 1 && (
-                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                           {mapName(mapId)}
                         </span>
                       )}
@@ -1222,11 +1222,11 @@ function GameLog({
                               {/* Weapon + badges */}
                               <span className="flex items-center gap-0.5 mx-1">
                                 <Crosshair size={9} className="text-orbital-text-dim shrink-0" />
-                                <span className="text-[0.5rem] text-orbital-text-dim whitespace-nowrap">
+                                <span className="text-[0.65rem] text-orbital-text-dim whitespace-nowrap">
                                   {getWeaponName(k.weapon)}
                                 </span>
                                 {badges.map(b => (
-                                  <span key={b} className={`text-[0.5rem] px-0.5 font-bold ${
+                                  <span key={b} className={`text-[0.65rem] px-0.5 font-bold ${
                                     b === "HS" ? "text-orbital-danger" : "text-orbital-warning"
                                   }`}>
                                     {b}
@@ -1262,7 +1262,7 @@ function GameLog({
                               <span className="text-blue-400 font-medium">{b.player_name}</span>
                               <span className="text-orbital-text-dim">desarmou a bomba</span>
                               {b.bomb_time_remaining != null && (
-                                <span className="text-orbital-danger text-[0.5rem]">
+                                <span className="text-orbital-danger text-[0.65rem]">
                                   ({(b.bomb_time_remaining / 1000).toFixed(1)}s restantes)
                                 </span>
                               )}
@@ -1281,10 +1281,10 @@ function GameLog({
 
           {/* Footer with count */}
           <div className="px-3 py-2 border-t border-orbital-border/50 bg-[#0d0d0d] flex items-center justify-between">
-            <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
               {filteredKills.length} kills • {filteredBombs.filter(b => !b.defused).length} plants • {filteredBombs.filter(b => b.defused).length} defuses
             </span>
-            <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
               {roundKeys.length} rounds
             </span>
           </div>
@@ -1298,7 +1298,7 @@ function GameLog({
 function InfoItem({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
-      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim mb-1">{label}</div>
+      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-text-dim mb-1">{label}</div>
       <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text">{value}</div>
     </div>
   );
@@ -1362,17 +1362,17 @@ function PlayerStatsTable({ teamName, teamLogo, stats, isWinner, delay }: {
           <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-orbital-border/50">
-                <th className="text-left px-4 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">Jogador</th>
-                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">K-D</th>
-                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">
+                <th className="text-left px-4 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim font-normal tracking-wider">Jogador</th>
+                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim font-normal tracking-wider">K-D</th>
+                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim font-normal tracking-wider">
                   <span className="hidden sm:inline">+/-</span>
                   <span className="sm:hidden">±</span>
                 </th>
-                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">ADR</th>
-                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">
+                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim font-normal tracking-wider">ADR</th>
+                <th className="text-center px-2 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim font-normal tracking-wider">
                   <Crosshair size={10} className="inline" /> HS%
                 </th>
-                <th className="text-center px-3 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim font-normal tracking-wider">Rating</th>
+                <th className="text-center px-3 py-2.5 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim font-normal tracking-wider">Rating</th>
               </tr>
             </thead>
             <tbody>
@@ -1391,7 +1391,7 @@ function PlayerStatsTable({ teamName, teamLogo, stats, isWinner, delay }: {
                   }`}>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
-                        {isMvp && <span className="text-[0.5rem] text-yellow-400/80">★</span>}
+                        {isMvp && <span className="text-[0.65rem] text-yellow-400/80">★</span>}
                         <Link
                           href={`/perfil/${player.steam_id}`}
                           className={`font-[family-name:var(--font-jetbrains)] text-[0.7rem] hover:text-orbital-purple transition-colors font-medium ${
@@ -1481,7 +1481,7 @@ function AdminActions({ match, isActive, team1, team2, adminAction, setAdminActi
 
   const sectionLabel = (text: string) => (
     <div className="px-3 pt-3 pb-1.5 first:pt-2">
-      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple/60 uppercase">{text}</span>
+      <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple/60 uppercase">{text}</span>
     </div>
   );
 
@@ -1631,15 +1631,15 @@ function AdminActions({ match, isActive, team1, team2, adminAction, setAdminActi
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
             <div>
-              <label className="block text-[0.55rem] text-orbital-text-dim font-[family-name:var(--font-jetbrains)] mb-1">STEAM ID</label>
+              <label className="block text-[0.65rem] text-orbital-text-dim font-[family-name:var(--font-jetbrains)] mb-1">STEAM ID</label>
               <input value={playerSteamId} onChange={e => setPlayerSteamId(e.target.value)} placeholder="76561198..." className={inputClass} />
             </div>
             <div>
-              <label className="block text-[0.55rem] text-orbital-text-dim font-[family-name:var(--font-jetbrains)] mb-1">NICKNAME</label>
+              <label className="block text-[0.65rem] text-orbital-text-dim font-[family-name:var(--font-jetbrains)] mb-1">NICKNAME</label>
               <input value={playerNickname} onChange={e => setPlayerNickname(e.target.value)} placeholder="Player" className={inputClass} />
             </div>
             <div>
-              <label className="block text-[0.55rem] text-orbital-text-dim font-[family-name:var(--font-jetbrains)] mb-1">TIME</label>
+              <label className="block text-[0.65rem] text-orbital-text-dim font-[family-name:var(--font-jetbrains)] mb-1">TIME</label>
               <select value={playerTeam} onChange={e => setPlayerTeam(e.target.value)} className={inputClass}>
                 <option value="team1">{team1?.name || "Time 1"}</option>
                 <option value="team2">{team2?.name || "Time 2"}</option>
@@ -1672,7 +1672,7 @@ function AdminActions({ match, isActive, team1, team2, adminAction, setAdminActi
               {backups.map((b, i) => (
                 <div key={i} className="flex items-center justify-between gap-2 px-3 py-2 bg-orbital-bg/50 border border-orbital-border/30">
                   <span className="text-[0.6rem] text-orbital-text font-[family-name:var(--font-jetbrains)] truncate">{b.label}</span>
-                  <button onClick={() => handleRestoreBackup(b.filename)} className="shrink-0 px-2 py-1 text-[0.55rem] text-orbital-purple hover:bg-orbital-purple/10 border border-orbital-purple/30 transition-all font-[family-name:var(--font-jetbrains)]">
+                  <button onClick={() => handleRestoreBackup(b.filename)} className="shrink-0 px-2 py-1 text-[0.65rem] text-orbital-purple hover:bg-orbital-purple/10 border border-orbital-purple/30 transition-all font-[family-name:var(--font-jetbrains)]">
                     Restaurar
                   </button>
                 </div>

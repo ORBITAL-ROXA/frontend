@@ -17,7 +17,7 @@ interface AdminActions {
 
 // ── Team Logo ──
 function TeamLogo({ logo, size = 16 }: { logo: string | null | undefined; size?: number }) {
-  if (!logo) return <Shield size={size * 0.7} className="text-orbital-text-dim/40" />;
+  if (!logo) return <Shield size={size * 0.7} className="text-orbital-text-dim/60" />;
   return <Image src={logo} alt="Team logo" width={size} height={size} className="object-contain" unoptimized />;
 }
 
@@ -38,19 +38,19 @@ function BracketTeamRow({ name, teamId, isWinner, isLoser, score, isLive, logo }
     }`}>
       <div className="w-4 h-4 flex items-center justify-center shrink-0">
         {isTBD ? (
-          <Shield size={10} className="text-orbital-text-dim/30" />
+          <Shield size={10} className="text-orbital-text-dim/50" />
         ) : (
           <TeamLogo logo={logo} size={16} />
         )}
       </div>
       <span className={`truncate text-[0.65rem] font-[family-name:var(--font-jetbrains)] ${
-        isTBD ? "text-orbital-text-dim/30 italic" : isWinner ? "text-orbital-success font-bold" : isLoser ? "text-orbital-text-dim" : "text-orbital-text"
+        isTBD ? "text-orbital-text-dim/50 italic" : isWinner ? "text-orbital-success font-bold" : isLoser ? "text-orbital-text-dim" : "text-orbital-text"
       }`}>
         {name}
       </span>
       <div className="flex items-center gap-1.5 ml-auto">
         {isLive && (
-          <span className="flex items-center gap-1 text-orbital-live text-[0.5rem] font-[family-name:var(--font-orbitron)]">
+          <span className="flex items-center gap-1 text-orbital-live text-[0.65rem] font-[family-name:var(--font-orbitron)]">
             <span className="w-1.5 h-1.5 rounded-full bg-orbital-live animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
             LIVE
           </span>
@@ -117,22 +117,22 @@ export function BracketMatchCard({
     }`}>
       {/* Label row */}
       <div className="flex items-center justify-between mb-2">
-        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim">
+        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim">
           {match.label}
         </span>
         {isLive && (
-          <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-live animate-pulse">
+          <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-live animate-pulse">
             <span className="w-1.5 h-1.5 rounded-full bg-orbital-live shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
             LIVE
           </span>
         )}
         {match.map && (
-          <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple">
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple">
             {match.map.replace("de_", "").toUpperCase()}
           </span>
         )}
         {match.maps && (
-          <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-purple">
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple">
             {match.maps.map(m => m.replace("de_", "").toUpperCase()).join(" / ")}
           </span>
         )}
@@ -164,14 +164,14 @@ export function BracketMatchCard({
         <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
           {scores.map((ms, i) => (
             <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.02] border border-orbital-border/30">
-              <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+              <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                 {ms.map_name.replace("de_", "").toUpperCase()}
               </span>
-              <span className={`font-[family-name:var(--font-jetbrains)] text-[0.5rem] font-bold ${
+              <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] font-bold ${
                 ms.team1_score > ms.team2_score ? "text-orbital-success" : "text-orbital-text-dim"
               }`}>{ms.team1_score}</span>
               <span className="text-orbital-text-dim text-[0.35rem]">:</span>
-              <span className={`font-[family-name:var(--font-jetbrains)] text-[0.5rem] font-bold ${
+              <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] font-bold ${
                 ms.team2_score > ms.team1_score ? "text-orbital-success" : "text-orbital-text-dim"
               }`}>{ms.team2_score}</span>
             </div>
@@ -185,7 +185,7 @@ export function BracketMatchCard({
           {isReady && match.status === "pending" && (
             <button
               onClick={() => admin.onStartVeto(match)}
-              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple"
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple"
             >
               <Swords size={10} /> VETO
             </button>
@@ -194,13 +194,13 @@ export function BracketMatchCard({
             <>
               <button
                 onClick={() => admin.onSetWinner(match.id, match.team1_id!)}
-                className="flex-1 px-2 py-1.5 border border-orbital-border hover:border-orbital-success/50 hover:bg-orbital-success/10 transition-all font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim hover:text-orbital-success truncate"
+                className="flex-1 px-2 py-1.5 border border-orbital-border hover:border-orbital-success/50 hover:bg-orbital-success/10 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim hover:text-orbital-success truncate"
               >
                 {team1} W
               </button>
               <button
                 onClick={() => admin.onSetWinner(match.id, match.team2_id!)}
-                className="flex-1 px-2 py-1.5 border border-orbital-border hover:border-orbital-success/50 hover:bg-orbital-success/10 transition-all font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim hover:text-orbital-success truncate"
+                className="flex-1 px-2 py-1.5 border border-orbital-border hover:border-orbital-success/50 hover:bg-orbital-success/10 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim hover:text-orbital-success truncate"
               >
                 {team2} W
               </button>
@@ -209,7 +209,7 @@ export function BracketMatchCard({
           {match.match_id && (
             <Link
               href={`/partidas/${match.match_id}`}
-              className="px-2 py-1.5 border border-orbital-border hover:border-orbital-purple/30 transition-all font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim hover:text-orbital-purple"
+              className="px-2 py-1.5 border border-orbital-border hover:border-orbital-purple/30 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim hover:text-orbital-purple"
             >
               #{match.match_id}
             </Link>
@@ -220,7 +220,7 @@ export function BracketMatchCard({
       {/* Match link (non-admin) */}
       {!admin?.isAdmin && hasLink && (
         <div className="mt-2 text-center">
-          <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-purple/60">
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple/60">
             #{match.match_id}
           </span>
         </div>
@@ -264,7 +264,7 @@ export function BracketSection({
         {sortedRounds.map(([round, roundMatches], idx) => (
           <div key={round} className="flex items-center">
             <div className="flex flex-col gap-4 min-w-[180px] sm:min-w-[220px]">
-              <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-text-dim text-center mb-2">
+              <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-text-dim text-center mb-2">
                 {isWinnerBracket
                   ? round === 1 ? "QUARTAS" : round === 2 ? "SEMIFINAL" : "FINAL"
                   : `RODADA ${round}`
@@ -327,7 +327,7 @@ export function FullBracket({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="h-[1px] w-4 bg-orbital-purple/40" />
-            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple">WINNER BRACKET</span>
+            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">WINNER BRACKET</span>
             <div className="h-[1px] flex-1 bg-orbital-purple/20" />
           </div>
           <BracketSection
@@ -346,7 +346,7 @@ export function FullBracket({
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="h-[1px] w-4 bg-orbital-danger/40" />
-            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-danger/80">LOWER BRACKET</span>
+            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-danger/80">LOWER BRACKET</span>
             <div className="h-[1px] flex-1 bg-orbital-danger/15" />
           </div>
           <BracketSection
@@ -364,7 +364,7 @@ export function FullBracket({
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Trophy size={12} className="text-amber-500" />
-            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-amber-500">GRAND FINAL — BO3</span>
+            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-amber-500">GRAND FINAL — BO3</span>
             <div className="h-[1px] flex-1 bg-amber-500/30" />
           </div>
           <div className="flex justify-center">

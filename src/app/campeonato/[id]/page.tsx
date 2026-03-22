@@ -453,11 +453,11 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
               <Link href="/admin/campeonatos" className="text-orbital-text-dim hover:text-orbital-purple transition-colors">
                 <ArrowLeft size={16} />
               </Link>
-              <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] px-3 py-1 border ${statusColor} ${statusBorder} uppercase`}>
+              <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] px-3 py-1 border ${statusColor} ${statusBorder} uppercase`}>
                 {statusLabel}
               </span>
               {tournament.status === "active" && liveCount > 0 && (
-                <span className="flex items-center gap-1.5 font-[family-name:var(--font-orbitron)] text-[0.5rem] text-[#EF4444]">
+                <span className="flex items-center gap-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] text-[#EF4444]">
                   <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
                   {liveCount} PARTIDA{liveCount > 1 ? "S" : ""} AO VIVO
                 </span>
@@ -522,7 +522,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
               {tournament.status === "finished" && (
                 <Link
                   href={`/campeonato/${tournament.id}/recap`}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-purple"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple"
                 >
                   <BarChart3 size={12} /> RECAP
                 </Link>
@@ -601,7 +601,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                           )}
                         </div>
                         <div>
-                          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.3em] text-amber-500/80 mb-1">CAMPEAO</div>
+                          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.3em] text-amber-500/80 mb-1">CAMPEAO</div>
                           <div className="font-[family-name:var(--font-orbitron)] text-xl font-bold tracking-wider text-amber-400">{champion}</div>
                           {grandFinal?.winner_id && teamsMap[grandFinal.winner_id]?.players && (
                             <div className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-amber-500/60 mt-1">
@@ -630,7 +630,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                       <div className="flex items-center gap-4">
                         <Star size={28} className="text-red-500 shrink-0" />
                         <div>
-                          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.3em] text-red-500/80 mb-1">MVP DO CAMPEONATO</div>
+                          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.3em] text-red-500/80 mb-1">MVP DO CAMPEONATO</div>
                           <Link href={`/perfil/${mvp.steamId}`} className="font-[family-name:var(--font-orbitron)] text-lg font-bold tracking-wider text-red-400 hover:text-red-300 transition-colors">
                             {mvp.name}
                           </Link>
@@ -646,7 +646,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                   {isAdmin && nextMatch && !vetoMatch && (
                     <div className="bg-orbital-purple/5 border border-orbital-purple/30 p-4 flex items-center justify-between">
                       <div>
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple mb-1">PROXIMA PARTIDA</div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-1">PROXIMA PARTIDA</div>
                         <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text">
                           {getTeamName(tournament, nextMatch.team1_id)} <span className="text-orbital-text-dim">vs</span> {getTeamName(tournament, nextMatch.team2_id)}
                         </div>
@@ -743,14 +743,14 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                           <table className="w-full text-left">
                             <thead>
                               <tr className="border-b border-orbital-border">
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 w-8">#</th>
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2">TIME</th>
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">J</th>
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">V</th>
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">D</th>
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">MW</th>
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">ML</th>
-                                <th className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">+/−</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 w-8">#</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2">TIME</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">J</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">V</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">D</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">MW</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">ML</th>
+                                <th className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim py-2 px-2 text-center">+/−</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -775,7 +775,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                           {teamData?.logo ? (
                                             <Image src={teamData.logo} alt={teamName} width={20} height={20} className="object-contain" unoptimized />
                                           ) : (
-                                            <Shield size={12} className="text-orbital-text-dim/40" />
+                                            <Shield size={12} className="text-orbital-text-dim/60" />
                                           )}
                                         </div>
                                         <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text truncate">
@@ -844,13 +844,13 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                             className="bg-[#0A0A0A] border border-orbital-border hover:border-orbital-purple/40 p-3 text-center transition-colors group"
                           >
                             <div className="text-2xl mb-1">{award.emoji}</div>
-                            <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-purple mb-1">
+                            <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-purple mb-1">
                               {award.title}
                             </div>
                             <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text group-hover:text-orbital-purple transition-colors truncate">
                               {award.playerName}
                             </div>
-                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-0.5">
+                            <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim mt-0.5">
                               {award.value}
                             </div>
                           </Link>
@@ -876,7 +876,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                               {teamData?.logo ? (
                                 <Image src={teamData.logo} alt={team.name} width={28} height={28} className="object-contain" unoptimized />
                               ) : (
-                                <Shield size={18} className="text-orbital-text-dim/40" />
+                                <Shield size={18} className="text-orbital-text-dim/60" />
                               )}
                             </div>
                             <div className="min-w-0">
@@ -884,7 +884,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                 {team.name}
                               </div>
                               {grandFinal?.winner_id === team.id && (
-                                <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-amber-500">CAMPEÃO</div>
+                                <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-amber-500">CAMPEÃO</div>
                               )}
                             </div>
                           </motion.div>
@@ -955,7 +955,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                   {showPhase && (
                                     <div className="flex items-center gap-2 mb-3 mt-2">
                                       <div className="h-[1px] w-4 bg-orbital-purple/40" />
-                                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple">{phase}</span>
+                                      <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">{phase}</span>
                                       <div className="h-[1px] flex-1 bg-orbital-purple/15" />
                                     </div>
                                   )}
@@ -975,17 +975,17 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                         {/* Status */}
                                         <div className="shrink-0 w-12 text-center">
                                           {isLive ? (
-                                            <span className="inline-flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] text-red-500">
+                                            <span className="inline-flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] text-red-500">
                                               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
                                               LIVE
                                             </span>
                                           ) : isFinished ? (
-                                            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-emerald-500/70">FIM</span>
+                                            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-emerald-500/70">FIM</span>
                                           ) : (
-                                            <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-yellow-500/70">TBD</span>
+                                            <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-yellow-500/70">TBD</span>
                                           )}
                                           {bm && (
-                                            <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple/60 mt-0.5">
+                                            <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple/60 mt-0.5">
                                               {bm.num_maps === 1 ? "BO1" : "BO3"}
                                             </div>
                                           )}
@@ -999,7 +999,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                             {match.team1_string || "TBD"}
                                           </span>
                                           <div className="w-7 h-7 flex items-center justify-center shrink-0">
-                                            {t1Logo ? <Image src={t1Logo} alt="" width={24} height={24} className="object-contain" unoptimized /> : <Shield size={14} className="text-orbital-text-dim/30" />}
+                                            {t1Logo ? <Image src={t1Logo} alt="" width={24} height={24} className="object-contain" unoptimized /> : <Shield size={14} className="text-orbital-text-dim/50" />}
                                           </div>
                                         </div>
 
@@ -1011,14 +1011,14 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                                 <div key={mi} className="flex items-center">
                                                   {mi > 0 && <div className="w-[1px] h-6 bg-orbital-border/40 mx-2" />}
                                                   <div className="text-center px-1.5">
-                                                    <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-purple/50 uppercase mb-0.5">
+                                                    <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-purple/50 uppercase mb-0.5">
                                                       {ms.map_name?.replace("de_", "") || `M${mi + 1}`}
                                                     </div>
                                                     <div className="flex items-center justify-center gap-1">
                                                       <span className={`font-[family-name:var(--font-jetbrains)] text-base font-bold tabular-nums ${
                                                         ms.team1_score > ms.team2_score ? "text-emerald-400" : "text-orbital-text-dim/60"
                                                       }`}>{ms.team1_score}</span>
-                                                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/30">:</span>
+                                                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50">:</span>
                                                       <span className={`font-[family-name:var(--font-jetbrains)] text-base font-bold tabular-nums ${
                                                         ms.team2_score > ms.team1_score ? "text-emerald-400" : "text-orbital-text-dim/60"
                                                       }`}>{ms.team2_score}</span>
@@ -1043,7 +1043,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                         {/* Team 2 */}
                                         <div className="flex items-center gap-2 flex-1 min-w-0">
                                           <div className="w-7 h-7 flex items-center justify-center shrink-0">
-                                            {t2Logo ? <Image src={t2Logo} alt="" width={24} height={24} className="object-contain" unoptimized /> : <Shield size={14} className="text-orbital-text-dim/30" />}
+                                            {t2Logo ? <Image src={t2Logo} alt="" width={24} height={24} className="object-contain" unoptimized /> : <Shield size={14} className="text-orbital-text-dim/50" />}
                                           </div>
                                           <span className={`font-[family-name:var(--font-jetbrains)] text-sm truncate ${
                                             isFinished && match.winner === match.team2_id ? "text-orbital-text font-bold" : "text-orbital-text-dim"
@@ -1055,11 +1055,11 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                         {/* Date + arrow */}
                                         <div className="shrink-0 text-right hidden sm:flex items-center gap-2">
                                           {match.start_time && (
-                                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/60">
+                                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60">
                                               {new Date(match.start_time).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                                             </span>
                                           )}
-                                          <ChevronRight size={14} className="text-orbital-text-dim/30 group-hover:text-orbital-purple transition-colors" />
+                                          <ChevronRight size={14} className="text-orbital-text-dim/50 group-hover:text-orbital-purple transition-colors" />
                                         </div>
                                       </div>
                                     </div>
@@ -1136,7 +1136,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                               <HudCard key={p.steamId} glow={isFirst} delay={pos * 0.1} className={`text-center ${isFirst ? "sm:-mt-4" : "sm:mt-4"}`}>
                                 <div className="py-2">
                                   <Medal size={isFirst ? 28 : 22} className={`mx-auto mb-2 ${rank === 1 ? "text-yellow-400" : rank === 2 ? "text-gray-300" : "text-amber-600"}`} />
-                                  <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple mb-1">#{rank}</div>
+                                  <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-1">#{rank}</div>
                                   <Link href={`/perfil/${p.steamId}`} className="font-[family-name:var(--font-orbitron)] text-xs font-bold tracking-wider text-orbital-text hover:text-orbital-purple transition-colors">
                                     {p.name}
                                   </Link>
@@ -1263,7 +1263,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                           />
                           <div className="p-2.5">
                             <div className="flex items-center gap-2 mb-1.5">
-                              <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple shrink-0">#{clip.rank}</span>
+                              <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple shrink-0">#{clip.rank}</span>
                               {clip.steam_id ? (
                                 <Link href={`/perfil/${clip.steam_id}`} className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text hover:text-orbital-purple transition-colors truncate">
                                   {clip.player_name || "Player"}
@@ -1272,17 +1272,17 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                                 <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text truncate">{clip.player_name || "Player"}</span>
                               )}
                               {clip.kills_count >= 2 && (
-                                <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
+                                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
                                   {clip.kills_count >= 5 ? "ACE" : `${clip.kills_count}K`}
                                 </span>
                               )}
                               {clip.round_number && (
-                                <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim shrink-0 ml-auto">R{clip.round_number}</span>
+                                <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim shrink-0 ml-auto">R{clip.round_number}</span>
                               )}
                             </div>
                             <Link href={`/partidas/${clip.match_id}`} className="flex items-center gap-1.5 group/match">
                               <Swords size={9} className="text-orbital-text-dim group-hover/match:text-orbital-purple transition-colors shrink-0" />
-                              <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim group-hover/match:text-orbital-purple transition-colors truncate">
+                              <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim group-hover/match:text-orbital-purple transition-colors truncate">
                                 {clip.team1_string || "Time 1"} vs {clip.team2_string || "Time 2"}
                               </span>
                             </Link>
@@ -1324,7 +1324,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                   <div className="flex items-start gap-3">
                     <Calendar size={14} className="text-orbital-purple mt-0.5 shrink-0" />
                     <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">DATAS</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">DATAS</div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">
                         {new Date(tournament.start_date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
                         {tournament.end_date && (
@@ -1340,7 +1340,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                   <div className="flex items-start gap-3">
                     <DollarSign size={14} className="text-orbital-purple mt-0.5 shrink-0" />
                     <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">PREMIACAO</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">PREMIACAO</div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{tournament.prize_pool}</div>
                     </div>
                   </div>
@@ -1349,7 +1349,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                   <div className="flex items-start gap-3">
                     <MapPin size={14} className="text-orbital-purple mt-0.5 shrink-0" />
                     <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">LOCAL</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">LOCAL</div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{tournament.location}</div>
                     </div>
                   </div>
@@ -1357,7 +1357,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                 <div className="flex items-start gap-3">
                   <Layers size={14} className="text-orbital-purple mt-0.5 shrink-0" />
                   <div>
-                    <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">FORMATO</div>
+                    <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">FORMATO</div>
                     <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">
                       {tournament.format === "double_elimination" ? "Eliminacao Dupla" : tournament.format || "Eliminacao Dupla"}
                     </div>
@@ -1366,7 +1366,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                 <div className="flex items-start gap-3">
                   <Swords size={14} className="text-orbital-purple mt-0.5 shrink-0" />
                   <div>
-                    <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">PROGRESSO</div>
+                    <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim mb-0.5">PROGRESSO</div>
                     <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">
                       {finishedCount}/{tournament.matches.length} partidas
                     </div>
@@ -1423,7 +1423,7 @@ export default function CampeonatoPage({ params }: { params: Promise<{ id: strin
                         {teamData?.logo ? (
                           <Image src={teamData.logo} alt={team.name} width={18} height={18} className="object-contain" unoptimized />
                         ) : (
-                          <Shield size={12} className="text-orbital-text-dim/40" />
+                          <Shield size={12} className="text-orbital-text-dim/60" />
                         )}
                       </div>
                       <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text truncate">{team.name}</span>
@@ -1538,7 +1538,7 @@ function VetoModal({
           {/* Team Selection - Who vetoes first */}
           {!vetoFirstTeam && (
             <div className="space-y-3">
-              <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple text-center">
+              <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple text-center">
                 QUEM COMECA O VETO?
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -1549,7 +1549,7 @@ function VetoModal({
                   <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text group-hover:text-orbital-purple transition-colors">
                     {getTeamName(tournament, match.team1_id)}
                   </div>
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-1">TIME 1</div>
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim mt-1">TIME 1</div>
                 </button>
                 <button
                   onClick={() => onSelectVetoFirst("team2")}
@@ -1558,7 +1558,7 @@ function VetoModal({
                   <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text group-hover:text-orbital-purple transition-colors">
                     {getTeamName(tournament, match.team2_id)}
                   </div>
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim mt-1">TIME 2</div>
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim mt-1">TIME 2</div>
                 </button>
               </div>
             </div>
@@ -1573,7 +1573,7 @@ function VetoModal({
                     ? "bg-orbital-danger/5 border-orbital-danger/20"
                     : "bg-orbital-success/5 border-orbital-success/20"
                 }`}>
-                  <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider ${
+                  <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider ${
                     action.action === "ban" ? "text-orbital-danger" : "text-orbital-success"
                   }`}>
                     {action.action === "ban" ? "BAN" : "PICK"}
@@ -1592,7 +1592,7 @@ function VetoModal({
           {/* Current Action */}
           {vetoFirstTeam && !isComplete && currentAction && (
             <div className="border border-orbital-purple/30 p-4">
-              <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple mb-1">
+              <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-1">
                 {currentAction === "ban" ? "BANIR MAPA" : "ESCOLHER MAPA"}
               </div>
               <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text mb-3">
@@ -1665,14 +1665,14 @@ function VetoModal({
                     <button
                       onClick={onStartMatch}
                       disabled={!selectedServer || actionLoading}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-orbital-purple/20 border border-orbital-purple/50 hover:bg-orbital-purple/30 transition-all font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-orbital-purple/20 border border-orbital-purple/50 hover:bg-orbital-purple/30 transition-all font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
                       TENTAR NOVAMENTE
                     </button>
                     <button
                       onClick={onResetVeto}
-                      className="flex items-center justify-center gap-2 px-4 py-2 border border-orbital-border hover:border-orbital-danger/50 transition-all font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-text-dim hover:text-orbital-danger"
+                      className="flex items-center justify-center gap-2 px-4 py-2 border border-orbital-border hover:border-orbital-danger/50 transition-all font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim hover:text-orbital-danger"
                     >
                       <X size={14} />
                       RESETAR VETO
@@ -1720,7 +1720,7 @@ function SwissStandingsView({
         <div className="overflow-x-auto mt-2">
           <table className="w-full font-[family-name:var(--font-jetbrains)] text-xs">
             <thead>
-              <tr className="text-orbital-text-dim/50 border-b border-orbital-border text-[0.55rem]">
+              <tr className="text-orbital-text-dim/50 border-b border-orbital-border text-[0.65rem]">
                 <th className="text-left py-2 px-2">#</th>
                 <th className="text-left py-2 px-2">Time</th>
                 <th className="text-center py-2 px-2">Record</th>
@@ -1748,23 +1748,23 @@ function SwissStandingsView({
                         {logo ? (
                           <Image src={logo} alt={s.name} width={20} height={20} className="object-contain" unoptimized />
                         ) : (
-                          <Shield size={14} className="text-orbital-text-dim/30" />
+                          <Shield size={14} className="text-orbital-text-dim/50" />
                         )}
                         <span className="text-orbital-text">{s.name}</span>
-                        {s.tag && <span className="text-orbital-text-dim/40">[{s.tag}]</span>}
+                        {s.tag && <span className="text-orbital-text-dim/60">[{s.tag}]</span>}
                       </Link>
                     </td>
                     <td className="text-center py-2.5 px-2">
                       <span className="font-[family-name:var(--font-orbitron)] text-xs">
                         <span className="text-green-400">{s.wins}</span>
-                        <span className="text-orbital-text-dim/30">-</span>
+                        <span className="text-orbital-text-dim/50">-</span>
                         <span className="text-red-400/70">{s.losses}</span>
                       </span>
                     </td>
                     <td className="text-center py-2.5 px-2 text-orbital-text-dim">{s.buchholz}</td>
                     <td className="text-center py-2.5 px-2">
                       <span
-                        className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider px-2 py-0.5 border ${
+                        className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider px-2 py-0.5 border ${
                           s.status === "advanced"
                             ? "text-green-400 border-green-400/30 bg-green-400/5"
                             : s.status === "eliminated"
@@ -1801,13 +1801,13 @@ function SwissStandingsView({
           <HudCard key={round} className="p-4" label={`ROUND ${round}`}>
             <div className="flex items-center gap-2 mb-3">
               {hasLive && (
-                <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-red-400">
+                <span className="flex items-center gap-1 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-red-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                   AO VIVO
                 </span>
               )}
               {allDone && (
-                <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-green-400/50">
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-green-400/50">
                   CONCLUÍDO
                 </span>
               )}
@@ -1844,7 +1844,7 @@ function SwissStandingsView({
                       {t1Logo ? (
                         <Image src={t1Logo} alt="" width={18} height={18} className="object-contain shrink-0" unoptimized />
                       ) : (
-                        <Shield size={12} className="text-orbital-text-dim/30 shrink-0" />
+                        <Shield size={12} className="text-orbital-text-dim/50 shrink-0" />
                       )}
                     </div>
 
@@ -1853,12 +1853,12 @@ function SwissStandingsView({
                       {isDone ? (
                         <span>
                           <span className={m.winner_id === m.team1_id ? "text-green-400" : ""}>{/* map score if available */}</span>
-                          <span className="text-orbital-text-dim/40">VS</span>
+                          <span className="text-orbital-text-dim/60">VS</span>
                         </span>
                       ) : isLive ? (
-                        <span className="text-red-400 text-[0.5rem]">LIVE</span>
+                        <span className="text-red-400 text-[0.65rem]">LIVE</span>
                       ) : (
-                        <span className="text-orbital-text-dim/30 text-[0.5rem]">VS</span>
+                        <span className="text-orbital-text-dim/50 text-[0.65rem]">VS</span>
                       )}
                     </div>
 
@@ -1867,7 +1867,7 @@ function SwissStandingsView({
                       {t2Logo ? (
                         <Image src={t2Logo} alt="" width={18} height={18} className="object-contain shrink-0" unoptimized />
                       ) : (
-                        <Shield size={12} className="text-orbital-text-dim/30 shrink-0" />
+                        <Shield size={12} className="text-orbital-text-dim/50 shrink-0" />
                       )}
                       <span
                         className={`font-[family-name:var(--font-jetbrains)] text-xs truncate ${
@@ -1879,7 +1879,7 @@ function SwissStandingsView({
                     </div>
 
                     {/* BO indicator */}
-                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/30 shrink-0">
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 shrink-0">
                       {m.num_maps > 1 ? "BO3" : "BO1"}
                     </span>
                   </div>

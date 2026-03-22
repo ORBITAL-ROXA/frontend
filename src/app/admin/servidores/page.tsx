@@ -156,26 +156,26 @@ export default function AdminServidores() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">NOME</label>
-                    <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Servidor CS2" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/30" />
+                    <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Servidor CS2" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                   <div>
                     <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">PAÍS</label>
-                    <input type="text" value={flag} onChange={e => setFlag(e.target.value)} placeholder="BR" maxLength={2} className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/30" />
+                    <input type="text" value={flag} onChange={e => setFlag(e.target.value)} placeholder="BR" maxLength={2} className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">IP</label>
-                    <input type="text" value={ipString} onChange={e => setIpString(e.target.value)} placeholder="192.168.1.1" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/30" />
+                    <input type="text" value={ipString} onChange={e => setIpString(e.target.value)} placeholder="192.168.1.1" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                   <div>
                     <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">PORTA</label>
-                    <input type="number" value={port} onChange={e => setPort(e.target.value)} placeholder="27015" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/30" />
+                    <input type="number" value={port} onChange={e => setPort(e.target.value)} placeholder="27015" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                   <div>
                     <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">RCON SENHA</label>
-                    <input type="password" value={rconPassword} onChange={e => setRconPassword(e.target.value)} placeholder={editing ? "(manter atual)" : "Senha RCON"} className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/30" />
+                    <input type="password" value={rconPassword} onChange={e => setRconPassword(e.target.value)} placeholder={editing ? "(manter atual)" : "Senha RCON"} className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                 </div>
 
@@ -229,7 +229,7 @@ export default function AdminServidores() {
                     {server.ip_string}:{server.port}
                   </span>
                   {server.flag && <span className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim/50">{server.flag}</span>}
-                  {server.public_server && <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-success/50">PÚBLICO</span>}
+                  {server.public_server && <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-success/50">PÚBLICO</span>}
                 </div>
               </div>
             </div>

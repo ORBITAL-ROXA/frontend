@@ -63,7 +63,7 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative flex items-center px-3 py-2 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.12em] transition-colors ${
+                  className={`relative flex items-center px-3 py-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.12em] transition-colors ${
                     isActive
                       ? "text-orbital-purple"
                       : "text-orbital-text-dim hover:text-orbital-text"
@@ -86,7 +86,7 @@ export function Navbar() {
             {isAdmin && (
               <Link
                 href="/admin"
-                className={`relative flex items-center gap-1.5 px-3 py-2 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.12em] transition-colors ${
+                className={`relative flex items-center gap-1.5 px-3 py-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.12em] transition-colors ${
                   pathname.startsWith("/admin")
                     ? "text-orbital-purple"
                     : "text-orbital-text-dim hover:text-orbital-text"
@@ -189,7 +189,7 @@ export function Navbar() {
             ) : (
               <button
                 onClick={login}
-                className="flex items-center gap-1.5 px-3 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-purple whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple whitespace-nowrap"
               >
                 <LogIn size={12} />
                 <span className="hidden xl:inline">ENTRAR VIA STEAM</span>

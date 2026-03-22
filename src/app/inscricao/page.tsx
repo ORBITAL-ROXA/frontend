@@ -117,8 +117,8 @@ export default function InscricaoPage() {
   };
 
   const slotsAvailable = maxSlots - slotsUsed;
-  const inputClass = "w-full bg-[#111] border border-orbital-border px-3 py-2.5 text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm placeholder:text-orbital-text-dim/30 focus:outline-none focus:border-orbital-purple/50 transition-colors";
-  const labelClass = "font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.15em] text-orbital-purple mb-1 block";
+  const inputClass = "w-full bg-[#111] border border-orbital-border px-3 py-2.5 text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm placeholder:text-orbital-text-dim/50 focus:outline-none focus:border-orbital-purple/50 transition-colors";
+  const labelClass = "font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-purple mb-1 block";
 
   // Success screen
   if (step === 1) {
@@ -181,7 +181,7 @@ export default function InscricaoPage() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6">
           <div className="bg-[#0A0A0A] border border-orbital-border p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-text-dim">VAGAS</span>
+              <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim">VAGAS</span>
               <span className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-purple">
                 {slotsUsed}/{maxSlots}
               </span>
@@ -212,8 +212,8 @@ export default function InscricaoPage() {
           {/* Tournament selector */}
           {tournaments.length > 1 && (
             <div>
-              <label className={labelClass}>CAMPEONATO</label>
-              <select value={selectedTournament} onChange={e => setSelectedTournament(e.target.value)} className={inputClass}>
+              <label htmlFor="tournament" className={labelClass}>CAMPEONATO</label>
+              <select id="tournament" value={selectedTournament} onChange={e => setSelectedTournament(e.target.value)} className={inputClass}>
                 <option value="">Selecione...</option>
                 {tournaments.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -230,17 +230,17 @@ export default function InscricaoPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>NOME DO TIME *</label>
-                <input type="text" value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="Ex: CHOPPADAS" className={inputClass} />
+                <label htmlFor="teamName" className={labelClass}>NOME DO TIME *</label>
+                <input id="teamName" type="text" value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="Ex: CHOPPADAS" className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>TAG *</label>
-                <input type="text" value={teamTag} onChange={e => setTeamTag(e.target.value.toUpperCase().slice(0, 10))} placeholder="Ex: CHOPP" className={inputClass} maxLength={10} />
+                <label htmlFor="teamTag" className={labelClass}>TAG *</label>
+                <input id="teamTag" type="text" value={teamTag} onChange={e => setTeamTag(e.target.value.toUpperCase().slice(0, 10))} placeholder="Ex: CHOPP" className={inputClass} maxLength={10} />
               </div>
             </div>
             <div>
-              <label className={labelClass}>LOGO DO TIME (URL, opcional)</label>
-              <input type="text" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." className={inputClass} />
+              <label htmlFor="logoUrl" className={labelClass}>LOGO DO TIME (URL, opcional)</label>
+              <input id="logoUrl" type="text" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." className={inputClass} />
             </div>
           </div>
 
@@ -252,16 +252,16 @@ export default function InscricaoPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className={labelClass}>NOME/NICK *</label>
-                <input type="text" value={captainName} onChange={e => setCaptainName(e.target.value)} placeholder="nastyy" className={inputClass} />
+                <label htmlFor="captainName" className={labelClass}>NOME/NICK *</label>
+                <input id="captainName" type="text" value={captainName} onChange={e => setCaptainName(e.target.value)} placeholder="nastyy" className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>STEAM ID *</label>
-                <input type="text" value={captainSteamId} onChange={e => setCaptainSteamId(e.target.value)} placeholder="76561198..." className={inputClass} />
+                <label htmlFor="captainSteamId" className={labelClass}>STEAM ID *</label>
+                <input id="captainSteamId" type="text" value={captainSteamId} onChange={e => setCaptainSteamId(e.target.value)} placeholder="76561198..." className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>WHATSAPP *</label>
-                <input type="text" value={captainWhatsapp} onChange={e => setCaptainWhatsapp(e.target.value)} placeholder="16999999999" className={inputClass} />
+                <label htmlFor="captainWhatsapp" className={labelClass}>WHATSAPP *</label>
+                <input id="captainWhatsapp" type="text" value={captainWhatsapp} onChange={e => setCaptainWhatsapp(e.target.value)} placeholder="16999999999" className={inputClass} />
               </div>
             </div>
           </div>
@@ -292,14 +292,14 @@ export default function InscricaoPage() {
                   value={p.name}
                   onChange={e => updatePlayer(idx, "name", e.target.value)}
                   placeholder="Nick"
-                  className="flex-1 bg-[#111] border border-orbital-border px-2 py-2 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/30 focus:outline-none focus:border-orbital-purple/50"
+                  className="flex-1 bg-[#111] border border-orbital-border px-2 py-2 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/50 focus:outline-none focus:border-orbital-purple/50"
                 />
                 <input
                   type="text"
                   value={p.steam_id}
                   onChange={e => updatePlayer(idx, "steam_id", e.target.value)}
                   placeholder="Steam ID (76561198...)"
-                  className="flex-[2] bg-[#111] border border-orbital-border px-2 py-2 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/30 focus:outline-none focus:border-orbital-purple/50"
+                  className="flex-[2] bg-[#111] border border-orbital-border px-2 py-2 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/50 focus:outline-none focus:border-orbital-purple/50"
                 />
                 {idx >= 5 && (
                   <button onClick={() => removePlayer(idx)} className="p-1 text-orbital-text-dim hover:text-red-400 transition-colors">
@@ -308,7 +308,7 @@ export default function InscricaoPage() {
                 )}
               </div>
             ))}
-            <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50 mt-1">
+            <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mt-1">
               Mínimo 5 jogadores. Até 2 reservas opcionais. Para encontrar seu Steam ID: steamid.io
             </p>
           </div>
@@ -337,7 +337,7 @@ export default function InscricaoPage() {
             {submitting ? "ENVIANDO..." : "INSCREVER TIME"}
           </button>
 
-          <p className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40 text-center">
+          <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60 text-center">
             Inscrição: R$ 100/jogador (R$ 500/time) — Pagamento via PIX após aprovação
           </p>
         </div>

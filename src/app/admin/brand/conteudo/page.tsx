@@ -182,7 +182,7 @@ export default function ConteudoPage() {
   };
 
   const filteredPosts = posts.filter(p => filter === "all" || p.status === filter);
-  const inputClass = "w-full bg-[#111] border border-orbital-border px-3 py-2 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/30 focus:outline-none focus:border-orbital-purple/50";
+  const inputClass = "w-full bg-[#111] border border-orbital-border px-3 py-2 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/50 focus:outline-none focus:border-orbital-purple/50";
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 size={24} className="text-orbital-purple animate-spin" /></div>;
 
@@ -198,7 +198,7 @@ export default function ConteudoPage() {
           </div>
         </div>
         <button onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 text-orbital-purple font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 text-orbital-purple font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider transition-colors"
         >
           {showCreate ? <X size={14} /> : <Plus size={14} />}
           {showCreate ? "CANCELAR" : "NOVO POST"}
@@ -224,18 +224,18 @@ export default function ConteudoPage() {
             <div className="bg-[#0A0A0A] border border-orbital-purple/30 p-5 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1 block">TÍTULO *</label>
+                  <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">TÍTULO *</label>
                   <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Resultado Cup #1" className={inputClass} />
                 </div>
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1 block">TIPO</label>
+                    <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">TIPO</label>
                     <div className="flex gap-1.5">
                       {(["feed", "reel", "story"] as const).map(t => {
                         const cfg = typeConfig[t];
                         return (
                           <button key={t} onClick={() => setPostType(t)}
-                            className={`flex-1 py-2 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider border transition-colors ${postType === t ? `${cfg.bg} border-current ${cfg.color}` : "bg-[#111] border-orbital-border text-orbital-text-dim"}`}
+                            className={`flex-1 py-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider border transition-colors ${postType === t ? `${cfg.bg} border-current ${cfg.color}` : "bg-[#111] border-orbital-border text-orbital-text-dim"}`}
                           >
                             {cfg.label}
                           </button>
@@ -248,7 +248,7 @@ export default function ConteudoPage() {
 
               {/* Media upload */}
               <div>
-                <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1 block">MÍDIA</label>
+                <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">MÍDIA</label>
                 <div className="flex gap-2">
                   <input type="text" value={mediaUrl} onChange={e => setMediaUrl(e.target.value)} placeholder="URL da imagem/vídeo ou faça upload →" className={`${inputClass} flex-1`} />
                   <label className={`flex items-center gap-1.5 px-3 py-2 bg-[#111] border border-orbital-border hover:border-orbital-purple/30 text-orbital-text-dim font-[family-name:var(--font-jetbrains)] text-xs cursor-pointer transition-colors ${uploading ? "opacity-50" : ""}`}>
@@ -271,11 +271,11 @@ export default function ConteudoPage() {
               {/* Caption + AI */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple">CAPTION</label>
+                  <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple">CAPTION</label>
                   <button
                     onClick={() => callAI("gerar-caption", `Post: ${title}. Tipo: ${postType}`, setCaption)}
                     disabled={!!aiLoading || !title}
-                    className="flex items-center gap-1 px-2 py-1 bg-orbital-purple/10 border border-orbital-purple/30 text-orbital-purple font-[family-name:var(--font-jetbrains)] text-[0.5rem] hover:border-orbital-purple/60 transition-colors disabled:opacity-30"
+                    className="flex items-center gap-1 px-2 py-1 bg-orbital-purple/10 border border-orbital-purple/30 text-orbital-purple font-[family-name:var(--font-jetbrains)] text-[0.65rem] hover:border-orbital-purple/60 transition-colors disabled:opacity-30"
                   >
                     {aiLoading === "gerar-caption" ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
                     GERAR COM IA
@@ -287,11 +287,11 @@ export default function ConteudoPage() {
               {/* Hashtags + AI */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple">HASHTAGS</label>
+                  <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple">HASHTAGS</label>
                   <button
                     onClick={() => callAI("gerar-hashtags", `Post: ${title}. Tipo: ${postType}. Caption: ${caption}`, setHashtags)}
                     disabled={!!aiLoading || !title}
-                    className="flex items-center gap-1 px-2 py-1 bg-orbital-purple/10 border border-orbital-purple/30 text-orbital-purple font-[family-name:var(--font-jetbrains)] text-[0.5rem] hover:border-orbital-purple/60 transition-colors disabled:opacity-30"
+                    className="flex items-center gap-1 px-2 py-1 bg-orbital-purple/10 border border-orbital-purple/30 text-orbital-purple font-[family-name:var(--font-jetbrains)] text-[0.65rem] hover:border-orbital-purple/60 transition-colors disabled:opacity-30"
                   >
                     {aiLoading === "gerar-hashtags" ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
                     GERAR
@@ -303,11 +303,11 @@ export default function ConteudoPage() {
               {/* Schedule */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1 block">DATA</label>
+                  <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">DATA</label>
                   <input type="date" value={schedDate} onChange={e => setSchedDate(e.target.value)} className={inputClass} />
                 </div>
                 <div>
-                  <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1 block">HORÁRIO</label>
+                  <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">HORÁRIO</label>
                   <input type="time" value={schedTime} onChange={e => setSchedTime(e.target.value)} className={inputClass} />
                 </div>
               </div>
@@ -328,7 +328,7 @@ export default function ConteudoPage() {
       <div className="flex gap-2">
         {(["all", "draft", "scheduled", "published"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider border transition-colors ${filter === f ? "bg-orbital-purple/10 border-orbital-purple/50 text-orbital-purple" : "bg-[#0A0A0A] border-orbital-border text-orbital-text-dim hover:text-orbital-text"}`}
+            className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider border transition-colors ${filter === f ? "bg-orbital-purple/10 border-orbital-purple/50 text-orbital-purple" : "bg-[#0A0A0A] border-orbital-border text-orbital-text-dim hover:text-orbital-text"}`}
           >
             {f === "all" ? "TODOS" : f === "draft" ? "RASCUNHOS" : f === "scheduled" ? "AGENDADOS" : "PUBLICADOS"}
             <span className="ml-1 opacity-50">({posts.filter(p => f === "all" || p.status === f).length})</span>
@@ -360,7 +360,7 @@ export default function ConteudoPage() {
                 className="w-full flex items-center gap-3 p-3 hover:bg-white/[0.02] transition-colors text-left"
               >
                 {/* Type badge */}
-                <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] px-2 py-0.5 ${tc.bg} ${tc.color} shrink-0`}>
+                <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] px-2 py-0.5 ${tc.bg} ${tc.color} shrink-0`}>
                   {tc.label}
                 </span>
 
@@ -372,7 +372,7 @@ export default function ConteudoPage() {
 
                 {/* Date */}
                 {post.scheduled_date && (
-                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim shrink-0">
+                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim shrink-0">
                     {new Date(post.scheduled_date.toString().slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                     {post.scheduled_time && ` ${post.scheduled_time}`}
                   </span>
@@ -391,7 +391,7 @@ export default function ConteudoPage() {
                     });
                     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, status: newStatus } : p));
                   }}
-                  className={`font-[family-name:var(--font-jetbrains)] text-[0.5rem] px-1.5 py-0.5 shrink-0 hover:opacity-80 transition-opacity cursor-pointer ${sc.color}`}
+                  className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] px-1.5 py-0.5 shrink-0 hover:opacity-80 transition-opacity cursor-pointer ${sc.color}`}
                 >
                   {sc.label}
                 </button>
@@ -417,7 +417,7 @@ export default function ConteudoPage() {
 
                       {/* Caption */}
                       <div>
-                        <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1 block">CAPTION</label>
+                        <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">CAPTION</label>
                         <textarea
                           value={post.caption || ""}
                           onChange={e => updatePost(post.id, { caption: e.target.value })}
@@ -429,7 +429,7 @@ export default function ConteudoPage() {
 
                       {/* Hashtags */}
                       <div>
-                        <label className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1 block">HASHTAGS</label>
+                        <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">HASHTAGS</label>
                         <input
                           type="text"
                           value={post.hashtags || ""}
@@ -452,7 +452,7 @@ export default function ConteudoPage() {
                           {Object.entries(post.insights).map(([key, val]) => (
                             <div key={key} className="bg-[#111] border border-orbital-border p-2 text-center">
                               <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text font-bold">{val}</div>
-                              <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-text-dim/50">{key.toUpperCase()}</div>
+                              <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-text-dim/50">{key.toUpperCase()}</div>
                             </div>
                           ))}
                         </div>
@@ -524,7 +524,7 @@ export default function ConteudoPage() {
                           >
                             <X size={14} />
                           </button>
-                          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-2">
+                          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-2">
                             RESULTADO DA IA
                           </div>
                           <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text whitespace-pre-wrap leading-relaxed max-h-[400px] overflow-y-auto">

@@ -128,7 +128,7 @@ export function PartidasContent({ matches, teamsMap, mapScoresMap, faceitMatches
           {liveCount > 0 && (
             <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/30 ml-2">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-red-500">
+              <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-red-500">
                 {liveCount} AO VIVO
               </span>
             </span>
@@ -155,7 +155,7 @@ export function PartidasContent({ matches, teamsMap, mapScoresMap, faceitMatches
               key={f.value}
               onClick={() => handleFilterChange(f.value)}
               className={`
-                flex items-center gap-1.5 px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.15em]
+                flex items-center gap-1.5 px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em]
                 border transition-all whitespace-nowrap
                 ${filter === f.value
                   ? "bg-orbital-purple/15 border-orbital-purple/50 text-orbital-purple"
@@ -168,7 +168,7 @@ export function PartidasContent({ matches, teamsMap, mapScoresMap, faceitMatches
               )}
               {f.label}
               {count > 0 && (
-                <span className={`font-[family-name:var(--font-jetbrains)] text-[0.5rem] ${
+                <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] ${
                   filter === f.value ? "text-orbital-purple/70" : "text-orbital-text-dim/50"
                 }`}>
                   {count}
@@ -187,7 +187,7 @@ export function PartidasContent({ matches, teamsMap, mapScoresMap, faceitMatches
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
           placeholder="Buscar por time, título ou ID..."
-          className="w-full pl-9 pr-3 py-2 bg-transparent border border-orbital-border focus:border-orbital-purple/50 font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text placeholder:text-orbital-text-dim/30 outline-none transition-colors"
+          className="w-full pl-9 pr-3 py-2 bg-transparent border border-orbital-border focus:border-orbital-purple/50 font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text placeholder:text-orbital-text-dim/50 outline-none transition-colors"
         />
       </div>
 

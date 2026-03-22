@@ -132,7 +132,7 @@ export default function InscricoesAdminPage() {
           const count = inscricoes.filter(i => i.status === s).length;
           return (
             <div key={s} className={`bg-[#0A0A0A] border p-3 ${cfg.bg}`}>
-              <div className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider ${cfg.color}`}>{cfg.label}</div>
+              <div className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider ${cfg.color}`}>{cfg.label}</div>
               <div className="font-[family-name:var(--font-jetbrains)] text-xl text-orbital-text mt-1">{count}</div>
             </div>
           );
@@ -172,11 +172,11 @@ export default function InscricoesAdminPage() {
                   <div className="font-[family-name:var(--font-orbitron)] text-xs tracking-wider text-orbital-text">
                     {insc.team_name} <span className="text-orbital-text-dim">[{insc.team_tag}]</span>
                   </div>
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                     Capitão: {insc.captain_name} — {insc.players.length} jogadores — {new Date(insc.created_at).toLocaleDateString("pt-BR")}
                   </div>
                 </div>
-                <span className={`font-[family-name:var(--font-jetbrains)] text-[0.5rem] px-2 py-0.5 ${cfg.bg} ${cfg.color}`}>
+                <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] px-2 py-0.5 ${cfg.bg} ${cfg.color}`}>
                   {cfg.label}
                 </span>
               </button>
@@ -187,31 +187,31 @@ export default function InscricoesAdminPage() {
                   {/* Contact */}
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-0.5">WHATSAPP</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">WHATSAPP</div>
                       <a href={`https://wa.me/55${insc.captain_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text hover:text-orbital-purple flex items-center gap-1">
                         {insc.captain_whatsapp} <ExternalLink size={10} />
                       </a>
                     </div>
                     <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-0.5">STEAM ID CAPITÃO</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">STEAM ID CAPITÃO</div>
                       <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{insc.captain_steam_id}</span>
                     </div>
                     <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-0.5">LOGO</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">LOGO</div>
                       <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">{insc.logo_url ? "Sim" : "Não"}</span>
                     </div>
                   </div>
 
                   {/* Players */}
                   <div>
-                    <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple mb-1">JOGADORES</div>
+                    <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1">JOGADORES</div>
                     <div className="space-y-1">
                       {insc.players.map((p, i) => (
                         <div key={i} className="flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-xs">
                           <span className="text-orbital-text-dim w-3">{i + 1}</span>
                           <span className="text-orbital-text">{p.name}</span>
                           <span className="text-orbital-text-dim/50">{p.steam_id}</span>
-                          {p.steam_id === insc.captain_steam_id && <span className="text-[0.5rem] text-orbital-purple">(C)</span>}
+                          {p.steam_id === insc.captain_steam_id && <span className="text-[0.65rem] text-orbital-purple">(C)</span>}
                         </div>
                       ))}
                     </div>

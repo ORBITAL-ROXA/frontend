@@ -107,15 +107,15 @@ export default function AnalyticsPage() {
                   <div className="flex items-center gap-6 mt-2">
                     <div className="text-center">
                       <div className="font-[family-name:var(--font-jetbrains)] text-lg font-bold text-orbital-text">{account.followers}</div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-text-dim">SEGUIDORES</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-text-dim">SEGUIDORES</div>
                     </div>
                     <div className="text-center">
                       <div className="font-[family-name:var(--font-jetbrains)] text-lg font-bold text-orbital-text">{account.posts}</div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-text-dim">POSTS</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-text-dim">POSTS</div>
                     </div>
                     <div className="text-center">
                       <div className="font-[family-name:var(--font-jetbrains)] text-lg font-bold text-orbital-purple">{avgEngagement}</div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-text-dim">ENG/POST</div>
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-text-dim">ENG/POST</div>
                     </div>
                   </div>
                 </div>
@@ -138,7 +138,7 @@ export default function AnalyticsPage() {
               >
                 <m.icon size={14} className={`${m.color} mx-auto mb-1 opacity-60`} />
                 <div className={`font-[family-name:var(--font-jetbrains)] text-xl font-bold ${m.color}`}>{m.value}</div>
-                <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-text-dim/50">{m.label}</div>
+                <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim/50">{m.label}</div>
               </motion.div>
             ))}
           </div>
@@ -150,7 +150,7 @@ export default function AnalyticsPage() {
             >
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp size={14} className="text-orbital-purple" />
-                <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-purple">MELHOR POST</span>
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple">MELHOR POST</span>
               </div>
               <div className="flex items-center gap-4">
                 {bestPost.media_url && !bestPost.media_url.match(/\.(mp4|mov)$/i) && (
@@ -173,19 +173,19 @@ export default function AnalyticsPage() {
           {publishedPosts.length > 0 && (
             <div className="bg-[#0A0A0A] border border-orbital-border overflow-hidden">
               <div className="p-3 border-b border-orbital-border/30">
-                <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-purple">PERFORMANCE POR POST</span>
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple">PERFORMANCE POR POST</span>
               </div>
               <div className="overflow-x-auto relative">
                 <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0A0A0A] to-transparent pointer-events-none lg:hidden z-10" />
                 <table className="w-full min-w-[500px]">
                   <thead>
                     <tr className="border-b border-orbital-border/30">
-                      <th className="text-left px-3 py-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">Post</th>
-                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">Impressões</th>
-                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">Alcance</th>
-                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">❤</th>
-                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">💬</th>
-                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">🔖</th>
+                      <th className="text-left px-3 py-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">Post</th>
+                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">Impressões</th>
+                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">Alcance</th>
+                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">❤</th>
+                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">💬</th>
+                      <th className="text-center px-2 py-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">🔖</th>
                     </tr>
                   </thead>
                   <tbody>

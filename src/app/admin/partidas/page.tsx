@@ -251,7 +251,7 @@ export default function AdminPartidas() {
                         }`}
                       >
                         {isDone ? <Check size={14} /> : <StepIcon size={14} />}
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] hidden sm:inline">
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] hidden sm:inline">
                           {step.label}
                         </span>
                       </button>
@@ -428,12 +428,12 @@ export default function AdminPartidas() {
 
                       <div>
                         <label className={labelClass}>TÍTULO (opcional)</label>
-                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Grand Final - Season 1" className={`${inputClass} placeholder:text-orbital-text-dim/30`} />
+                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Grand Final - Season 1" className={`${inputClass} placeholder:text-orbital-text-dim/50`} />
                       </div>
 
                       {/* Summary */}
                       <div className="bg-[#0A0A0A] border border-orbital-border p-4 space-y-2">
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-purple mb-3">RESUMO</div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-3">RESUMO</div>
                         <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim space-y-1">
                           <p><span className="text-orbital-text">Servidor:</span> {servers.find(s => String(s.id) === serverId)?.display_name || "—"}</p>
                           <p><span className="text-orbital-text">Time 1:</span> {teams.find(t => String(t.id) === team1Id)?.name || "—"}</p>
@@ -525,7 +525,7 @@ export default function AdminPartidas() {
                       <Link href={`/partidas/${match.id}`} className="font-[family-name:var(--font-orbitron)] text-xs font-bold text-orbital-text tracking-wider hover:text-orbital-purple transition-colors">
                         #{match.id}
                       </Link>
-                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider ${statusColor}`}>
+                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider ${statusColor}`}>
                         {statusType === "live" && <span className="inline-block w-1.5 h-1.5 rounded-full bg-orbital-live animate-pulse mr-1" />}
                         {statusText}
                       </span>
@@ -542,7 +542,7 @@ export default function AdminPartidas() {
                       </span>
                     </div>
                     {match.title && (
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/50 block mt-0.5 truncate">
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 block mt-0.5 truncate">
                         {match.title}
                       </span>
                     )}

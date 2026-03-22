@@ -43,7 +43,7 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
                   statusType === "upcoming" ? "status-upcoming" :
                   "status-finished"
                 }`} />
-                <span className={`font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.15em] uppercase ${
+                <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] uppercase ${
                   statusType === "live" ? "text-orbital-live" :
                   statusType === "upcoming" ? "text-orbital-warning" :
                   "text-orbital-text-dim"
@@ -81,7 +81,7 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
                 }`}>
                   {match.team1_score}
                 </span>
-                <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-text-dim tracking-widest">VS</span>
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-text-dim tracking-widest">VS</span>
                 <span className={`font-[family-name:var(--font-jetbrains)] text-2xl font-bold ${
                   match.winner === match.team2_id ? "text-orbital-success" : "text-orbital-text"
                 }`}>
@@ -109,14 +109,14 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
               <div className="mt-2 flex items-center justify-center gap-3">
                 {mapScores.map((ms, i) => (
                   <div key={i} className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.02] border border-orbital-border/30">
-                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+                    <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                       {ms.map_name.replace("de_", "").toUpperCase()}
                     </span>
-                    <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold ${
+                    <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] font-bold ${
                       ms.team1_score > ms.team2_score ? "text-orbital-success" : "text-orbital-text-dim"
                     }`}>{ms.team1_score}</span>
-                    <span className="text-orbital-text-dim text-[0.5rem]">:</span>
-                    <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold ${
+                    <span className="text-orbital-text-dim text-[0.65rem]">:</span>
+                    <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] font-bold ${
                       ms.team2_score > ms.team1_score ? "text-orbital-success" : "text-orbital-text-dim"
                     }`}>{ms.team2_score}</span>
                   </div>
@@ -130,7 +130,7 @@ export function MatchCard({ match, delay = 0, teamsMap, mapScores }: MatchCardPr
                 BO{match.max_maps || match.num_maps || 1}
               </span>
               {(match.end_time || match.start_time) && (
-                <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/60">
+                <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60">
                   {new Date(match.end_time || match.start_time!).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
                 </span>
               )}

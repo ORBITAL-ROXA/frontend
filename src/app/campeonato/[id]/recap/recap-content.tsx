@@ -159,7 +159,7 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
             >
               <span className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30">
                 <BarChart3 size={14} className="text-orbital-purple" />
-                <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.25em] text-orbital-purple">RECAP COMPLETO</span>
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.25em] text-orbital-purple">RECAP COMPLETO</span>
               </span>
             </motion.div>
 
@@ -224,7 +224,7 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
                   <div className="flex items-center gap-2">
                     <div className="h-[1px] w-6 bg-gradient-to-r from-transparent to-red-400/50" />
                     <Star size={14} className="text-red-400 fill-red-400" />
-                    <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.25em] text-red-400/80">
+                    <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.25em] text-red-400/80">
                       MVP DO CAMPEONATO
                     </span>
                     <Star size={14} className="text-red-400 fill-red-400" />
@@ -269,7 +269,7 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
                   className="block bg-[#0A0A0A] border border-orbital-border hover:border-orbital-purple/40 p-4 text-center transition-colors group h-full"
                 >
                   <div className="text-3xl mb-2">{award.emoji}</div>
-                  <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-purple mb-2">
+                  <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-purple mb-2">
                     {award.title}
                   </div>
                   <div className="font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text group-hover:text-orbital-purple transition-colors truncate">
@@ -278,7 +278,7 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
                   <div className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim mt-1">
                     {award.value}
                   </div>
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/50 mt-0.5">
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mt-0.5">
                     {award.description}
                   </div>
                 </Link>
@@ -329,12 +329,12 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
             <table className="w-full">
               <thead>
                 <tr className="border-b border-orbital-border">
-                  <th className="text-left py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple">#</th>
-                  <th className="text-left py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple">JOGADOR</th>
-                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple">RATING</th>
-                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple">K/D</th>
-                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple">HS%</th>
-                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple hidden sm:table-cell">KILLS</th>
+                  <th className="text-left py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">#</th>
+                  <th className="text-left py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">JOGADOR</th>
+                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">RATING</th>
+                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">K/D</th>
+                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">HS%</th>
+                  <th className="text-center py-3 px-3 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple hidden sm:table-cell">KILLS</th>
                 </tr>
               </thead>
               <tbody>
@@ -442,13 +442,13 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
                         }`}>
                           {/* Label */}
                           <div className="flex items-center justify-between mb-2">
-                            <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] ${
+                            <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] ${
                               isGrandFinal ? "text-yellow-400" : "text-orbital-purple"
                             }`}>
                               {md.bracketMatch.label}
                             </span>
                             {startTime && (
-                              <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+                              <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                                 {startTime.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                               </span>
                             )}
@@ -492,7 +492,7 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
 
                           {/* View match link */}
                           <div className="mt-2 text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple flex items-center justify-center gap-1">
+                            <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple flex items-center justify-center gap-1">
                               Ver detalhes <ChevronRight size={10} />
                             </span>
                           </div>
@@ -585,7 +585,7 @@ export function RecapContent({ tournament, leaderboard, matchesData, highlights,
                 </div>
                 <Link
                   href={`/partidas/${bestHighlight.match_id}`}
-                  className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-purple"
+                  className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple"
                 >
                   <Play size={12} /> VER PARTIDA
                 </Link>

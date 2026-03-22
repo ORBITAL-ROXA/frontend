@@ -122,7 +122,7 @@ export default function BrandDashboard() {
           >
             <m.icon size={12} className={`${m.color} mx-auto mb-1 opacity-60`} />
             <div className={`font-[family-name:var(--font-jetbrains)] text-xl font-bold ${m.color}`}>{m.value}</div>
-            <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-text-dim/50">{m.label}</div>
+            <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim/50">{m.label}</div>
           </motion.div>
         ))}
       </div>

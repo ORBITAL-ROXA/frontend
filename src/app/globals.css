@@ -27,6 +27,25 @@ body {
   overflow-x: hidden;
 }
 
+/* ===== A2: FOCUS VISIBLE — keyboard navigation indicator ===== */
+*:focus-visible {
+  outline: 2px solid #A855F7;
+  outline-offset: 2px;
+}
+
+/* ===== A3: REDUCED MOTION — respect user preference ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .scanlines::after {
+    display: none;
+  }
+}
+
 /* ===== SCANLINES OVERLAY ===== */
 .scanlines::after {
   content: '';

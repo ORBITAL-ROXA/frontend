@@ -44,7 +44,7 @@ export function TimesContent({ teams }: { teams: Team[] }) {
           <Filter size={14} className="text-orbital-text-dim" />
           <button
             onClick={() => setShowMine(false)}
-            className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.15em] border transition-all ${
+            className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] border transition-all ${
               !showMine ? "bg-orbital-purple/10 border-orbital-purple/50 text-orbital-purple" : "bg-transparent border-orbital-border text-orbital-text-dim hover:border-orbital-border-light"
             }`}
           >
@@ -52,7 +52,7 @@ export function TimesContent({ teams }: { teams: Team[] }) {
           </button>
           <button
             onClick={() => setShowMine(true)}
-            className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.15em] border transition-all ${
+            className={`px-3 py-1.5 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] border transition-all ${
               showMine ? "bg-orbital-purple/10 border-orbital-purple/50 text-orbital-purple" : "bg-transparent border-orbital-border text-orbital-text-dim hover:border-orbital-border-light"
             }`}
           >
@@ -123,7 +123,7 @@ function TeamCard({ team, delay }: { team: Team; delay: number }) {
           {/* Players */}
           {players.length > 0 && (
             <div className="space-y-1.5">
-              <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.2em] text-orbital-purple mb-2">
+              <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-2">
                 ROSTER ({players.length})
               </div>
               {players.map(([steamId, name]) => (

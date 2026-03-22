@@ -244,7 +244,7 @@ function StatBar({
     >
       {/* Stat label centered */}
       <div className="text-center mb-2">
-        <span className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-[0.2em] text-orbital-text-dim uppercase">
+        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-text-dim uppercase">
           {stat.label}
         </span>
       </div>
@@ -362,7 +362,7 @@ function PlayerCard({
       {/* Mini stats */}
       <div className="flex items-center gap-3 mt-2">
         <div className="text-center">
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim uppercase">
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim uppercase">
             Rating
           </div>
           <div
@@ -375,7 +375,7 @@ function PlayerCard({
         </div>
         <div className={`w-px h-6 ${side === "left" ? "bg-purple-500/30" : "bg-red-500/30"}`} />
         <div className="text-center">
-          <div className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.15em] text-orbital-text-dim uppercase">
+          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] text-orbital-text-dim uppercase">
             Maps
           </div>
           <div

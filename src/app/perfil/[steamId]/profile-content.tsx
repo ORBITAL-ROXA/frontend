@@ -466,12 +466,12 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                 {displayName}
               </h1>
               {steamId === "76561198023055702" && (
-                <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 bg-red-500/20 border border-red-500/50 text-red-400">
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] px-2 py-0.5 bg-red-500/20 border border-red-500/50 text-red-400">
                   CRIADOR
                 </span>
               )}
               {userRole.admin && (
-                <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400">
+                <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400">
                   ADMIN
                 </span>
               )}
@@ -489,7 +489,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
             <div className="flex items-center gap-2 mt-2 flex-wrap justify-center sm:justify-start">
               <Link
                 href={`/comparar?p1=${steamId}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider text-orbital-purple"
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 hover:bg-orbital-purple/20 transition-all font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple"
               >
                 <Swords size={11} />
                 COMPARAR
@@ -656,7 +656,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                   </span>
 
                   {/* Result label */}
-                  <span className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-[0.1em] w-16 text-center shrink-0 ${resultColor}`}>
+                  <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.1em] w-16 text-center shrink-0 ${resultColor}`}>
                     {resultLabel}
                   </span>
                 </div>
@@ -679,22 +679,22 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                 <div className="p-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple shrink-0">
+                      <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple shrink-0">
                         #{clip.rank}
                       </span>
                       {clip.kills_count >= 2 && (
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.5rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
+                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] text-orbital-purple bg-orbital-purple/10 px-1.5 py-0.5 shrink-0">
                           {clip.kills_count >= 5 ? "ACE" : `${clip.kills_count}K`}
                         </span>
                       )}
                       {clip.score > 0 && (
-                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim">
+                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                           {clip.score}pts
                         </span>
                       )}
                     </div>
                     {clip.round_number && (
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim shrink-0">
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim shrink-0">
                         R{clip.round_number}
                       </span>
                     )}
@@ -702,7 +702,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                   {(clip.team1_string || clip.team2_string) && (
                     <Link
                       href={`/partidas/${clip.match_id}`}
-                      className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim hover:text-orbital-purple transition-colors block mt-1 truncate"
+                      className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim hover:text-orbital-purple transition-colors block mt-1 truncate"
                     >
                       {clip.team1_string} vs {clip.team2_string}
                     </Link>
@@ -729,7 +729,7 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                       <span className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text">
                         {map.replace("de_", "").toUpperCase()}
                       </span>
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                         {total} {total === 1 ? "partida" : "partidas"}
                       </span>
                     </div>
@@ -743,10 +743,10 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                     {/* Win rate bar */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+                        <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                           Win Rate
                         </span>
-                        <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold ${
+                        <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] font-bold ${
                           winRate >= 60 ? "text-orbital-success" : winRate >= 40 ? "text-orbital-text" : "text-orbital-danger"
                         }`}>
                           {winRate}% ({wins}W / {total - wins}L)
@@ -760,10 +760,10 @@ export function ProfileContent({ steamId }: { steamId: string }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                         K/D: <span className="text-orbital-text font-bold">{kd}</span>
                       </span>
-                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                         <BarChart3 size={10} className="inline text-orbital-purple mr-0.5" />
                         {kills}K / {deaths}D
                       </span>
@@ -836,13 +836,13 @@ function EvolutionChart({ data, label, color, refLine, format }: {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
             Avg: <span className="text-orbital-text">{format(avg)}</span>
           </span>
-          <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">
+          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
             Último: <span style={{ color }}>{format(last)}</span>
           </span>
-          <span className={`font-[family-name:var(--font-jetbrains)] text-[0.55rem] font-bold ${
+          <span className={`font-[family-name:var(--font-jetbrains)] text-[0.65rem] font-bold ${
             trend > 0 ? "text-orbital-success" : trend < 0 ? "text-orbital-danger" : "text-orbital-text-dim"
           }`}>
             {trend > 0 ? "+" : ""}{format(trend)}

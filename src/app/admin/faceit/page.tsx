@@ -133,7 +133,7 @@ export default function AdminFaceit() {
                 placeholder="1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                 value={importId}
                 onChange={(e) => setImportId(e.target.value)}
-                className="w-full bg-black/40 border border-orbital-border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text placeholder:text-orbital-text-dim/30 focus:border-orbital-purple/50 focus:outline-none transition-colors"
+                className="w-full bg-black/40 border border-orbital-border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text placeholder:text-orbital-text-dim/50 focus:border-orbital-purple/50 focus:outline-none transition-colors"
               />
             </div>
             <div className="w-full sm:w-48">
@@ -145,7 +145,7 @@ export default function AdminFaceit() {
                 placeholder="ID do campeonato"
                 value={tournamentId}
                 onChange={(e) => setTournamentId(e.target.value)}
-                className="w-full bg-black/40 border border-orbital-border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text placeholder:text-orbital-text-dim/30 focus:border-orbital-purple/50 focus:outline-none transition-colors"
+                className="w-full bg-black/40 border border-orbital-border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text placeholder:text-orbital-text-dim/50 focus:border-orbital-purple/50 focus:outline-none transition-colors"
               />
             </div>
             <button
@@ -158,7 +158,7 @@ export default function AdminFaceit() {
             </button>
           </div>
 
-          <p className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/50 mt-3">
+          <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mt-3">
             Cole o match ID da URL da Faceit (ex: faceit.com/pt/cs2/room/<span className="text-orbital-text-dim">1-abc123...</span>)
           </p>
 
@@ -192,7 +192,7 @@ export default function AdminFaceit() {
             <div key={s.label} className="bg-orbital-card border border-orbital-border p-3">
               <div className="flex items-center gap-2 mb-1">
                 <s.icon size={12} className="text-orbital-text-dim/50" />
-                <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim">{s.label}</span>
+                <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">{s.label}</span>
               </div>
               <span className="font-[family-name:var(--font-orbitron)] text-lg text-orbital-text">{s.value}</span>
             </div>
@@ -234,7 +234,7 @@ export default function AdminFaceit() {
                   className="w-full p-4 flex items-center gap-4 text-left"
                 >
                   {/* Status */}
-                  <div className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider w-20 shrink-0 ${statusColors[match.status]}`}>
+                  <div className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider w-20 shrink-0 ${statusColors[match.status]}`}>
                     {match.status === "live" && (
                       <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mr-1" />
                     )}
@@ -258,7 +258,7 @@ export default function AdminFaceit() {
                     {match.maps.length > 0 && (
                       <div className="flex items-center gap-2 mt-1">
                         {match.maps.map((m, i) => (
-                          <span key={i} className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/60">
+                          <span key={i} className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60">
                             {m.map_name.replace("de_", "")} {m.team1_score}-{m.team2_score}
                           </span>
                         ))}
@@ -277,7 +277,7 @@ export default function AdminFaceit() {
                   )}
 
                   {/* Date */}
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/50 shrink-0 w-16 text-right">
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 shrink-0 w-16 text-right">
                     {match.end_time
                       ? new Date(match.end_time).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
                       : match.start_time
@@ -349,14 +349,14 @@ export default function AdminFaceit() {
 
                           return (
                             <div key={mi} className="mb-4 last:mb-0">
-                              <div className="font-[family-name:var(--font-orbitron)] text-[0.55rem] tracking-wider text-orbital-text-dim mb-3 flex items-center gap-2">
+                              <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-text-dim mb-3 flex items-center gap-2">
                                 <Crosshair size={10} className="text-orbital-purple" />
                                 {map.map_name.replace("de_", "").toUpperCase()} — {map.team1_score}:{map.team2_score}
                               </div>
 
                               {/* Team 1 */}
                               <div className="mb-3">
-                                <div className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider mb-1.5 flex items-center gap-1.5 ${map.winner === "team1" ? "text-green-400" : "text-orbital-text-dim"}`}>
+                                <div className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider mb-1.5 flex items-center gap-1.5 ${map.winner === "team1" ? "text-green-400" : "text-orbital-text-dim"}`}>
                                   <span className={`font-[family-name:var(--font-jetbrains)] text-xs font-bold ${map.winner === "team1" ? "text-green-400" : "text-orbital-text"}`}>{map.team1_score}</span>
                                   {map.winner === "team1" && <Trophy size={9} />}
                                   {match.team1_name}
@@ -371,7 +371,7 @@ export default function AdminFaceit() {
 
                               {/* Team 2 */}
                               <div>
-                                <div className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider mb-1.5 flex items-center gap-1.5 ${map.winner === "team2" ? "text-green-400" : "text-orbital-text-dim"}`}>
+                                <div className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider mb-1.5 flex items-center gap-1.5 ${map.winner === "team2" ? "text-green-400" : "text-orbital-text-dim"}`}>
                                   <span className={`font-[family-name:var(--font-jetbrains)] text-xs font-bold ${map.winner === "team2" ? "text-green-400" : "text-orbital-text"}`}>{map.team2_score}</span>
                                   {map.winner === "team2" && <Trophy size={9} />}
                                   {match.team2_name}
@@ -395,15 +395,15 @@ export default function AdminFaceit() {
 
                         {/* Meta info */}
                         <div className="flex flex-wrap items-center gap-3 mt-2 pt-2 border-t border-orbital-border/10">
-                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/40">
+                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/60">
                             BO{match.num_maps}
                           </span>
                           {match.demo_urls.length > 0 && (
-                            <span className="flex items-center gap-1 font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-green-400/60">
+                            <span className="flex items-center gap-1 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-green-400/60">
                               <Download size={8} /> {match.demo_urls.length} demo(s)
                             </span>
                           )}
-                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] text-orbital-text-dim/30 ml-auto select-all">
+                          <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 ml-auto select-all">
                             {match.faceit_match_id}
                           </span>
                         </div>
@@ -415,13 +415,13 @@ export default function AdminFaceit() {
                             { label: match.team2_name, players: match.players.team2, isWinner: match.winner === "team2" },
                           ].map((team, ti) => (
                             <div key={ti}>
-                              <div className={`font-[family-name:var(--font-orbitron)] text-[0.5rem] tracking-wider mb-1.5 flex items-center gap-1.5 ${team.isWinner ? "text-green-400" : "text-orbital-text-dim"}`}>
+                              <div className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider mb-1.5 flex items-center gap-1.5 ${team.isWinner ? "text-green-400" : "text-orbital-text-dim"}`}>
                                 {team.isWinner && <Trophy size={9} />}
                                 {team.label}
                               </div>
                               <div className="space-y-0.5">
                                 {team.players.map((p, pi) => (
-                                  <div key={pi} className="flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-text-dim/70">
+                                  <div key={pi} className="flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/70">
                                     <span className="text-[#FF5500]/50">Lv{p.skill_level}</span>
                                     <span className="text-orbital-text">{p.nickname}</span>
                                     {p.steam_id && (
@@ -506,7 +506,7 @@ function MatchActions({
         <button
           onClick={async () => { setLoadingRefresh(true); await handleRefreshClick(); setLoadingRefresh(false); }}
           disabled={loadingRefresh}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF5500]/10 border border-[#FF5500]/30 hover:border-[#FF5500]/60 disabled:opacity-40 transition-all font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-[#FF5500]"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF5500]/10 border border-[#FF5500]/30 hover:border-[#FF5500]/60 disabled:opacity-40 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-[#FF5500]"
         >
           {loadingRefresh ? <Loader2 size={10} className="animate-spin" /> : <RefreshCw size={10} />}
           ATUALIZAR STATS
@@ -515,7 +515,7 @@ function MatchActions({
           <button
             onClick={async () => { setLoadingSync(true); await handleSyncClick(); setLoadingSync(false); }}
             disabled={loadingSync}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 disabled:opacity-40 transition-all font-[family-name:var(--font-jetbrains)] text-[0.55rem] text-orbital-purple"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 disabled:opacity-40 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple"
           >
             {loadingSync ? <Loader2 size={10} className="animate-spin" /> : <Download size={10} />}
             SYNC G5API
@@ -523,7 +523,7 @@ function MatchActions({
         )}
       </div>
       {actionFeedback && (
-        <div className={`mt-2 flex items-center gap-2 text-[0.55rem] font-[family-name:var(--font-jetbrains)] ${
+        <div className={`mt-2 flex items-center gap-2 text-[0.65rem] font-[family-name:var(--font-jetbrains)] ${
           actionFeedback.type === "success" ? "text-green-400" : "text-red-400"
         }`}>
           {actionFeedback.type === "success" ? <Check size={10} /> : <AlertCircle size={10} />}
