@@ -25,6 +25,7 @@ const brandSubLinks = [
   { href: "/admin/brand", label: "Instagram", icon: Home, exact: true },
   { href: "/admin/brand/conteudo", label: "Conteúdo", icon: Megaphone },
   { href: "/admin/brand/gerador", label: "Gerador", icon: Megaphone },
+  { href: "/admin/brand/patrocinio", label: "Patrocínio", icon: Megaphone },
   { href: "/admin/brand/analytics", label: "Analytics", icon: Bot },
 ];
 
