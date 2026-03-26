@@ -173,7 +173,9 @@ async function handleDemoReady(matchId: string) {
 
     if (enriched.demo_urls.length > 0) {
       console.log(`[FACEIT] Demo READY for ${matchId}: ${enriched.demo_urls.length} demo(s)`);
-      // TODO: Disparar pipeline de highlights (download demo → parse → record → upload)
+      // NOTA: Highlights de partidas Faceit não são gerados automaticamente.
+      // O pipeline de highlights atual suporta apenas demos locais (MatchZy).
+      // Para implementar: download demo → demoparser2 → record.py → upload R2
     }
   } catch (err) {
     console.error("[FACEIT] Error handling demo ready:", err);

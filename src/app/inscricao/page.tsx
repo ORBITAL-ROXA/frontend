@@ -1,20 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Trophy, Shield } from "lucide-react";
+import { Users, Plus, Trash2, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Trophy, Shield, Upload, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Player {
   name: string;
   steam_id: string;
 }
 
+// Steam64 ID validation
+function isValidSteamId(steamId: string): boolean {
+  return /^765611\d{11}$/.test(steamId.trim());
+}
+
 export default function InscricaoPage() {
   const [tournaments, setTournaments] = useState<{ id: string; name: string; status: string }[]>([]);
   const [selectedTournament, setSelectedTournament] = useState("");
   const [slotsUsed, setSlotsUsed] = useState(0);
-  const maxSlots = 8;
+  const [maxSlots, setMaxSlots] = useState(8);
 
   // Form
   const [teamName, setTeamName] = useState("");
@@ -23,6 +29,8 @@ export default function InscricaoPage() {
   const [captainSteamId, setCaptainSteamId] = useState("");
   const [captainWhatsapp, setCaptainWhatsapp] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [players, setPlayers] = useState<Player[]>([
     { name: "", steam_id: "" },
     { name: "", steam_id: "" },
@@ -34,6 +42,7 @@ export default function InscricaoPage() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [step, setStep] = useState(0); // 0 = form, 1 = success
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Load tournaments
   useEffect(() => {
@@ -54,9 +63,79 @@ export default function InscricaoPage() {
     if (!selectedTournament) return;
     fetch(`/api/inscricao?check_slots=1&tournament_id=${selectedTournament}`)
       .then(r => r.json())
-      .then(d => setSlotsUsed(d.count || 0))
+      .then(d => {
+        setSlotsUsed(d.count || 0);
+        setMaxSlots(d.maxSlots || 8);
+      })
       .catch(() => {});
   }, [selectedTournament]);
+
+  // Upload logo handler
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setResult({ type: "error", msg: "Use PNG, JPG ou WebP para a logo" });
+      return;
+    }
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setResult({ type: "error", msg: "Logo muito grande. Máximo 2MB" });
+      return;
+    }
+
+    setLogoUploading(true);
+    setResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "logo");
+
+      const res = await fetch("/api/inscricao/upload", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (res.ok && data.url) {
+        setLogoUrl(data.url);
+      } else {
+        setResult({ type: "error", msg: data.error || "Erro no upload" });
+      }
+    } catch {
+      setResult({ type: "error", msg: "Erro de conexão no upload" });
+    }
+    setLogoUploading(false);
+  };
+
+  // Real-time validation
+  useEffect(() => {
+    const errors: string[] = [];
+
+    // Captain Steam ID
+    if (captainSteamId.trim() && !isValidSteamId(captainSteamId)) {
+      errors.push("Steam ID do capitão inválido");
+    }
+
+    // Player Steam IDs
+    const allSteamIds: string[] = [];
+    if (captainSteamId.trim()) allSteamIds.push(captainSteamId.trim());
+
+    players.forEach((p, idx) => {
+      if (p.steam_id.trim()) {
+        if (!isValidSteamId(p.steam_id)) {
+          errors.push(`Jogador ${idx + 1}: Steam ID inválido`);
+        }
+        if (allSteamIds.includes(p.steam_id.trim())) {
+          errors.push(`Jogador ${idx + 1}: Steam ID duplicado`);
+        }
+        allSteamIds.push(p.steam_id.trim());
+      }
+    });
+
+    setValidationErrors(errors);
+  }, [captainSteamId, players]);
 
   const updatePlayer = (idx: number, field: "name" | "steam_id", val: string) => {
     setPlayers(prev => prev.map((p, i) => i === idx ? { ...p, [field]: val } : p));
@@ -77,10 +156,13 @@ export default function InscricaoPage() {
     teamTag.trim() &&
     captainName.trim() &&
     captainSteamId.trim() &&
+    isValidSteamId(captainSteamId) &&
     captainWhatsapp.trim() &&
-    players.filter(p => p.name.trim() && p.steam_id.trim()).length >= 5 &&
+    players.filter(p => p.name.trim() && p.steam_id.trim() && isValidSteamId(p.steam_id)).length >= 5 &&
+    validationErrors.length === 0 &&
     slotsUsed < maxSlots &&
-    (tournaments.length <= 1 || selectedTournament);
+    (tournaments.length <= 1 || selectedTournament) &&
+    !logoUploading;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -239,8 +321,38 @@ export default function InscricaoPage() {
               </div>
             </div>
             <div>
-              <label htmlFor="logoUrl" className={labelClass}>LOGO DO TIME (URL, opcional)</label>
-              <input id="logoUrl" type="text" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." className={inputClass} />
+              <label className={labelClass}>LOGO DO TIME (opcional)</label>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              {logoUrl ? (
+                <div className="flex items-center gap-3">
+                  <div className="relative w-16 h-16 bg-[#111] border border-orbital-border rounded overflow-hidden">
+                    <Image src={logoUrl} alt="Logo" fill className="object-contain" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLogoUrl("")}
+                    className="flex items-center gap-1 text-red-400 hover:text-red-300 font-[family-name:var(--font-jetbrains)] text-xs"
+                  >
+                    <X size={12} /> Remover
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={logoUploading}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[#111] border border-orbital-border hover:border-orbital-purple/50 text-orbital-text-dim font-[family-name:var(--font-jetbrains)] text-xs transition-colors disabled:opacity-50"
+                >
+                  {logoUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                  {logoUploading ? "Enviando..." : "Enviar logo (PNG, JPG, WebP)"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -312,6 +424,20 @@ export default function InscricaoPage() {
               Mínimo 5 jogadores. Até 2 reservas opcionais. Para encontrar seu Steam ID: steamid.io
             </p>
           </div>
+
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 space-y-1">
+              <div className="flex items-center gap-2 font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-yellow-400">
+                <AlertCircle size={12} /> CORRIJA OS ERROS
+              </div>
+              {validationErrors.map((err, i) => (
+                <div key={i} className="font-[family-name:var(--font-jetbrains)] text-xs text-yellow-400/80">
+                  • {err}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Feedback */}
           <AnimatePresence>

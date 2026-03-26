@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Package, Plus, X, Loader2, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff, ExternalLink } from "lucide-react";
+import { ShoppingBag, Package, Plus, X, Loader2, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff, ExternalLink, Upload, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 interface Product {
   id: number;
@@ -12,6 +13,7 @@ interface Product {
   image_url: string | null;
   sizes: string[];
   stock: number;
+  max_qty: number;
   active: boolean;
 }
 
@@ -21,9 +23,10 @@ interface Order {
   customer_whatsapp: string;
   customer_email: string | null;
   address: string | null;
-  items: { name: string; size: string; qty: number; price: number }[];
+  items: { name: string; size: string; qty: number; price: number; product_id: number }[];
   total: number;
   status: "pendente" | "pago" | "enviado" | "entregue" | "cancelado";
+  pix_comprovante_url: string | null;
   created_at: string;
 }
 
@@ -52,6 +55,11 @@ export default function AdminLojaPage() {
   const [pImage, setPImage] = useState("");
   const [pSizes, setPSizes] = useState("P,M,G,GG");
   const [pStock, setPStock] = useState("10");
+  const [pMaxQty, setPMaxQty] = useState("5");
+
+  // Order states
+  const [uploadingOrderId, setUploadingOrderId] = useState<number | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const startEdit = (p: Product) => {
     setEditingId(p.id);
@@ -61,6 +69,7 @@ export default function AdminLojaPage() {
     setPImage(p.image_url || "");
     setPSizes(p.sizes.join(","));
     setPStock(String(p.stock));
+    setPMaxQty(String(p.max_qty || 5));
     setShowForm(true);
   };
 
@@ -80,18 +89,59 @@ export default function AdminLojaPage() {
         image_url: pImage || null,
         sizes: pSizes.split(",").map(s => s.trim()).filter(Boolean),
         stock: parseInt(pStock) || 0,
+        max_qty: parseInt(pMaxQty) || 5,
       }),
     });
     if (res.ok) {
       setFeedback({ type: "success", msg: "Produto atualizado!" });
       setEditingId(null);
       setShowForm(false);
-      setPName(""); setPDesc(""); setPPrice(""); setPImage(""); setPSizes("P,M,G,GG"); setPStock("10");
+      setPName(""); setPDesc(""); setPPrice(""); setPImage(""); setPSizes("P,M,G,GG"); setPStock("10"); setPMaxQty("5");
       await fetchData();
     } else {
       setFeedback({ type: "error", msg: "Erro ao atualizar" });
     }
     setSubmitting(false);
+  };
+
+  const uploadComprovante = async (orderId: number, file: File) => {
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setFeedback({ type: "error", msg: "Use PNG, JPG ou WebP" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setFeedback({ type: "error", msg: "Arquivo muito grande (máx 5MB)" });
+      return;
+    }
+
+    setUploadingOrderId(orderId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "comprovante");
+
+      const uploadRes = await fetch("/api/inscricao/upload", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+
+      if (!uploadRes.ok || !uploadData.url) {
+        setFeedback({ type: "error", msg: uploadData.error || "Erro no upload" });
+        setUploadingOrderId(null);
+        return;
+      }
+
+      await fetch("/api/loja", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "pedido", id: orderId, pix_comprovante_url: uploadData.url }),
+      });
+
+      setFeedback({ type: "success", msg: "Comprovante anexado!" });
+      await fetchData();
+    } catch {
+      setFeedback({ type: "error", msg: "Erro de conexão" });
+    }
+    setUploadingOrderId(null);
   };
 
   const fetchData = useCallback(async () => {
@@ -125,13 +175,13 @@ export default function AdminLojaPage() {
         body: JSON.stringify({
           name: pName, description: pDesc || null, price: parseInt(pPrice),
           image_url: pImage || null, sizes: pSizes.split(",").map(s => s.trim()).filter(Boolean),
-          stock: parseInt(pStock) || 10,
+          stock: parseInt(pStock) || 10, max_qty: parseInt(pMaxQty) || 5,
         }),
       });
       if (res.ok) {
         setFeedback({ type: "success", msg: "Produto criado" });
         setShowForm(false);
-        setPName(""); setPDesc(""); setPPrice(""); setPImage("");
+        setPName(""); setPDesc(""); setPPrice(""); setPImage(""); setPSizes("P,M,G,GG"); setPStock("10"); setPMaxQty("5");
         await fetchData();
       } else {
         const d = await res.json();
@@ -234,7 +284,7 @@ export default function AdminLojaPage() {
                   <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">DESCRIÇÃO</label>
                   <input type="text" value={pDesc} onChange={e => setPDesc(e.target.value)} placeholder="Streetwear com referências CS2" className={inputClass} />
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   <div>
                     <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">IMAGEM URL</label>
                     <input type="text" value={pImage} onChange={e => setPImage(e.target.value)} placeholder="https://..." className={inputClass} />
@@ -246,6 +296,10 @@ export default function AdminLojaPage() {
                   <div>
                     <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">ESTOQUE</label>
                     <input type="number" value={pStock} onChange={e => setPStock(e.target.value)} placeholder="10" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1 block">MÁX/PEDIDO</label>
+                    <input type="number" value={pMaxQty} onChange={e => setPMaxQty(e.target.value)} placeholder="5" className={inputClass} />
                   </div>
                 </div>
                 <button onClick={editingId ? saveEdit : createProduct} disabled={!pName || !pPrice || submitting}
@@ -279,7 +333,7 @@ export default function AdminLojaPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-[family-name:var(--font-orbitron)] text-xs tracking-wider text-orbital-text">{p.name}</div>
                     <div className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim">
-                      R$ {p.price} — {(p.sizes || []).join(", ")} — Estoque: {p.stock}
+                      R$ {p.price} — {(p.sizes || []).join(", ")} — Estoque: {p.stock} — Máx: {p.max_qty || 5}/pedido
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -297,6 +351,24 @@ export default function AdminLojaPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div className="relative max-w-2xl max-h-[80vh] overflow-auto bg-[#0A0A0A] border border-orbital-border p-2">
+            <Image src={previewUrl} alt="Comprovante" width={600} height={800} className="object-contain" />
+            <button
+              onClick={() => setPreviewUrl(null)}
+              className="absolute top-2 right-2 p-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
       )}
 
@@ -358,6 +430,47 @@ export default function AdminLojaPage() {
                     <div>
                       <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple">ENDEREÇO</div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">{o.address}</div>
+                    </div>
+                  )}
+
+                  {/* Comprovante PIX */}
+                  {(o.status === "pendente" || o.status === "pago") && (
+                    <div className="bg-[#111] border border-orbital-border p-3">
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-2">
+                        COMPROVANTE PIX
+                      </div>
+                      {o.pix_comprovante_url ? (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setPreviewUrl(o.pix_comprovante_url)}
+                            className="flex items-center gap-2 text-green-400 hover:text-green-300 font-[family-name:var(--font-jetbrains)] text-xs"
+                          >
+                            <ImageIcon size={14} /> Ver comprovante
+                          </button>
+                          <span className="text-green-400 text-xs">✓ Anexado</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) uploadComprovante(o.id, file);
+                            }}
+                            className="hidden"
+                            id={`pix-order-${o.id}`}
+                          />
+                          <label
+                            htmlFor={`pix-order-${o.id}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/30 hover:border-yellow-500/60 text-yellow-400 font-[family-name:var(--font-jetbrains)] text-xs cursor-pointer transition-colors ${uploadingOrderId === o.id ? "opacity-50 pointer-events-none" : ""}`}
+                          >
+                            {uploadingOrderId === o.id ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                            {uploadingOrderId === o.id ? "Enviando..." : "Anexar comprovante"}
+                          </label>
+                          <span className="text-yellow-400/60 text-xs">Aguardando</span>
+                        </div>
+                      )}
                     </div>
                   )}
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Users, CheckCircle2, XCircle, Clock, Loader2, Trash2, ExternalLink, UserPlus } from "lucide-react";
+import { Users, CheckCircle2, XCircle, Clock, Loader2, Trash2, ExternalLink, UserPlus, Upload, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 interface Inscricao {
   id: number;
@@ -14,6 +15,7 @@ interface Inscricao {
   captain_whatsapp: string;
   players: { name: string; steam_id: string }[];
   logo_url: string | null;
+  pix_comprovante_url: string | null;
   status: "pendente" | "aprovado" | "rejeitado" | "pago";
   notes: string | null;
   created_at: string;
@@ -31,6 +33,9 @@ export default function InscricoesAdminPage() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [uploadingId, setUploadingId] = useState<number | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const pixInputRef = useRef<HTMLInputElement>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -64,6 +69,46 @@ export default function InscricoesAdminPage() {
     await fetch(`/api/inscricao?id=${id}`, { method: "DELETE", credentials: "include" });
     await fetchData();
     setActionLoading(null);
+  };
+
+  const uploadComprovante = async (id: number, file: File) => {
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      alert("Use PNG, JPG ou WebP");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Arquivo muito grande. Máximo 5MB");
+      return;
+    }
+
+    setUploadingId(id);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "comprovante");
+
+      const uploadRes = await fetch("/api/inscricao/upload", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+
+      if (!uploadRes.ok || !uploadData.url) {
+        alert(uploadData.error || "Erro no upload");
+        setUploadingId(null);
+        return;
+      }
+
+      // Save the URL to the inscription
+      await fetch("/api/inscricao", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, pix_comprovante_url: uploadData.url }),
+      });
+
+      await fetchData();
+    } catch {
+      alert("Erro de conexão");
+    }
+    setUploadingId(null);
   };
 
   const registerTeam = async (insc: Inscricao) => {
@@ -148,6 +193,24 @@ export default function InscricoesAdminPage() {
           </div>
         )}
 
+        {/* Preview Modal */}
+        {previewUrl && (
+          <div
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            onClick={() => setPreviewUrl(null)}
+          >
+            <div className="relative max-w-2xl max-h-[80vh] overflow-auto bg-[#0A0A0A] border border-orbital-border p-2">
+              <Image src={previewUrl} alt="Comprovante" width={600} height={800} className="object-contain" />
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="absolute top-2 right-2 p-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+          </div>
+        )}
+
         {inscricoes.map((insc, idx) => {
           const cfg = statusConfig[insc.status];
           const Icon = cfg.icon;
@@ -184,21 +247,28 @@ export default function InscricoesAdminPage() {
               {/* Expanded */}
               {expanded && (
                 <div className="border-t border-orbital-border/30 p-4 space-y-3">
-                  {/* Contact */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">WHATSAPP</div>
-                      <a href={`https://wa.me/55${insc.captain_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text hover:text-orbital-purple flex items-center gap-1">
-                        {insc.captain_whatsapp} <ExternalLink size={10} />
-                      </a>
-                    </div>
-                    <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">STEAM ID CAPITÃO</div>
-                      <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{insc.captain_steam_id}</span>
-                    </div>
-                    <div>
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">LOGO</div>
-                      <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">{insc.logo_url ? "Sim" : "Não"}</span>
+                  {/* Logo and Team Info */}
+                  <div className="flex gap-4">
+                    {insc.logo_url && (
+                      <div className="relative w-16 h-16 bg-[#111] border border-orbital-border rounded overflow-hidden shrink-0">
+                        <Image src={insc.logo_url} alt="Logo" fill className="object-contain" />
+                      </div>
+                    )}
+                    <div className="flex-1 grid grid-cols-3 gap-3">
+                      <div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">WHATSAPP</div>
+                        <a href={`https://wa.me/55${insc.captain_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text hover:text-orbital-purple flex items-center gap-1">
+                          {insc.captain_whatsapp} <ExternalLink size={10} />
+                        </a>
+                      </div>
+                      <div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">STEAM ID CAPITÃO</div>
+                        <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{insc.captain_steam_id}</span>
+                      </div>
+                      <div>
+                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">LOGO</div>
+                        <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">{insc.logo_url ? "✓" : "—"}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -216,6 +286,47 @@ export default function InscricoesAdminPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Comprovante PIX */}
+                  {(insc.status === "aprovado" || insc.status === "pago") && (
+                    <div className="bg-[#111] border border-orbital-border p-3">
+                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-2">
+                        COMPROVANTE PIX
+                      </div>
+                      {insc.pix_comprovante_url ? (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setPreviewUrl(insc.pix_comprovante_url)}
+                            className="flex items-center gap-2 text-green-400 hover:text-green-300 font-[family-name:var(--font-jetbrains)] text-xs"
+                          >
+                            <ImageIcon size={14} /> Ver comprovante
+                          </button>
+                          <span className="text-green-400 text-xs">✓ Anexado</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) uploadComprovante(insc.id, file);
+                            }}
+                            className="hidden"
+                            id={`pix-${insc.id}`}
+                          />
+                          <label
+                            htmlFor={`pix-${insc.id}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/30 hover:border-yellow-500/60 text-yellow-400 font-[family-name:var(--font-jetbrains)] text-xs cursor-pointer transition-colors ${uploadingId === insc.id ? "opacity-50 pointer-events-none" : ""}`}
+                          >
+                            {uploadingId === insc.id ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                            {uploadingId === insc.id ? "Enviando..." : "Anexar comprovante"}
+                          </label>
+                          <span className="text-yellow-400/60 text-xs">Pendente</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-2 border-t border-orbital-border/20">

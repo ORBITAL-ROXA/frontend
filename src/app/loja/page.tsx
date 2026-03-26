@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Plus, Minus, ArrowLeft, CheckCircle2, AlertCircle, Loader2, X } from "lucide-react";
+import { ShoppingBag, Plus, Minus, ArrowLeft, CheckCircle2, AlertCircle, Loader2, X, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 const formatPrice = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+// PIX key - configure this
+const PIX_KEY = "orbitalroxa@gmail.com"; // Change to your PIX key
+const PIX_NAME = "ORBITAL ROXA";
 
 interface Product {
   id: number;
@@ -16,6 +20,7 @@ interface Product {
   image_url: string | null;
   sizes: string[];
   stock: number;
+  max_qty: number;
 }
 
 interface CartItem {
@@ -38,6 +43,8 @@ export default function LojaPage() {
   const [address, setAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [orderReceipt, setOrderReceipt] = useState<{ id: number; total: number; items: CartItem[] } | null>(null);
+  const [pixCopied, setPixCopied] = useState(false);
 
   useEffect(() => {
     fetch("/api/loja")
@@ -56,8 +63,10 @@ export default function LojaPage() {
   const addToCart = (product: Product, size: string) => {
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id && i.size === size);
+      const maxQty = product.max_qty || 5;
       if (existing) {
-        return prev.map(i => i === existing ? { ...i, qty: i.qty + 1 } : i);
+        if (existing.qty >= maxQty) return prev; // Already at max
+        return prev.map(i => i === existing ? { ...i, qty: Math.min(maxQty, i.qty + 1) } : i);
       }
       return [...prev, { product, size, qty: 1 }];
     });
@@ -67,9 +76,29 @@ export default function LojaPage() {
   const updateQty = (idx: number, delta: number) => {
     setCart(prev => {
       const next = [...prev];
-      next[idx] = { ...next[idx], qty: Math.max(0, next[idx].qty + delta) };
+      const maxQty = next[idx].product.max_qty || 5;
+      const newQty = Math.max(0, Math.min(maxQty, next[idx].qty + delta));
+      next[idx] = { ...next[idx], qty: newQty };
       return next.filter(i => i.qty > 0);
     });
+  };
+
+  const copyPixKey = async () => {
+    try {
+      await navigator.clipboard.writeText(PIX_KEY);
+      setPixCopied(true);
+      setTimeout(() => setPixCopied(false), 2000);
+    } catch {
+      // Fallback
+      const input = document.createElement("input");
+      input.value = PIX_KEY;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      setPixCopied(true);
+      setTimeout(() => setPixCopied(false), 2000);
+    }
   };
 
   const cartTotal = cart.reduce((sum, i) => sum + i.product.price * i.qty, 0);
@@ -96,9 +125,11 @@ export default function LojaPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setOrderResult({ type: "success", msg: `Pedido #${data.id} criado! Entraremos em contato via WhatsApp.` });
+        setOrderReceipt({ id: data.id, total: data.total || cartTotal, items: [...cart] });
+        setOrderResult({ type: "success", msg: `Pedido #${data.id} criado!` });
         setCart([]);
         setShowCheckout(false);
+        setShowCart(false);
       } else {
         setOrderResult({ type: "error", msg: data.error || "Erro ao criar pedido" });
       }
@@ -150,15 +181,93 @@ export default function LojaPage() {
         )}
       </div>
 
-      {/* Order success */}
+      {/* Order Receipt */}
       <AnimatePresence>
-        {orderResult && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className={`mb-6 p-4 flex items-center gap-3 font-[family-name:var(--font-jetbrains)] text-sm ${
-              orderResult.type === "success" ? "bg-green-500/10 border border-green-500/30 text-green-400" : "bg-red-500/10 border border-red-500/30 text-red-400"
-            }`}
+        {orderReceipt && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="mb-8 bg-[#0A0A0A] border border-green-500/30 overflow-hidden"
           >
-            {orderResult.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            {/* Header */}
+            <div className="bg-green-500/10 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 size={24} className="text-green-400" />
+                <div>
+                  <h2 className="font-[family-name:var(--font-orbitron)] text-sm tracking-wider text-green-400">PEDIDO #{orderReceipt.id}</h2>
+                  <p className="font-[family-name:var(--font-jetbrains)] text-xs text-green-400/70">Aguardando pagamento PIX</p>
+                </div>
+              </div>
+              <button onClick={() => setOrderReceipt(null)} className="text-green-400/50 hover:text-green-400">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* Items */}
+              <div>
+                <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-2">ITENS</div>
+                <div className="space-y-1">
+                  {orderReceipt.items.map((item, i) => (
+                    <div key={i} className="flex justify-between font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">
+                      <span>{item.qty}x {item.product.name} ({item.size})</span>
+                      <span>{formatPrice(item.product.price * item.qty)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-2 pt-2 border-t border-orbital-border">
+                  <span className="font-[family-name:var(--font-orbitron)] text-xs tracking-wider text-orbital-text">TOTAL</span>
+                  <span className="font-[family-name:var(--font-orbitron)] text-lg text-orbital-purple">{formatPrice(orderReceipt.total)}</span>
+                </div>
+              </div>
+
+              {/* PIX Info */}
+              <div className="bg-[#111] border border-orbital-border p-4 space-y-3">
+                <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple">
+                  PAGAMENTO VIA PIX
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-[#0A0A0A] border border-orbital-border px-3 py-2 font-[family-name:var(--font-jetbrains)] text-sm text-orbital-text truncate">
+                    {PIX_KEY}
+                  </div>
+                  <button
+                    onClick={copyPixKey}
+                    className={`px-3 py-2 border font-[family-name:var(--font-jetbrains)] text-xs flex items-center gap-1.5 transition-colors ${
+                      pixCopied
+                        ? "bg-green-500/20 border-green-500/50 text-green-400"
+                        : "bg-orbital-purple/10 border-orbital-purple/30 hover:border-orbital-purple/60 text-orbital-purple"
+                    }`}
+                  >
+                    {pixCopied ? <Check size={12} /> : <Copy size={12} />}
+                    {pixCopied ? "COPIADO" : "COPIAR"}
+                  </button>
+                </div>
+                <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
+                  <p>Nome: <span className="text-orbital-text">{PIX_NAME}</span></p>
+                  <p className="mt-1">Valor: <span className="text-orbital-purple font-bold">{formatPrice(orderReceipt.total)}</span></p>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim space-y-1">
+                <p>1. Copie a chave PIX acima</p>
+                <p>2. Abra seu app de banco e cole a chave</p>
+                <p>3. Envie o valor exato: <span className="text-orbital-purple">{formatPrice(orderReceipt.total)}</span></p>
+                <p>4. Entraremos em contato via WhatsApp para confirmar</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Order error */}
+      <AnimatePresence>
+        {orderResult && orderResult.type === "error" && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="mb-6 p-4 flex items-center gap-3 font-[family-name:var(--font-jetbrains)] text-sm bg-red-500/10 border border-red-500/30 text-red-400"
+          >
+            <AlertCircle size={16} />
             {orderResult.msg}
           </motion.div>
         )}
@@ -198,24 +307,32 @@ export default function LojaPage() {
 
             {/* Cart items */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {cart.map((item, idx) => (
-                <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3 p-3 bg-[#111] border border-orbital-border">
-                  <div className="flex-1">
-                    <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{item.product.name}</div>
-                    <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">Tamanho: {item.size}</div>
-                    <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-purple mt-0.5">{formatPrice(item.product.price)}</div>
+              {cart.map((item, idx) => {
+                const maxQty = item.product.max_qty || 5;
+                const atMax = item.qty >= maxQty;
+                return (
+                  <div key={`${item.product.id}-${item.size}`} className="flex items-center gap-3 p-3 bg-[#111] border border-orbital-border">
+                    <div className="flex-1">
+                      <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{item.product.name}</div>
+                      <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">Tamanho: {item.size}</div>
+                      <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-purple mt-0.5">{formatPrice(item.product.price)}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => updateQty(idx, -1)} className="w-6 h-6 bg-[#0A0A0A] border border-orbital-border flex items-center justify-center text-orbital-text-dim hover:text-orbital-text">
+                        <Minus size={10} />
+                      </button>
+                      <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text w-4 text-center">{item.qty}</span>
+                      <button
+                        onClick={() => updateQty(idx, 1)}
+                        disabled={atMax}
+                        className={`w-6 h-6 bg-[#0A0A0A] border border-orbital-border flex items-center justify-center ${atMax ? "opacity-30 cursor-not-allowed" : "text-orbital-text-dim hover:text-orbital-text"}`}
+                      >
+                        <Plus size={10} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => updateQty(idx, -1)} className="w-6 h-6 bg-[#0A0A0A] border border-orbital-border flex items-center justify-center text-orbital-text-dim hover:text-orbital-text">
-                      <Minus size={10} />
-                    </button>
-                    <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text w-4 text-center">{item.qty}</span>
-                    <button onClick={() => updateQty(idx, 1)} className="w-6 h-6 bg-[#0A0A0A] border border-orbital-border flex items-center justify-center text-orbital-text-dim hover:text-orbital-text">
-                      <Plus size={10} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Cart total + checkout */}

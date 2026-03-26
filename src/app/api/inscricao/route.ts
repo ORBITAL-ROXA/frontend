@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbPool } from "@/lib/tournaments-db";
+import { dbPool, getTournamentsFromDB } from "@/lib/tournaments-db";
 import { checkAdmin } from "../brand/auth";
 
 let tableReady = false;
+
+// Steam64 ID validation (17 digits starting with 765611)
+function isValidSteamId(steamId: string): boolean {
+  return /^765611\d{11}$/.test(steamId);
+}
+
+// Check for duplicate Steam IDs in roster
+function findDuplicateSteamIds(players: { steam_id: string }[], captainSteamId: string): string[] {
+  const allIds = [captainSteamId, ...players.map(p => p.steam_id)];
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  for (const id of allIds) {
+    if (seen.has(id)) duplicates.push(id);
+    seen.add(id);
+  }
+  return duplicates;
+}
 
 async function ensureTable() {
   if (tableReady) return;
@@ -38,11 +55,22 @@ export async function GET(req: NextRequest) {
 
   // Público: verificar vagas
   if (checkSlots && tournamentId) {
+    let maxSlots = 8;
+    try {
+      const tournaments = await getTournamentsFromDB();
+      const tournament = tournaments.find(t => t.id === tournamentId);
+      if (tournament?.teams) {
+        maxSlots = tournament.teams.length || 8;
+      }
+    } catch {
+      // Fallback to default
+    }
+
     const [rows] = await pool.query(
       "SELECT COUNT(*) as c FROM inscricoes WHERE tournament_id = ? AND status IN ('pendente','aprovado','pago')",
       [tournamentId]
     ) as [{ c: number }[], unknown];
-    return NextResponse.json({ count: rows[0].c });
+    return NextResponse.json({ count: rows[0].c, maxSlots });
   }
 
   // Admin: listar todas
@@ -77,22 +105,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Mínimo 5, máximo 7 jogadores" }, { status: 400 });
     }
 
-    // Verificar vagas no servidor (máximo 8 times)
+    // Verificar vagas no servidor (busca limite do torneio ou default 8)
     if (tournament_id) {
+      let maxSlots = 8;
+      try {
+        const tournaments = await getTournamentsFromDB();
+        const tournament = tournaments.find(t => t.id === tournament_id);
+        if (tournament?.teams) {
+          maxSlots = tournament.teams.length || 8;
+        }
+      } catch {
+        // Fallback to default
+      }
+
       const [slotRows] = await pool.query(
         "SELECT COUNT(*) as c FROM inscricoes WHERE tournament_id = ? AND status IN ('pendente','aprovado','pago')",
         [tournament_id]
       ) as [{ c: number }[], unknown];
-      if (slotRows[0].c >= 8) {
-        return NextResponse.json({ error: "Vagas esgotadas para este campeonato" }, { status: 409 });
+      if (slotRows[0].c >= maxSlots) {
+        return NextResponse.json({ error: `Vagas esgotadas (${maxSlots}/${maxSlots})` }, { status: 409 });
       }
     }
 
-    // Validar Steam IDs
+    // Validar Steam IDs - formato e preenchimento
     for (const p of players) {
       if (!p.steam_id || !p.name) {
         return NextResponse.json({ error: "Cada jogador precisa de steam_id e name" }, { status: 400 });
       }
+      if (!isValidSteamId(p.steam_id)) {
+        return NextResponse.json({ error: `Steam ID inválido: ${p.steam_id} (deve ter 17 dígitos e começar com 765611)` }, { status: 400 });
+      }
+    }
+
+    // Validar Steam ID do capitão
+    if (!isValidSteamId(captain_steam_id)) {
+      return NextResponse.json({ error: `Steam ID do capitão inválido: ${captain_steam_id}` }, { status: 400 });
+    }
+
+    // Verificar duplicatas no mesmo roster
+    const duplicates = findDuplicateSteamIds(players, captain_steam_id);
+    if (duplicates.length > 0) {
+      return NextResponse.json({ error: `Steam ID duplicado no roster: ${duplicates[0]}` }, { status: 400 });
     }
 
     // Verificar duplicata (mesmo capitão ou mesmo nome de time)
@@ -103,6 +156,28 @@ export async function POST(req: NextRequest) {
 
     if (existing.length > 0) {
       return NextResponse.json({ error: "Time ou capitão já inscrito neste campeonato" }, { status: 409 });
+    }
+
+    // Verificar se jogadores já estão em outros times (mesmo torneio)
+    if (tournament_id) {
+      const allSteamIds = [captain_steam_id, ...players.map(p => p.steam_id)];
+      const [conflictRows] = await pool.query(
+        `SELECT team_name, players FROM inscricoes
+         WHERE tournament_id = ? AND status != 'rejeitado'`,
+        [tournament_id]
+      ) as [{ team_name: string; players: string }[], unknown];
+
+      for (const row of conflictRows) {
+        const existingPlayers = typeof row.players === "string" ? JSON.parse(row.players) : row.players;
+        const existingIds = existingPlayers.map((p: { steam_id: string }) => p.steam_id);
+        for (const id of allSteamIds) {
+          if (existingIds.includes(id)) {
+            return NextResponse.json({
+              error: `Jogador ${id} já está inscrito no time "${row.team_name}"`
+            }, { status: 409 });
+          }
+        }
+      }
     }
 
     const [result] = await pool.query(
@@ -127,7 +202,7 @@ export async function PUT(req: NextRequest) {
   const pool = dbPool;
 
   try {
-    const { id, status, notes } = await req.json();
+    const { id, status, notes, pix_comprovante_url } = await req.json();
     if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
 
     const updates: string[] = [];
@@ -135,6 +210,7 @@ export async function PUT(req: NextRequest) {
 
     if (status) { updates.push("status = ?"); params.push(status); }
     if (notes !== undefined) { updates.push("notes = ?"); params.push(notes); }
+    if (pix_comprovante_url !== undefined) { updates.push("pix_comprovante_url = ?"); params.push(pix_comprovante_url); }
 
     if (updates.length === 0) return NextResponse.json({ error: "Nada pra atualizar" }, { status: 400 });
 

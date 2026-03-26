@@ -17,10 +17,13 @@ async function ensureTable() {
       sizes JSON,
       active BOOLEAN DEFAULT TRUE,
       stock INT DEFAULT 0,
+      max_qty INT DEFAULT 5,
       sort_order INT DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  // Add max_qty column if not exists (migration)
+  await pool.query("ALTER TABLE loja_produtos ADD COLUMN IF NOT EXISTS max_qty INT DEFAULT 5").catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS loja_pedidos (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,21 +80,25 @@ export async function POST(req: NextRequest) {
     if (productIds.length > 0) {
       const placeholders = productIds.map(() => "?").join(",");
       const [products] = await pool.query(
-        `SELECT id, price, stock, name FROM loja_produtos WHERE id IN (${placeholders}) AND active = TRUE`,
+        `SELECT id, price, stock, name, max_qty FROM loja_produtos WHERE id IN (${placeholders}) AND active = TRUE`,
         productIds
-      ) as [{ id: number; price: number; stock: number; name: string }[], unknown];
+      ) as [{ id: number; price: number; stock: number; name: string; max_qty: number }[], unknown];
       const productMap = new Map(products.map(p => [p.id, p]));
 
       for (const item of items) {
-        // Validate quantity
-        const qty = Math.floor(Number(item.qty || item.quantity || 1));
-        if (!qty || qty < 1 || qty > 99) {
-          return NextResponse.json({ error: `Quantidade inválida para produto ${item.product_id}` }, { status: 400 });
-        }
-
         const product = productMap.get(item.product_id);
         if (!product) {
           return NextResponse.json({ error: `Produto ${item.product_id} não encontrado ou inativo` }, { status: 400 });
+        }
+
+        // Validate quantity with product-specific max
+        const qty = Math.floor(Number(item.qty || item.quantity || 1));
+        const maxQty = product.max_qty || 5;
+        if (!qty || qty < 1) {
+          return NextResponse.json({ error: `Quantidade inválida para ${product.name}` }, { status: 400 });
+        }
+        if (qty > maxQty) {
+          return NextResponse.json({ error: `Máximo ${maxQty} unidades por pedido para ${product.name}` }, { status: 400 });
         }
 
         serverTotal += product.price * qty;
@@ -131,12 +138,12 @@ export async function POST(req: NextRequest) {
   const authError = await checkAdmin(req);
   if (authError) return authError;
 
-  const { name, description, price, image_url, sizes, stock } = body;
+  const { name, description, price, image_url, sizes, stock, max_qty } = body;
   if (!name || !price) return NextResponse.json({ error: "name e price obrigatórios" }, { status: 400 });
 
   const [result] = await pool.query(
-    "INSERT INTO loja_produtos (name, description, price, image_url, sizes, stock) VALUES (?, ?, ?, ?, ?, ?)",
-    [name, description || null, price, image_url || null, JSON.stringify(sizes || []), stock || 0]
+    "INSERT INTO loja_produtos (name, description, price, image_url, sizes, stock, max_qty) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [name, description || null, price, image_url || null, JSON.stringify(sizes || []), stock || 0, max_qty || 5]
   ) as [{ insertId: number }, unknown];
   return NextResponse.json({ id: result.insertId }, { status: 201 });
 }
@@ -151,12 +158,26 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
 
   if (body.type === "pedido") {
-    const { id, status, notes } = body;
+    const { id, status, notes, pix_comprovante_url } = body;
     if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
+
+    // If cancelling, restore stock
+    if (status === "cancelado") {
+      const [orderRows] = await pool.query("SELECT items, status FROM loja_pedidos WHERE id = ?", [id]) as [{ items: string; status: string }[], unknown];
+      if (orderRows.length > 0 && orderRows[0].status !== "cancelado") {
+        const items = typeof orderRows[0].items === "string" ? JSON.parse(orderRows[0].items) : orderRows[0].items;
+        for (const item of items) {
+          const qty = Math.max(1, Math.floor(Number(item.qty || item.quantity || 1)));
+          await pool.query("UPDATE loja_produtos SET stock = stock + ? WHERE id = ?", [qty, item.product_id]);
+        }
+      }
+    }
+
     const updates: string[] = [];
     const params: (string | number)[] = [];
     if (status) { updates.push("status = ?"); params.push(status); }
     if (notes !== undefined) { updates.push("notes = ?"); params.push(notes); }
+    if (pix_comprovante_url !== undefined) { updates.push("pix_comprovante_url = ?"); params.push(pix_comprovante_url); }
     if (updates.length === 0) return NextResponse.json({ error: "Nada" }, { status: 400 });
     params.push(id);
     await pool.query(`UPDATE loja_pedidos SET ${updates.join(", ")} WHERE id = ?`, params);
@@ -164,7 +185,7 @@ export async function PUT(req: NextRequest) {
   }
 
   // Produto
-  const { id, name, description, price, image_url, sizes, stock, active } = body;
+  const { id, name, description, price, image_url, sizes, stock, active, max_qty } = body;
   if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
   const updates: string[] = [];
   const params: (string | number | boolean)[] = [];
@@ -175,6 +196,7 @@ export async function PUT(req: NextRequest) {
   if (sizes !== undefined) { updates.push("sizes = ?"); params.push(JSON.stringify(sizes)); }
   if (stock !== undefined) { updates.push("stock = ?"); params.push(stock); }
   if (active !== undefined) { updates.push("active = ?"); params.push(active); }
+  if (max_qty !== undefined) { updates.push("max_qty = ?"); params.push(max_qty); }
   if (updates.length === 0) return NextResponse.json({ error: "Nada" }, { status: 400 });
   params.push(id);
   await pool.query(`UPDATE loja_produtos SET ${updates.join(", ")} WHERE id = ?`, params);
