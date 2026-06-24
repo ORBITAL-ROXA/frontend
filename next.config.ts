@@ -59,6 +59,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "allstar.gg",
       },
+      {
+        // Vercel Blob (logos e comprovantes de inscricao, logos de time)
+        protocol: "https",
+        hostname: "**.public.blob.vercel-storage.com",
+      },
     ],
   },
   async rewrites() {
