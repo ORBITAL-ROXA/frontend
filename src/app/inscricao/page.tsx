@@ -36,7 +36,6 @@ export default function InscricaoPage() {
     { name: "", steam_id: "" },
     { name: "", steam_id: "" },
     { name: "", steam_id: "" },
-    { name: "", steam_id: "" },
   ]);
 
   const [submitting, setSubmitting] = useState(false);
@@ -142,12 +141,12 @@ export default function InscricaoPage() {
   };
 
   const addPlayer = () => {
-    if (players.length >= 7) return;
+    if (players.length >= 6) return;
     setPlayers(prev => [...prev, { name: "", steam_id: "" }]);
   };
 
   const removePlayer = (idx: number) => {
-    if (players.length <= 5) return;
+    if (players.length <= 4) return;
     setPlayers(prev => prev.filter((_, i) => i !== idx));
   };
 
@@ -158,7 +157,7 @@ export default function InscricaoPage() {
     captainSteamId.trim() &&
     isValidSteamId(captainSteamId) &&
     captainWhatsapp.trim() &&
-    players.filter(p => p.name.trim() && p.steam_id.trim() && isValidSteamId(p.steam_id)).length >= 5 &&
+    players.filter(p => p.name.trim() && p.steam_id.trim() && isValidSteamId(p.steam_id)).length >= 4 &&
     validationErrors.length === 0 &&
     slotsUsed < maxSlots &&
     (tournaments.length <= 1 || selectedTournament) &&
@@ -384,10 +383,10 @@ export default function InscricaoPage() {
               <div className="flex items-center gap-2">
                 <Users size={14} className="text-orbital-purple" />
                 <span className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-purple">
-                  JOGADORES ({players.filter(p => p.name && p.steam_id).length}/5+)
+                  JOGADORES ({players.filter(p => p.name && p.steam_id).length}/4+)
                 </span>
               </div>
-              {players.length < 7 && (
+              {players.length < 6 && (
                 <button onClick={addPlayer} className="flex items-center gap-1 text-orbital-purple hover:text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs transition-colors">
                   <Plus size={12} /> RESERVA
                 </button>
@@ -413,7 +412,7 @@ export default function InscricaoPage() {
                   placeholder="Steam ID (76561198...)"
                   className="flex-[2] bg-[#111] border border-orbital-border px-2 py-2 text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs placeholder:text-orbital-text-dim/50 focus:outline-none focus:border-orbital-purple/50"
                 />
-                {idx >= 5 && (
+                {idx >= 4 && (
                   <button onClick={() => removePlayer(idx)} className="p-1 text-orbital-text-dim hover:text-red-400 transition-colors">
                     <Trash2 size={12} />
                   </button>
@@ -421,7 +420,7 @@ export default function InscricaoPage() {
               </div>
             ))}
             <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mt-1">
-              Mínimo 5 jogadores. Até 2 reservas opcionais. Para encontrar seu Steam ID: steamid.io
+              Mínimo 4 jogadores. Até 2 reservas opcionais. Para encontrar seu Steam ID: steamid.io
             </p>
           </div>
 

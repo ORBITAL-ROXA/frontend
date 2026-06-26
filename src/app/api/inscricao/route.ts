@@ -101,8 +101,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
     }
 
-    if (!Array.isArray(players) || players.length < 5 || players.length > 7) {
-      return NextResponse.json({ error: "Mínimo 5, máximo 7 jogadores" }, { status: 400 });
+    if (!Array.isArray(players) || players.length < 4 || players.length > 6) {
+      return NextResponse.json({ error: "Mínimo 4, máximo 6 jogadores" }, { status: 400 });
     }
 
     // Verificar vagas no servidor (busca limite do torneio ou default 8)
