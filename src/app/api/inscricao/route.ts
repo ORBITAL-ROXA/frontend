@@ -36,12 +36,17 @@ async function ensureTable() {
       players JSON NOT NULL,
       logo_url VARCHAR(512),
       pix_comprovante_url VARCHAR(512),
+      team_id INT NULL,
       status ENUM('pendente','aprovado','rejeitado','pago') DEFAULT 'pendente',
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )
   `);
+  // Migração: garante team_id em tabelas já existentes (liga inscrição ao time do G5API)
+  try {
+    await pool.query("ALTER TABLE inscricoes ADD COLUMN team_id INT NULL");
+  } catch { /* coluna já existe */ }
   tableReady = true;
 }
 
@@ -202,15 +207,17 @@ export async function PUT(req: NextRequest) {
   const pool = dbPool;
 
   try {
-    const { id, status, notes, pix_comprovante_url } = await req.json();
+    const { id, status, notes, pix_comprovante_url, team_id, tournament_id } = await req.json();
     if (!id) return NextResponse.json({ error: "id obrigatório" }, { status: 400 });
 
     const updates: string[] = [];
-    const params: (string | number)[] = [];
+    const params: (string | number | null)[] = [];
 
     if (status) { updates.push("status = ?"); params.push(status); }
     if (notes !== undefined) { updates.push("notes = ?"); params.push(notes); }
     if (pix_comprovante_url !== undefined) { updates.push("pix_comprovante_url = ?"); params.push(pix_comprovante_url); }
+    if (team_id !== undefined) { updates.push("team_id = ?"); params.push(team_id); }
+    if (tournament_id !== undefined) { updates.push("tournament_id = ?"); params.push(tournament_id || null); }
 
     if (updates.length === 0) return NextResponse.json({ error: "Nada pra atualizar" }, { status: 400 });
 

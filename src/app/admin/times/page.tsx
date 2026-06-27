@@ -1,13 +1,16 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users, Upload, ImagePlus } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, Check, AlertCircle, Users, Upload, ImagePlus, CheckCircle2 } from "lucide-react";
 import { HudCard } from "@/components/hud-card";
 import { useEffect, useState } from "react";
 import { Team, createTeam, updateTeam, deleteTeam } from "@/lib/api";
+import { getTargetTournament, buildConfirmedTeams, isTeamConfirmed, type InscricaoLite, type TournamentLite } from "@/lib/confirmados";
 
 export default function AdminTimes() {
   const [teams, setTeams] = useState<Team[]>([]);
+  const [inscricoes, setInscricoes] = useState<InscricaoLite[]>([]);
+  const [tournaments, setTournaments] = useState<TournamentLite[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Form state
@@ -64,14 +67,23 @@ export default function AdminTimes() {
 
   const fetchTeams = async () => {
     try {
-      const res = await fetch("/api/teams", { credentials: "include" });
-      const data = await res.json();
-      setTeams(data.teams || []);
+      const [teamsRes, inscRes, tourRes] = await Promise.all([
+        fetch("/api/teams", { credentials: "include" }).then(r => r.json()).catch(() => ({ teams: [] })),
+        fetch("/api/inscricao", { credentials: "include" }).then(r => r.json()).catch(() => ({ inscricoes: [] })),
+        fetch("/api/tournaments").then(r => r.json()).catch(() => ({ tournaments: [] })),
+      ]);
+      setTeams(teamsRes.teams || []);
+      setInscricoes(inscRes.inscricoes || []);
+      setTournaments(tourRes.tournaments || []);
     } catch { /* */ }
     setLoading(false);
   };
 
   useEffect(() => { fetchTeams(); }, []);
+
+  // Times confirmados no campeonato ativo (selo de inscrição)
+  const target = getTargetTournament(tournaments);
+  const confirmed = buildConfirmedTeams(inscricoes, target?.id ?? null);
 
   const resetForm = () => {
     setName("");
@@ -175,12 +187,12 @@ export default function AdminTimes() {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-[family-name:var(--font-orbitron)] text-sm font-bold text-orbital-text tracking-wider">
+        <h2 className="font-[family-name:var(--font-russo)] text-sm font-bold text-orbital-text tracking-wider">
           TIMES ({teams.length})
         </h2>
         {!showForm && (
           <div className="flex items-center gap-2">
-            <label className={`flex items-center gap-2 px-4 py-2 border transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider cursor-pointer ${
+            <label className={`flex items-center gap-2 px-4 py-2 border transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider cursor-pointer ${
               importing ? "bg-orbital-purple/5 border-orbital-border text-orbital-text-dim" : "bg-orbital-card border-orbital-border hover:border-orbital-purple/40 text-orbital-text-dim hover:text-orbital-purple"
             }`}>
               <Upload size={14} />
@@ -189,7 +201,7 @@ export default function AdminTimes() {
             </label>
             <button
               onClick={() => { resetForm(); setShowForm(true); }}
-              className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple"
+              className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-purple"
             >
               <Plus size={14} />
               NOVO TIME
@@ -211,21 +223,21 @@ export default function AdminTimes() {
               <form onSubmit={handleSubmit} className="space-y-4 py-2">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">NOME</label>
+                    <label className="block font-[family-name:var(--font-russo)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">NOME</label>
                     <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome do time" className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                   <div>
-                    <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">TAG</label>
+                    <label className="block font-[family-name:var(--font-russo)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">TAG</label>
                     <input type="text" value={tag} onChange={e => setTag(e.target.value)} placeholder="TAG" maxLength={5} className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                   <div>
-                    <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">PAÍS</label>
+                    <label className="block font-[family-name:var(--font-russo)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">PAÍS</label>
                     <input type="text" value={flag} onChange={e => setFlag(e.target.value)} placeholder="BR" maxLength={2} className="w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors placeholder:text-orbital-text-dim/50" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">LOGO</label>
+                  <label className="block font-[family-name:var(--font-russo)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2">LOGO</label>
                   <div className="flex items-center gap-3">
                     {logo ? (
                       <div className="flex items-center gap-3">
@@ -292,7 +304,7 @@ export default function AdminTimes() {
                 {/* Players */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim">JOGADORES</label>
+                    <label className="font-[family-name:var(--font-russo)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim">JOGADORES</label>
                     <button type="button" onClick={addPlayer} className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-purple hover:text-orbital-purple/80">
                       + Adicionar
                     </button>
@@ -328,11 +340,11 @@ export default function AdminTimes() {
                 )}
 
                 <div className="flex gap-3">
-                  <button type="submit" disabled={submitting} className="flex items-center gap-2 px-6 py-2.5 bg-orbital-purple/20 border border-orbital-purple/50 hover:bg-orbital-purple/30 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple disabled:opacity-50">
+                  <button type="submit" disabled={submitting} className="flex items-center gap-2 px-6 py-2.5 bg-orbital-purple/20 border border-orbital-purple/50 hover:bg-orbital-purple/30 transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-purple disabled:opacity-50">
                     {submitting ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                     {editing ? "SALVAR" : "CRIAR"}
                   </button>
-                  <button type="button" onClick={resetForm} className="px-6 py-2.5 border border-orbital-border hover:border-orbital-text-dim transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text-dim">
+                  <button type="button" onClick={resetForm} className="px-6 py-2.5 border border-orbital-border hover:border-orbital-text-dim transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-text-dim">
                     CANCELAR
                   </button>
                 </div>
@@ -361,8 +373,13 @@ export default function AdminTimes() {
                 )}
               </div>
               <div>
-                <h3 className="font-[family-name:var(--font-orbitron)] text-xs font-bold text-orbital-text tracking-wider">
+                <h3 className="font-[family-name:var(--font-russo)] text-xs font-bold text-orbital-text tracking-wider flex items-center gap-2">
                   {team.name}
+                  {target && isTeamConfirmed(team, confirmed) && (
+                    <span className="flex items-center gap-1 font-[family-name:var(--font-jetbrains)] text-[0.55rem] tracking-normal px-1.5 py-0.5 bg-orbital-success/10 text-orbital-success border border-orbital-success/30">
+                      <CheckCircle2 size={9} /> INSCRITO · {target.name}
+                    </span>
+                  )}
                 </h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">[{team.tag}]</span>

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Users, CheckCircle2, XCircle, Clock, Loader2, Trash2, ExternalLink, UserPlus, Upload, Image as ImageIcon } from "lucide-react";
+import { Users, CheckCircle2, XCircle, Clock, Loader2, Trash2, ExternalLink, UserPlus, Upload, Image as ImageIcon, Trophy } from "lucide-react";
 import Image from "next/image";
+import { getTargetTournament, type TournamentLite } from "@/lib/confirmados";
 
 interface Inscricao {
   id: number;
@@ -16,6 +17,7 @@ interface Inscricao {
   players: { name: string; steam_id: string }[];
   logo_url: string | null;
   pix_comprovante_url: string | null;
+  team_id: number | null;
   status: "pendente" | "aprovado" | "rejeitado" | "pago";
   notes: string | null;
   created_at: string;
@@ -30,6 +32,7 @@ const statusConfig = {
 
 export default function InscricoesAdminPage() {
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
+  const [tournaments, setTournaments] = useState<TournamentLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -39,12 +42,15 @@ export default function InscricoesAdminPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch("/api/inscricao", { credentials: "include" });
-      const data = await res.json();
-      setInscricoes((data.inscricoes || []).map((i: Inscricao) => ({
+      const [inscRes, tourRes] = await Promise.all([
+        fetch("/api/inscricao", { credentials: "include" }).then(r => r.json()).catch(() => ({ inscricoes: [] })),
+        fetch("/api/tournaments").then(r => r.json()).catch(() => ({ tournaments: [] })),
+      ]);
+      setInscricoes((inscRes.inscricoes || []).map((i: Inscricao) => ({
         ...i,
         players: typeof i.players === "string" ? JSON.parse(i.players) : i.players,
       })));
+      setTournaments(tourRes.tournaments || []);
     } catch { /* */ }
     setLoading(false);
   }, []);
@@ -58,6 +64,18 @@ export default function InscricoesAdminPage() {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, status }),
+    });
+    await fetchData();
+    setActionLoading(null);
+  };
+
+  const moveToTournament = async (id: number, tournamentId: string) => {
+    setActionLoading(id);
+    await fetch("/api/inscricao", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, tournament_id: tournamentId || null }),
     });
     await fetchData();
     setActionLoading(null);
@@ -113,12 +131,65 @@ export default function InscricoesAdminPage() {
 
   const registerTeam = async (insc: Inscricao) => {
     setActionLoading(insc.id);
+    // Aprova a inscrição e grava o team_id do G5API (liga inscrição → time)
+    const approve = async (tid: number | null) => {
+      await fetch("/api/inscricao", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: insc.id, status: "aprovado", team_id: tid }),
+      });
+      await fetchData();
+    };
     try {
+      // Roster completo = capitão + jogadores. O capitão vem SEPARADO na inscrição
+      // (não está dentro de insc.players), por isso antes sumia do cadastro do time.
+      const seen = new Set<string>();
+      const roster: { steam_id: string; name: string }[] = [];
+      const pushPlayer = (steam_id: string, name: string) => {
+        if (!steam_id || seen.has(steam_id)) return;
+        seen.add(steam_id);
+        roster.push({ steam_id, name: name || steam_id });
+      };
+      pushPlayer(insc.captain_steam_id, insc.captain_name);
+      for (const p of insc.players) pushPlayer(p.steam_id, p.name);
+
+      // auth_name no formato rico do G5API (preserva a flag de capitão)
       const authName: Record<string, { name: string; captain: number; coach: number }> = {};
-      for (const p of insc.players) {
+      for (const p of roster) {
         authName[p.steam_id] = { name: p.name, captain: p.steam_id === insc.captain_steam_id ? 1 : 0, coach: 0 };
       }
 
+      // Procura time já cadastrado (ex: jogou campeonato anterior) comparando o roster.
+      // 3+ Steam IDs em comum = mesmo time (mesma convenção do sync do Faceit).
+      let matchedTeam: { id: number; name: string } | null = null;
+      try {
+        const teamsRes = await fetch("/api/teams", { credentials: "include" });
+        const teamsData = await teamsRes.json();
+        for (const t of (teamsData.teams || [])) {
+          const overlap = Object.keys(t.auth_name || {}).filter(id => seen.has(id)).length;
+          if (overlap >= 3) { matchedTeam = t; break; }
+        }
+      } catch { /* sem lista de times: segue criando um novo */ }
+
+      let teamId: number | null = null;
+
+      if (matchedTeam) {
+        // Time já existe → só adiciona/atualiza jogadores (G5API faz upsert, nunca remove).
+        const res = await fetch("/write-proxy/teams", {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify([{ id: matchedTeam.id, auth_name: authName }]),
+        });
+        if (!res.ok) { alert("Erro ao atualizar o time existente no G5API"); setActionLoading(null); return; }
+        await approve(matchedTeam.id);
+        alert(`Time já existia — jogadores sincronizados em "${matchedTeam.name}". Nenhum time duplicado foi criado.`);
+        setActionLoading(null);
+        return;
+      }
+
+      // Time novo → cria já com o roster completo (capitão incluído).
       const res = await fetch("/write-proxy/teams", {
         method: "POST",
         credentials: "include",
@@ -132,12 +203,23 @@ export default function InscricoesAdminPage() {
         }]),
       });
 
-      if (res.ok) {
-        await updateStatus(insc.id, "aprovado");
-        alert(`Time "${insc.team_name}" cadastrado no G5API!`);
-      } else {
-        alert("Erro ao cadastrar time no G5API");
+      if (!res.ok) { alert("Erro ao cadastrar time no G5API"); setActionLoading(null); return; }
+
+      const data = await res.json().catch(() => ({}));
+      teamId = data?.id ?? data?.team?.id ?? null;
+
+      // Logo: G5API não aceita logo via URL — grava direto na coluna team.logo.
+      if (teamId && insc.logo_url) {
+        await fetch("/api/team-logo", {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teamId, logoUrl: insc.logo_url }),
+        });
       }
+
+      await approve(teamId);
+      alert(`Time "${insc.team_name}" cadastrado no G5API com ${roster.length} jogadores${teamId && insc.logo_url ? " e logo" : ""}!`);
     } catch {
       alert("Erro de conexão");
     }
@@ -146,6 +228,12 @@ export default function InscricoesAdminPage() {
 
   const pendentes = inscricoes.filter(i => i.status === "pendente").length;
   const aprovados = inscricoes.filter(i => i.status === "aprovado" || i.status === "pago").length;
+
+  // Camp alvo (ativo/aberto) — sinaliza quem se inscreveu pra ele
+  const tourMap = new Map(tournaments.map(t => [t.id, t]));
+  const target = getTargetTournament(tournaments);
+  const targetInscricoes = target ? inscricoes.filter(i => i.tournament_id === target.id) : [];
+  const targetConfirmed = targetInscricoes.filter(i => i.status === "aprovado" || i.status === "pago").length;
 
   if (loading) {
     return (
@@ -162,13 +250,31 @@ export default function InscricoesAdminPage() {
         <div className="flex items-center gap-3">
           <Users size={18} className="text-orbital-purple" />
           <div>
-            <h1 className="font-[family-name:var(--font-orbitron)] text-lg tracking-wider text-orbital-text">INSCRIÇÕES</h1>
+            <h1 className="font-[family-name:var(--font-russo)] text-lg tracking-wider text-orbital-text">INSCRIÇÕES</h1>
             <p className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim">
               {pendentes} pendentes — {aprovados} aprovados — {inscricoes.length} total
             </p>
           </div>
         </div>
       </div>
+
+      {/* Camp alvo — times confirmados pro campeonato ativo */}
+      {target && (
+        <div className="flex items-center gap-3 bg-orbital-purple/[0.07] border border-orbital-purple/30 p-3">
+          <Trophy size={18} className="text-orbital-purple shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="font-[family-name:var(--font-russo)] text-xs tracking-wider text-orbital-text">
+              CAMP ATIVO: {target.name}
+              <span className="ml-2 font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-purple">
+                {target.status === "active" ? "EM ANDAMENTO" : "INSCRIÇÕES ABERTAS"}
+              </span>
+            </div>
+            <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
+              {targetConfirmed} confirmados — {targetInscricoes.length} inscritos no total
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3">
@@ -177,7 +283,7 @@ export default function InscricoesAdminPage() {
           const count = inscricoes.filter(i => i.status === s).length;
           return (
             <div key={s} className={`bg-[#0A0A0A] border p-3 ${cfg.bg}`}>
-              <div className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider ${cfg.color}`}>{cfg.label}</div>
+              <div className={`font-[family-name:var(--font-russo)] text-[0.65rem] tracking-wider ${cfg.color}`}>{cfg.label}</div>
               <div className="font-[family-name:var(--font-jetbrains)] text-xl text-orbital-text mt-1">{count}</div>
             </div>
           );
@@ -232,10 +338,16 @@ export default function InscricoesAdminPage() {
               >
                 <Icon size={14} className={cfg.color} />
                 <div className="flex-1 min-w-0">
-                  <div className="font-[family-name:var(--font-orbitron)] text-xs tracking-wider text-orbital-text">
+                  <div className="font-[family-name:var(--font-russo)] text-xs tracking-wider text-orbital-text flex items-center gap-2">
                     {insc.team_name} <span className="text-orbital-text-dim">[{insc.team_tag}]</span>
+                    {target && insc.tournament_id === target.id && (
+                      <span className="font-[family-name:var(--font-jetbrains)] text-[0.55rem] px-1.5 py-0.5 bg-orbital-purple/15 text-orbital-purple border border-orbital-purple/30">CAMP ATIVO</span>
+                    )}
                   </div>
-                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
+                  <div className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim flex items-center gap-1.5">
+                    <Trophy size={9} className="text-orbital-text-dim/60" />
+                    {insc.tournament_id ? (tourMap.get(insc.tournament_id)?.name ?? "Campeonato removido") : "Sem campeonato"}
+                    <span className="text-orbital-text-dim/40">·</span>
                     Capitão: {insc.captain_name} — {insc.players.length} jogadores — {new Date(insc.created_at).toLocaleDateString("pt-BR")}
                   </div>
                 </div>
@@ -247,6 +359,26 @@ export default function InscricoesAdminPage() {
               {/* Expanded */}
               {expanded && (
                 <div className="border-t border-orbital-border/30 p-4 space-y-3">
+                  {/* Campeonato — mover/atribuir a inscrição */}
+                  <div className="flex items-center gap-2 flex-wrap bg-[#111] border border-orbital-border p-2.5">
+                    <Trophy size={12} className="text-orbital-purple shrink-0" />
+                    <span className="font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-purple">CAMPEONATO</span>
+                    <select
+                      value={insc.tournament_id ?? ""}
+                      onChange={(e) => moveToTournament(insc.id, e.target.value)}
+                      disabled={isLoading}
+                      className="flex-1 min-w-[180px] bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-xs px-2 py-1.5 focus:border-orbital-purple/50 focus:outline-none transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      <option value="">— Sem campeonato —</option>
+                      {tournaments.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name}{t.status === "active" ? " (ativo)" : t.status === "pending" ? " (aberto)" : t.status === "finished" ? " (finalizado)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {isLoading && <Loader2 size={12} className="animate-spin text-orbital-purple" />}
+                  </div>
+
                   {/* Logo and Team Info */}
                   <div className="flex gap-4">
                     {insc.logo_url && (
@@ -256,17 +388,17 @@ export default function InscricoesAdminPage() {
                     )}
                     <div className="flex-1 grid grid-cols-3 gap-3">
                       <div>
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">WHATSAPP</div>
+                        <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">WHATSAPP</div>
                         <a href={`https://wa.me/55${insc.captain_whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text hover:text-orbital-purple flex items-center gap-1">
                           {insc.captain_whatsapp} <ExternalLink size={10} />
                         </a>
                       </div>
                       <div>
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">STEAM ID CAPITÃO</div>
+                        <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">STEAM ID CAPITÃO</div>
                         <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text">{insc.captain_steam_id}</span>
                       </div>
                       <div>
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">LOGO</div>
+                        <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-wider text-orbital-purple mb-0.5">LOGO</div>
                         <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim">{insc.logo_url ? "✓" : "—"}</span>
                       </div>
                     </div>
@@ -274,7 +406,7 @@ export default function InscricoesAdminPage() {
 
                   {/* Players */}
                   <div>
-                    <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-1">JOGADORES</div>
+                    <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-wider text-orbital-purple mb-1">JOGADORES</div>
                     <div className="space-y-1">
                       {insc.players.map((p, i) => (
                         <div key={i} className="flex items-center gap-2 font-[family-name:var(--font-jetbrains)] text-xs">
@@ -290,7 +422,7 @@ export default function InscricoesAdminPage() {
                   {/* Comprovante PIX */}
                   {(insc.status === "aprovado" || insc.status === "pago") && (
                     <div className="bg-[#111] border border-orbital-border p-3">
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider text-orbital-purple mb-2">
+                      <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-wider text-orbital-purple mb-2">
                         COMPROVANTE PIX
                       </div>
                       {insc.pix_comprovante_url ? (

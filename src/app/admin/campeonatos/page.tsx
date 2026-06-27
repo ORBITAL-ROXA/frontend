@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Loader2, Check, AlertCircle, ChevronUp, Trophy, Trash2, Eye, ArrowRight, ArrowLeft, Users, Radio } from "lucide-react";
+import { Plus, Loader2, Check, AlertCircle, ChevronUp, Trophy, Trash2, Eye, ArrowRight, ArrowLeft, Users, Radio, ClipboardList } from "lucide-react";
 import { HudCard } from "@/components/hud-card";
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
@@ -13,12 +13,19 @@ import {
   generateSwissInitialRound,
   getDefaultMapPool,
 } from "@/lib/tournament";
+import { getTargetTournament, buildConfirmedTeams, isTeamConfirmed, type InscricaoLite } from "@/lib/confirmados";
 
 export default function AdminCampeonatos() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [seasons, setSeasons] = useState<Season[]>([]);
+  const [inscricoes, setInscricoes] = useState<InscricaoLite[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // "Abrir inscrições": cria campeonato pending sem bracket; "finalizar": monta o bracket depois
+  const [finalizeId, setFinalizeId] = useState<string | null>(null);
+  const [showOpen, setShowOpen] = useState(false);
+  const [openSubmitting, setOpenSubmitting] = useState(false);
 
   // Wizard state
   const [showCreate, setShowCreate] = useState(false);
@@ -39,24 +46,46 @@ export default function AdminCampeonatos() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [tournamentsRes, teamsRes, seasonsRes] = await Promise.all([
+      const [tournamentsRes, teamsRes, seasonsRes, inscRes] = await Promise.all([
         fetch("/api/tournaments").then(r => r.json()).catch(() => ({ tournaments: [] })),
         fetch("/api/teams", { credentials: "include" }).then(r => r.json()).catch(() => ({ teams: [] })),
         fetch("/api/seasons", { credentials: "include" }).then(r => r.json()).catch(() => ({ seasons: [] })),
+        fetch("/api/inscricao", { credentials: "include" }).then(r => r.json()).catch(() => ({ inscricoes: [] })),
       ]);
       setTournaments(tournamentsRes.tournaments || []);
       setTeams(teamsRes.teams || []);
       setSeasons(seasonsRes.seasons || []);
+      setInscricoes(inscRes.inscricoes || []);
     } catch { /* */ }
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Times confirmados (selo INSCRITO no seletor). Ao finalizar um campeonato,
+  // usa os inscritos DELE; senão, do camp alvo (ativo/aberto).
+  const campForSelos = finalizeId
+    ? (tournaments.find(t => t.id === finalizeId) ?? null)
+    : getTargetTournament(tournaments);
+  const confirmedTeams = buildConfirmedTeams(inscricoes, campForSelos?.id ?? null);
+  const teamInscrito = (team: Team) => isTeamConfirmed(team, confirmedTeams);
+
   const toggleTeam = (teamId: number) => {
     setSelectedTeams(prev =>
       prev.includes(teamId) ? prev.filter(id => id !== teamId) : prev.length < requiredTeams.max ? [...prev, teamId] : prev
     );
+  };
+
+  // Seleciona de uma vez todos os times inscritos no camp ativo (respeitando o máximo)
+  const selectInscritos = () => {
+    const inscritoIds = teams.filter(teamInscrito).map(t => t.id);
+    setSelectedTeams(prev => {
+      const merged = [...prev];
+      for (const id of inscritoIds) {
+        if (!merged.includes(id) && merged.length < requiredTeams.max) merged.push(id);
+      }
+      return merged;
+    });
   };
 
   const toggleMap = (map: string) => {
@@ -74,6 +103,75 @@ export default function AdminCampeonatos() {
     }
     if (step === 2) return mapPool.length >= 7;
     return true;
+  };
+
+  // Abre um campeonato só pra receber inscrições: pending, sem times nem bracket.
+  // O bracket é montado depois ("MONTAR BRACKET") com os times confirmados.
+  const openInscricoes = async () => {
+    if (!name.trim()) { setFeedback({ type: "error", msg: "Dê um nome ao campeonato." }); return; }
+    setOpenSubmitting(true);
+    setFeedback(null);
+    try {
+      const tournament: Tournament = {
+        id: `t-${Date.now()}`,
+        name: name.trim(),
+        season_id: seasonId ? parseInt(seasonId) : null,
+        server_id: null,
+        format: "double_elimination",
+        mode: "presencial",
+        teams: [],
+        matches: [],
+        map_pool: getDefaultMapPool(),
+        players_per_team: 5,
+        created_at: new Date().toISOString(),
+        status: "pending",
+        current_match_id: null,
+        start_date: startDate || null,
+        end_date: endDate || null,
+        location: location || null,
+        prize_pool: prizePool || null,
+        description: description || null,
+        spectator_auth: spectatorAuth || null,
+      };
+      const res = await fetch("/api/tournaments", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tournament),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setFeedback({ type: "error", msg: err.error || `Erro ao abrir inscrições (${res.status})` });
+        setOpenSubmitting(false);
+        return;
+      }
+      setFeedback({ type: "success", msg: `Inscrições abertas para "${tournament.name}"! Já aparece no formulário /inscricao.` });
+      setName(""); setSeasonId(""); setStartDate(""); setEndDate(""); setLocation(""); setPrizePool(""); setDescription("");
+      await fetchData();
+      setTimeout(() => { setShowOpen(false); }, 1500);
+    } catch (err) {
+      setFeedback({ type: "error", msg: err instanceof Error ? err.message : "Erro ao abrir inscrições" });
+    }
+    setOpenSubmitting(false);
+  };
+
+  // Pré-carrega o wizard pra montar o bracket de um campeonato já aberto (mantém o mesmo id).
+  const startFinalize = (t: Tournament) => {
+    setFinalizeId(t.id);
+    setName(t.name);
+    setSeasonId(t.season_id ? String(t.season_id) : "");
+    setStartDate(t.start_date || "");
+    setEndDate(t.end_date || "");
+    setLocation(t.location || "");
+    setPrizePool(t.prize_pool || "");
+    setDescription(t.description || "");
+    setFormat(t.format);
+    setMapPool(t.map_pool?.length ? t.map_pool : getDefaultMapPool());
+    setSelectedTeams(t.teams.map(tt => tt.id));
+    setShowOpen(false);
+    setFeedback(null);
+    setShowCreate(true);
+    setWizardStep(1); // pula direto pra seleção de times
   };
 
   const handleCreate = async () => {
@@ -100,8 +198,11 @@ export default function AdminCampeonatos() {
         matches = generateDoubleEliminationBracket(tournamentTeams);
       }
 
+      // Modo finalizar: mantém o mesmo id (preserva o vínculo das inscrições) e dá PUT
+      const existing = finalizeId ? tournaments.find(t => t.id === finalizeId) : null;
+
       const tournament: Tournament = {
-        id: `t-${Date.now()}`,
+        id: finalizeId || `t-${Date.now()}`,
         name: name.trim(),
         season_id: seasonId ? parseInt(seasonId) : null,
         server_id: null,
@@ -111,7 +212,7 @@ export default function AdminCampeonatos() {
         matches,
         map_pool: mapPool,
         players_per_team: 5,
-        created_at: new Date().toISOString(),
+        created_at: existing?.created_at || new Date().toISOString(),
         status: "pending",
         current_match_id: null,
         ...(swissRecords ? { swiss_records: swissRecords, swiss_round: 1, swiss_advance_wins: 3, swiss_eliminate_losses: 3 } : {}),
@@ -124,7 +225,7 @@ export default function AdminCampeonatos() {
       };
 
       const res = await fetch("/api/tournaments", {
-        method: "POST",
+        method: finalizeId ? "PUT" : "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(tournament),
@@ -132,12 +233,13 @@ export default function AdminCampeonatos() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        setFeedback({ type: "error", msg: err.error || `Erro ao criar campeonato (${res.status})` });
+        setFeedback({ type: "error", msg: err.error || `Erro ao salvar campeonato (${res.status})` });
         setSubmitting(false);
         return;
       }
 
-      setFeedback({ type: "success", msg: `Campeonato "${tournament.name}" criado com sucesso!` });
+      setFeedback({ type: "success", msg: finalizeId ? `Bracket de "${tournament.name}" montado!` : `Campeonato "${tournament.name}" criado com sucesso!` });
+      setFinalizeId(null);
       setName("");
       setSelectedTeams([]);
       setMapPool(getDefaultMapPool());
@@ -172,7 +274,7 @@ export default function AdminCampeonatos() {
   };
 
   const inputClass = "w-full bg-[#0A0A0A] border border-orbital-border text-orbital-text font-[family-name:var(--font-jetbrains)] text-sm px-3 py-2.5 focus:border-orbital-purple/50 focus:outline-none transition-colors";
-  const labelClass = "block font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2";
+  const labelClass = "block font-[family-name:var(--font-russo)] text-[0.6rem] tracking-[0.15em] text-orbital-text-dim mb-2";
 
   const allMaps = getDefaultMapPool();
 
@@ -195,17 +297,73 @@ export default function AdminCampeonatos() {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-[family-name:var(--font-orbitron)] text-sm font-bold text-orbital-text tracking-wider">
+        <h2 className="font-[family-name:var(--font-russo)] text-sm font-bold text-orbital-text tracking-wider">
           CAMPEONATOS ({tournaments.length})
         </h2>
-        <button
-          onClick={() => { setShowCreate(!showCreate); setFeedback(null); setWizardStep(0); }}
-          className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple"
-        >
-          {showCreate ? <ChevronUp size={14} /> : <Plus size={14} />}
-          {showCreate ? "FECHAR" : "NOVO CAMPEONATO"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setShowOpen(o => !o); setShowCreate(false); setFinalizeId(null); setFeedback(null); }}
+            className="flex items-center gap-2 px-4 py-2 bg-orbital-success/10 border border-orbital-success/30 hover:border-orbital-success/60 transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-success"
+          >
+            {showOpen ? <ChevronUp size={14} /> : <ClipboardList size={14} />}
+            {showOpen ? "FECHAR" : "ABRIR INSCRIÇÕES"}
+          </button>
+          <button
+            onClick={() => {
+              if (showCreate) { setShowCreate(false); return; }
+              setFinalizeId(null); setName(""); setSelectedTeams([]); setMapPool(getDefaultMapPool());
+              setSeasonId(""); setStartDate(""); setEndDate(""); setLocation(""); setPrizePool(""); setDescription("");
+              setFormat("double_elimination"); setShowOpen(false); setFeedback(null); setWizardStep(0); setShowCreate(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-orbital-purple/10 border border-orbital-purple/30 hover:border-orbital-purple/60 transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-purple"
+          >
+            {showCreate ? <ChevronUp size={14} /> : <Plus size={14} />}
+            {showCreate ? "FECHAR" : "NOVO CAMPEONATO"}
+          </button>
+        </div>
       </div>
+
+      {/* Abrir inscrições — cria campeonato pending sem bracket */}
+      {showOpen && (
+        <HudCard label="ABRIR INSCRIÇÕES" className="mb-6">
+          <div className="space-y-4 py-2">
+            <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/70">
+              Cria o campeonato já aberto pra receber inscrições em <span className="text-orbital-purple">/inscricao</span>, sem os times.
+              Depois você monta o bracket com os confirmados clicando em <span className="text-orbital-success">MONTAR BRACKET</span>.
+            </p>
+            <div>
+              <label className={labelClass}>NOME DO CAMPEONATO</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: ORBITAL ROXA CUP #2" className={`${inputClass} placeholder:text-orbital-text-dim/50`} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>DATA INÍCIO (opcional)</label>
+                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>DATA FIM (opcional)</label>
+                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={inputClass} />
+              </div>
+            </div>
+            {feedback && (
+              <div className={`flex items-center gap-2 px-4 py-3 border font-[family-name:var(--font-jetbrains)] text-xs ${
+                feedback.type === "success" ? "bg-orbital-success/10 border-orbital-success/30 text-orbital-success" : "bg-orbital-danger/10 border-orbital-danger/30 text-orbital-danger"
+              }`}>
+                {feedback.type === "success" ? <Check size={14} /> : <AlertCircle size={14} />}
+                {feedback.msg}
+              </div>
+            )}
+            <button
+              onClick={openInscricoes}
+              disabled={openSubmitting || !name.trim()}
+              className="flex items-center gap-2 px-6 py-2.5 bg-orbital-success/15 border border-orbital-success/40 hover:border-orbital-success transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-success disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {openSubmitting ? <Loader2 size={14} className="animate-spin" /> : <ClipboardList size={14} />}
+              {openSubmitting ? "ABRINDO..." : "ABRIR INSCRIÇÕES"}
+            </button>
+          </div>
+        </HudCard>
+      )}
 
       {/* Create Wizard */}
       <AnimatePresence>
@@ -216,7 +374,7 @@ export default function AdminCampeonatos() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <HudCard label="CRIAR CAMPEONATO" className="mb-6">
+            <HudCard label={finalizeId ? `MONTAR BRACKET — ${name}` : "CRIAR CAMPEONATO"} className="mb-6">
               {/* Step Indicators */}
               <div className="flex items-center justify-between mb-8 pt-2">
                 {wizardSteps.map((step, i) => {
@@ -236,7 +394,7 @@ export default function AdminCampeonatos() {
                         }`}
                       >
                         {isDone ? <Check size={14} /> : <span className="font-[family-name:var(--font-jetbrains)] text-xs">{step.num}</span>}
-                        <span className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.15em] hidden sm:inline">
+                        <span className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-[0.15em] hidden sm:inline">
                           {step.label}
                         </span>
                       </button>
@@ -298,7 +456,7 @@ export default function AdminCampeonatos() {
                       <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim/50 mt-1">SteamID64 da conta que fará a transmissão ao vivo</p>
                     </div>
                     <div className="bg-[#0A0A0A] border border-orbital-border p-4">
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] mb-2 text-orbital-purple">
+                      <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-[0.2em] mb-2 text-orbital-purple">
                         FORMATO
                       </div>
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim space-y-1">
@@ -324,11 +482,23 @@ export default function AdminCampeonatos() {
                           : "Selecione os 8 times participantes."}
                       </p>
 
+                      {/* Atalho: puxar os times inscritos no campeonato */}
+                      {campForSelos && teams.some(teamInscrito) && (
+                        <button
+                          type="button"
+                          onClick={selectInscritos}
+                          className="flex items-center gap-2 mb-3 px-3 py-2 bg-orbital-success/10 border border-orbital-success/30 hover:border-orbital-success/60 transition-all font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-success"
+                        >
+                          <Plus size={12} />
+                          Selecionar inscritos do {campForSelos.name} ({teams.filter(teamInscrito).length})
+                        </button>
+                      )}
+
 
                       {/* Selected teams with seed order */}
                       {selectedTeams.length > 0 && (
                         <div className="mb-4 space-y-1">
-                          <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-2">
+                          <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-[0.2em] text-orbital-purple mb-2">
                             TIMES SELECIONADOS
                           </div>
                           {selectedTeams.map((teamId) => {
@@ -337,6 +507,9 @@ export default function AdminCampeonatos() {
                             return (
                               <div key={teamId} className="flex items-center gap-2 px-3 py-2 bg-orbital-purple/5 border border-orbital-purple/20">
                                 <span className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text flex-1">{team.name}</span>
+                                {teamInscrito(team) && (
+                                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] px-1 py-px bg-orbital-success/10 text-orbital-success border border-orbital-success/30">INSCRITO</span>
+                                )}
                                 <div className="flex items-center gap-1">
                                   <button type="button" onClick={() => toggleTeam(teamId)} className="p-1 text-orbital-text-dim hover:text-orbital-danger">
                                     <Trash2 size={10} />
@@ -360,12 +533,17 @@ export default function AdminCampeonatos() {
                           >
                             <Users size={14} className="text-orbital-text-dim" />
                             <div>
-                              <div className="font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text">
+                              <div className="font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-text">
                                 {team.name}
                               </div>
-                              {team.tag && (
-                                <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">[{team.tag}]</span>
-                              )}
+                              <div className="flex items-center gap-1.5">
+                                {team.tag && (
+                                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">[{team.tag}]</span>
+                                )}
+                                {teamInscrito(team) && (
+                                  <span className="font-[family-name:var(--font-jetbrains)] text-[0.5rem] px-1 py-px bg-orbital-success/10 text-orbital-success border border-orbital-success/30">INSCRITO</span>
+                                )}
+                              </div>
                             </div>
                             <Plus size={12} className="ml-auto text-orbital-text-dim" />
                           </button>
@@ -413,7 +591,7 @@ export default function AdminCampeonatos() {
                 {wizardStep === 3 && (
                   <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                     <div className="bg-[#0A0A0A] border border-orbital-border p-5 space-y-4">
-                      <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">RESUMO DO CAMPEONATO</div>
+                      <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-[0.2em] text-orbital-purple">RESUMO DO CAMPEONATO</div>
 
                       <div className="font-[family-name:var(--font-jetbrains)] text-xs text-orbital-text-dim space-y-2">
                         <p><span className="text-orbital-text">Nome:</span> {name}</p>
@@ -426,7 +604,7 @@ export default function AdminCampeonatos() {
                       </div>
 
                       <div className="border-t border-orbital-border pt-3">
-                        <div className="font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-[0.2em] text-orbital-text-dim mb-2">CHAVEAMENTO</div>
+                        <div className="font-[family-name:var(--font-russo)] text-[0.65rem] tracking-[0.2em] text-orbital-text-dim mb-2">CHAVEAMENTO</div>
                         <p className="font-[family-name:var(--font-jetbrains)] text-[0.65rem] text-orbital-text-dim">
                           Os confrontos das quartas de final serão sorteados aleatoriamente ao criar o campeonato.
                         </p>
@@ -452,7 +630,7 @@ export default function AdminCampeonatos() {
                   type="button"
                   onClick={() => setWizardStep(s => s - 1)}
                   disabled={wizardStep === 0}
-                  className="flex items-center gap-2 px-4 py-2.5 border border-orbital-border hover:border-orbital-purple/30 transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-text-dim disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2.5 border border-orbital-border hover:border-orbital-purple/30 transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-text-dim disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ArrowLeft size={14} /> VOLTAR
                 </button>
@@ -462,7 +640,7 @@ export default function AdminCampeonatos() {
                     type="button"
                     onClick={() => setWizardStep(s => s + 1)}
                     disabled={!canAdvance(wizardStep)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-orbital-purple/15 border border-orbital-purple/40 hover:border-orbital-purple transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-orbital-purple/15 border border-orbital-purple/40 hover:border-orbital-purple transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-purple disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     PRÓXIMO <ArrowRight size={14} />
                   </button>
@@ -471,10 +649,10 @@ export default function AdminCampeonatos() {
                     type="button"
                     onClick={handleCreate}
                     disabled={submitting}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-orbital-purple/20 border border-orbital-purple/50 hover:bg-orbital-purple/30 hover:border-orbital-purple transition-all font-[family-name:var(--font-orbitron)] text-[0.6rem] tracking-wider text-orbital-purple disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-orbital-purple/20 border border-orbital-purple/50 hover:bg-orbital-purple/30 hover:border-orbital-purple transition-all font-[family-name:var(--font-russo)] text-[0.6rem] tracking-wider text-orbital-purple disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
-                    {submitting ? "CRIANDO..." : "CRIAR CAMPEONATO"}
+                    {submitting ? "SALVANDO..." : finalizeId ? "MONTAR BRACKET" : "CRIAR CAMPEONATO"}
                   </button>
                 )}
               </div>
@@ -489,6 +667,11 @@ export default function AdminCampeonatos() {
           const finished = t.matches.filter(m => m.status === "finished").length;
           const total = t.matches.length;
           const progress = total > 0 ? Math.round((finished / total) * 100) : 0;
+          // Campeonato aberto pra inscrições: pending e ainda sem bracket
+          const isOpen = t.status === "pending" && t.matches.length === 0;
+          const inscritosCount = inscricoes.filter(
+            ins => ins.tournament_id === t.id && (ins.status === "aprovado" || ins.status === "pago")
+          ).length;
 
           return (
             <motion.div
@@ -511,19 +694,21 @@ export default function AdminCampeonatos() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <Link
                         href={`/campeonato/${t.id}`}
-                        className="font-[family-name:var(--font-orbitron)] text-xs font-bold text-orbital-text tracking-wider hover:text-orbital-purple transition-colors"
+                        className="font-[family-name:var(--font-russo)] text-xs font-bold text-orbital-text tracking-wider hover:text-orbital-purple transition-colors"
                       >
                         {t.name}
                       </Link>
-                      <span className={`font-[family-name:var(--font-orbitron)] text-[0.65rem] tracking-wider ${
-                        t.status === "active" ? "text-orbital-live" : t.status === "finished" ? "text-orbital-success" : "text-orbital-warning"
+                      <span className={`font-[family-name:var(--font-russo)] text-[0.65rem] tracking-wider ${
+                        t.status === "active" ? "text-orbital-live" : t.status === "finished" ? "text-orbital-success" : isOpen ? "text-orbital-success" : "text-orbital-warning"
                       }`}>
                         {t.status === "active" && <span className="inline-block w-1.5 h-1.5 rounded-full bg-orbital-live animate-pulse mr-1" />}
-                        {t.status === "active" ? "EM ANDAMENTO" : t.status === "finished" ? "FINALIZADO" : "PENDENTE"}
+                        {t.status === "active" ? "EM ANDAMENTO" : t.status === "finished" ? "FINALIZADO" : isOpen ? "INSCRIÇÕES ABERTAS" : "PENDENTE"}
                       </span>
                     </div>
                     <div className="font-[family-name:var(--font-jetbrains)] text-[0.6rem] text-orbital-text-dim mt-0.5">
-                      {t.teams.length} times — {finished}/{total} partidas — {progress}%
+                      {isOpen
+                        ? `${inscritosCount} ${inscritosCount === 1 ? "time confirmado" : "times confirmados"} — bracket ainda não montado`
+                        : `${t.teams.length} times — ${finished}/${total} partidas — ${progress}%`}
                     </div>
                     {/* Progress bar */}
                     <div className="w-32 h-1 bg-orbital-border mt-1.5">
@@ -533,6 +718,15 @@ export default function AdminCampeonatos() {
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0 ml-2">
+                  {isOpen && (
+                    <button
+                      onClick={() => startFinalize(t)}
+                      className="flex items-center gap-1.5 px-3 py-2 mr-1 bg-orbital-success/10 border border-orbital-success/30 hover:border-orbital-success/60 transition-all font-[family-name:var(--font-russo)] text-[0.55rem] tracking-wider text-orbital-success"
+                      title="Montar o bracket com os times confirmados"
+                    >
+                      <Trophy size={12} /> MONTAR BRACKET
+                    </button>
+                  )}
                   <Link
                     href={`/admin/campeonato/${t.id}`}
                     className="p-2 text-orbital-text-dim hover:text-orbital-purple transition-colors"
